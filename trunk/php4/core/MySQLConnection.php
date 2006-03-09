@@ -35,7 +35,7 @@ class MySQLConnection {
 		return mysql_insert_id($this->db);
 	}
 	
-	function tableInfo($table) {
+	function table_info($table) {
 		$sql = "SHOW COLUMNS FROM $table";
 		$result = new MySQLResult(mysql_query($sql));
 		$output = array();

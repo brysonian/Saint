@@ -9,7 +9,6 @@ class DBOIterator
 	var $valid;
 	var $row;
 	var $nextRow;
-	var $model;
 	var $query;
 	
 // ===========================================================
@@ -24,6 +23,7 @@ class DBOIterator
 		$this->row = false;
 		
 		# get a ref to the dbconnection
+		// TODO: Use DB Service
 		global $dbconnection;
 		$this->db =& $dbconnection;
 		
@@ -33,7 +33,7 @@ class DBOIterator
 // ===========================================================
 // - ACCESSORS
 // ===========================================================
-	function		&get_model()		{ return $this->model; }
+	function &get_model()		{ return $this->model; }
 
 
 // ===========================================================
@@ -69,7 +69,7 @@ class DBOIterator
 		$themodel =& $this->get_model();
 		$themodel->reset();
 		do {
-			$themodel->processRow($this->row);
+			$themodel->process_row($this->row);
 			if ($this->nextRow && ($this->nextRow['id'] == $this->row['id'])) {
 				$this->next();
 				$this->valid();
@@ -115,17 +115,17 @@ class DBOIterator
 // - REPRESENTATIONS
 // ===========================================================
 	// get xml rep of this object
-	function xmlRep() {
+	function to_xml() {
 		die ("no xml rep in the iterator yet");
 		/*
 		# make doc and root
 		$dom = new DomDocument;
-		$root = $dom->createElement($this->get_model()->getTable().'s');
+		$root = $dom->createElement($this->get_model()->get_table().'s');
 		$root = $dom->appendChild($root);
 		
 		# get all objects in this list
 		foreach ($this as $obj) {
-			$obj_xml = $obj->xmlRep();
+			$obj_xml = $obj->to_xml();
 			$obj_xml = $dom->importNode($obj_xml->documentElement, true);
 			$root->appendChild($obj_xml);
 		}

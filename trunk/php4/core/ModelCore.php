@@ -3,14 +3,14 @@
 
 class ModelCore
 {
-	var $data			= array();
+	var $data = array();
 	var $table;
 	var $db;
-	var $toMany;
-	var $toOne;
-	var $toManyObj;
-	var $toOneObj;
-	var $toManyClass;
+	var $to_many;
+	var $to_one;
+	var $to_many_obj;
+	var $to_one_obj;
+	var $to_many_class;
 	var $order;
 	var $where;
 	var $group;
@@ -25,14 +25,17 @@ class ModelCore
 		if (!$table) {
 			$table = strtolower(get_class($this));
 		}
-		$this->setTable($table);
+		$this->set_table($table);
 		
 		# get a ref to the dbconnection
+		// TODO: Use DB Service
 		global $dbconnection;
 		$this->db =& $dbconnection;
 
 		if (method_exists($this, 'init')) $this->init();
 	}
+
+
 
 
 
@@ -54,32 +57,32 @@ class ModelCore
 	}
 
 	// for table
-	function getTable()		{ return $this->table; }
-	function setTable($t)	{ $this->table = $t; }
+	function get_table()		{ return $this->table; }
+	function set_table($t)	{ $this->table = $t; }
 	
 	// query params
-	function		getOrder()		{ return $this->order; }
-	function		setOrder($t)	{ $this->order = $t;}
-
-	function		getWhere()		{ return $this->where; }
-	function		setWhere($t)	{ $this->where = $t; }
-	
-	function		getGroup()		{ return $this->group; }
-	function		setGroup($t)	{ $this->group = $t; }
-	
-	function		getLimit()		{ return $this->limit; }
-	function		setLimit($t)	{ $this->limit = $t; }
+	function get_order()		{ return $this->order; }
+	function set_order($t)	{ $this->order = $t;}
+            
+	function get_where()		{ return $this->where; }
+	function set_where($t)	{ $this->where = $t; }
+	         
+	function get_group()		{ return $this->group; }
+	function set_group($t)	{ $this->group = $t; }
+	         
+	function get_limit()		{ return $this->limit; }
+	function set_limit($t)	{ $this->limit = $t; }
 	
 	// get
 	function get($prop) {
 		# first check in data
 		if (isset($this->data[$prop])) return $this->data[$prop];
 		
-		# then the toOne's
-		if (isset($this->toOneObj[$prop])) return $this->toOneObj[$prop];
+		# then the to_one's
+		if (isset($this->to_one_obj[$prop])) return $this->to_one_obj[$prop];
 
-		# then try the toManys
-		$tm = $this->getToManyObjects($prop);
+		# then try the to_manys
+		$tm =& $this->get_to_many_objects($prop);
 		
 		# if they're are some, return each as an array
 		if ($tm) {
@@ -102,20 +105,25 @@ class ModelCore
 		}
 	}
 
-	// get a list of toMany object
-	function getToManyObjects($prop) {
+	// get a list of to_many object
+	function &get_to_many_objects($prop) {
 		# check if it's there
-		if (isset($this->toManyObj[$prop])) {
-			#$ao = new ArrayObject($this->toManyObj[$prop]);
+		if (isset($this->to_many_obj[$prop])) {
+			#$ao = new ArrayObject($this->to_many_obj[$prop]);
 			#return $ao->getIterator();
-			return $this->toManyObj[$prop];
+			return $this->to_many_obj[$prop];
 		}
 		return false;
 	}
 
 
+
+
+
+
+
 // ===========================================================
-// - SAVE TO DB
+// - CRUD
 // ===========================================================
 	// save to the db
 	function save() {
@@ -128,7 +136,7 @@ class ModelCore
 	}
 
 	function create() {
-		$sql = "INSERT INTO ".$this->getTable()." ";
+		$sql = "INSERT INTO ".$this->get_table()." ";
 
 		# generate values statement
 		$name = array();
@@ -164,7 +172,7 @@ class ModelCore
 	
 	
 	function update() {
-		$sql = "UPDATE ".$this->getTable()." SET ";
+		$sql = "UPDATE ".$this->get_table()." SET ";
 		$props = array();
 		foreach ($this->data as $k=>$v) {
 			if ($k == 'id' || $k == 'uid') continue;
@@ -189,7 +197,7 @@ class ModelCore
 			throw(new Exception("You must define an ID or UID to delete an item", 666));			
 		}
 			
-		$sql = "DELETE FROM ".$this->getTable()." WHERE ";
+		$sql = "DELETE FROM ".$this->get_table()." WHERE ";
 		$sql .= $this->get_id()?"id=".$this->get_id():"uid = '".$this->get_uid()."'";
 		
 		$result = $this->db->query($sql);
@@ -202,6 +210,73 @@ class ModelCore
 
 
 
+
+// ===========================================================
+// - FIND
+// ===========================================================
+	// return an a single item by uid
+	function &find($uid) {
+		# get the class name
+		$db = debug_backtrace();
+		$class = $db[0]['class'];
+
+		$m =& new $class;
+		$m->set_uid($uid);
+		$m->load();
+		return $m;
+	}
+
+	// return an array of all objects of this type
+	function &find_all() {
+		# get the class name
+		$db = debug_backtrace();
+		$class = $db[0]['class'];
+
+		$m =& new $class;
+		$sibs =& new DBOIterator($m, $m->get_query());
+		return $sibs;
+	}
+	
+	// return an array of all objects using this where clause
+	function &find_where($where, $mode=false) {
+		# get the class name
+		$db = debug_backtrace();
+		$class = $db[0]['class'];
+
+		$m =& new $class;
+		$m->set_where($where);
+		$sibs =& new DBOIterator($m, $m->get_query());
+		return $sibs;
+	}
+	
+	// find an item by id
+	function &find_id($id) {
+		# get the class name
+		$db = debug_backtrace();
+		$class = $db[0]['class'];
+
+		$m =& new $class;
+		$m->set_id($id);
+		$m->load();
+		return $m;
+	}
+
+	// return an array of all objects using this query
+	function &find_sql($sql, $mode=false) {
+		# get the class name
+		$db = debug_backtrace();
+		$class = $db[0]['class'];
+
+		$m =& new $class;
+		$sibs =& new DBOIterator($m, $sql);
+		return $sibs;		
+	}
+
+
+
+
+
+
 // ===========================================================
 // - LOAD FROM DB
 // ===========================================================
@@ -209,20 +284,20 @@ class ModelCore
 	function load() {
 		
 		# start where clause if there isn't one
-		$where = $this->getWhere()?' AND ':' WHERE ';
+		$where = $this->get_where()?' AND ':' WHERE ';
 		
 		# if ID, use that in where, otherwise try UID
 		# if neither one, error
 		if ($this->get_id()) {
-			$where .= $this->getTable().'.id='.$this->get_id();
+			$where .= $this->get_table().'.id='.$this->get_id();
 		} else if ($this->get_uid()) {
-			$where .= $this->getTable().".uid='".$this->get_uid()."'";
+			$where .= $this->get_table().".uid='".$this->get_uid()."'";
 		} else {
 			throw(new Exception("You must define a ID or UID to load an object.", 0));
 		}
 		
 		# get the query
-		$sql = $this->getQuery();
+		$sql = $this->get_query();
 
 		
 		# add the where clause
@@ -237,7 +312,7 @@ class ModelCore
 		} else {
 			if ($row = $result->fetch_assoc()) {				
 				do {
-					$this->processRow($row);
+					$this->process_row($row);
 				} while ($row = $result->fetch_assoc());
 				
 			} else {
@@ -250,55 +325,20 @@ class ModelCore
 	// - RESET ALL DATA PROPS
 	// ===========================================================
 	function reset() {
-		if (is_array($this->toOneObj)) {
-			foreach($this->toOneObj as $k=>$v) {
-				$this->toOneObj[$k]->reset();	
+		if (is_array($this->to_one_obj)) {
+			foreach($this->to_one_obj as $k=>$v) {
+				$this->to_one_obj[$k]->reset();	
 			}
 		}
 		
-		if (is_array($this->toManyObj)) {
-			foreach($this->toManyObj as $k=>$v) {
-				$this->toManyObj[$k] = array();
+		if (is_array($this->to_many_obj)) {
+			foreach($this->to_many_obj as $k=>$v) {
+				$this->to_many_obj[$k] = array();
 			}
 		}
-		$this->data			= array();
+		$this->data = array();
 	}
 	
-	// return an a single item by id
-	function find($id) {
-		$this->set_uid($id);
-		$this->load();
-		return $this->to_array();
-	}
-
-	// return an array of all objects of this type
-	function find_all($mode=false) {
-		$sibs = new DBOIterator($this, $this->getQuery());
-		if ($mode) return $sibs;		
-		return $sibs;
-	}
-	
-	// return an array of all objects using this where clause
-	function find_where($where, $mode=false) {
-		$this->setWhere($where);
-		$sibs = new DBOIterator($this, $this->getQuery());
-		if ($mode) return $sibs;		
-		return $sibs->to_array();
-	}
-	
-	// find an item by uid
-	function find_id($id) {
-		$this->set_id($id);
-		$this->load();
-		return $this->to_array();
-	}
-
-	// return an array of all objects using this query
-	function find_sql($sql, $mode=false) {
-		$sibs = new DBOIterator($this, $sql);
-		if ($mode) return $sibs;		
-		return $sibs->to_array();
-	}
 	
 	// run arbitrary sql without processing
 	function exec($sql) {
@@ -315,124 +355,117 @@ class ModelCore
 	
 
 	// get the query for this obj
-	function getQuery() {
+	function get_query() {
 		# make query
-		$sql = "SELECT ".$this->getTable().".*";
+		$sql = "SELECT ".$this->get_table().".*";
 
-		# add toOne
-		if (!empty($this->toOne)) {
-			# loop through toOne's
-			foreach ($this->toOne as $v) {
-				$info = $this->db->tableInfo($v);
+		# add to_one
+		if (!empty($this->to_one)) {
+			# loop through to_one's
+			foreach ($this->to_one as $v) {
+				$info = $this->db->table_info($v);
 				foreach ($info['order'] as $col => $order) {
 					# skip columns that have the table name in them
-					if (strpos($col, $this->getTable().'_') !== false) continue;
+					if (strpos($col, $this->get_table().'_') !== false) continue;
 					$sql .= ','.$v.'.'.$col. ' as '.$v.'_'.$col;					
 				}
 			}
 		}
-		# add toMany
-		if (!empty($this->toMany)) {
-			# loop through toMany's
-			foreach ($this->toMany as $v) {
-#				$info = $this->db->tableInfo($this->getTable()."_".$v);
-				$info = $this->db->tableInfo($v);
+		# add to_many
+		if (!empty($this->to_many)) {
+			# loop through to_many's
+			foreach ($this->to_many as $v) {
+				$info = $this->db->table_info($v);
 				foreach ($info['order'] as $col => $order) {
 					# skip columns that have the table name in them
-					if (strpos($col, $this->getTable().'_') !== false) continue;
-#					$sql .= ','.$this->getTable()."_".$v.'.'.$col. ' as '.$v.'_'.$col;					
+					if (strpos($col, $this->get_table().'_') !== false) continue;
 					$sql .= ','.$v.'.'.$col. ' as '.$v.'_'.$col;					
 				}
 			}
 		}
 		
 		# add from
-		$sql .= " FROM ".$this->getTable()." ";
+		$sql .= " FROM ".$this->get_table()." ";
 
-		# join toOne
-		if (!empty($this->toOne)) {
-			foreach ($this->toOne as $v) {
-				$sql .= " LEFT JOIN {$v} ON {$v}.id = ".$this->getTable().".{$v}_id ";
+		# join to_one
+		if (!empty($this->to_one)) {
+			foreach ($this->to_one as $v) {
+				$sql .= " LEFT JOIN {$v} ON {$v}.id = ".$this->get_table().".{$v}_id ";
 				
 			}
 		}
 
-		# join toMany
-		if (!empty($this->toMany)) {
-			# loop through toMany's
-			foreach ($this->toMany as $v) {
-#				$sql .= " LEFT JOIN ".$this->getTable()."_$v ON ".$this->getTable()."_$v.".$this->getTable()."_id = ".$this->getTable().".id ";
-				$sql .= " LEFT JOIN $v ON $v.".$this->getTable()."_id = ".$this->getTable().".id ";
+		# join to_many
+		if (!empty($this->to_many)) {
+			# loop through to_many's
+			foreach ($this->to_many as $v) {
+				$sql .= " LEFT JOIN $v ON $v.".$this->get_table()."_id = ".$this->get_table().".id ";
 			}
 		}
 		
 		# add WHERE clause
-		if ($this->getWhere()) $sql .= " WHERE ".$this->getWhere();
+		if ($this->get_where()) $sql .= " WHERE ".$this->get_where();
 		
 		# add group by if there is one
-		if ($this->getGroup()) $sql .= " GROUP BY ".$this->getGroup();
+		if ($this->get_group()) $sql .= " GROUP BY ".$this->get_group();
 
 		# add order by if there is one
-		if ($this->getOrder()) $sql .= " ORDER BY ".$this->getOrder();
+		if ($this->get_order()) $sql .= " ORDER BY ".$this->get_order();
 
 		# add order by if there is one
-		if ($this->getLimit()) $sql .= " LIMIT ".$this->getLimit();
+		if ($this->get_limit()) $sql .= " LIMIT ".$this->get_limit();
 
 		return $sql;
 	}
 
 
 	// process a row
-	function processRow($row) {
+	function process_row($row) {
 		# skip cols with tablename_id
-		$skipme = $this->getTable().'_id';
+		$skipme = $this->get_table().'_id';
 
 		# set props (loop columns)
 		foreach ($row as $k=>$v) {
 			if ($k == $skipme) continue;
 			# split the k at the last _ and see if we need to make a model object
-			# using the names of our toMany and toOne's
+			# using the names of our to_many and to_one's
 
 			$pos = strrpos($k, '_');
 			$split = ($pos!==false)?substr($k, 0, $pos):$k;
 
-			
-#			$split = explode('_', $k);
-#			$split = $split[0];
-
-			# toOne
-			if (!empty($this->toOne) && in_array($split, $this->toOne)) {
+			# to_one
+			if (!empty($this->to_one) && in_array($split, $this->to_one)) {
 				# remove the prefix from the prop names
 				$prop = str_replace($split.'_', '', $k);
 				if ($prop == 'id') {
-					if (!empty($v)) $this->toOneObj[$split]->set_id($v);
+					if (!empty($v)) $this->to_one_obj[$split]->set_id($v);
 				} else if ($prop == 'uid') {
-					if (!empty($v)) $this->toOneObj[$split]->set_uid($v);
+					if (!empty($v)) $this->to_one_obj[$split]->set_uid($v);
 				} else {
-					$this->toOneObj[$split]->set($prop, stripslashes($v));
+					$this->to_one_obj[$split]->set($prop, stripslashes($v));
 				}
 	
 	
-			# toMany
-			} else if (!empty($this->toMany) && in_array($split, $this->toMany)) {
+			# to_many
+			} else if (!empty($this->to_many) && in_array($split, $this->to_many)) {
 				# skip ones without an id
 				if (empty($row[$split.'_id'])) continue;
 				
 				# if the obj doesn't exist yet, make it
-				# objs are in the toManyObj[name] array indexed by id
-				if (!isset($this->toManyObj[$split][$row[$split.'_id']])) {
-					$cname = $this->toManyClass[$split];
-					$this->toManyObj[$split][$row[$split.'_id']] = new $cname;
+				# objs are in the to_many_obj[name] array indexed by id
+				if (!isset($this->to_many_obj[$split][$row[$split.'_id']])) {
+					$cname = $this->to_many_class[$split];
+					$this->to_many_obj[$split][$row[$split.'_id']] =& new $cname;
 				}
 				
 				# remove the prefix from the prop names
 				$prop = str_replace($split.'_', '', $k);
 				if ($prop == 'id') {
-					$this->toManyObj[$split][$row[$split.'_id']]->set_id($v);
+					$this->to_many_obj[$split][$row[$split.'_id']]->set_id($v);
 				} else if ($prop == 'uid') {
-					$this->toManyObj[$split][$row[$split.'_id']]->set_uid($v);
+					$this->to_many_obj[$split][$row[$split.'_id']]->set_uid($v);
 				} else {
-					$this->toManyObj[$split][$row[$split.'_id']]->set($prop, stripslashes($v));
+					$this->to_many_obj[$split][$row[$split.'_id']]->set($prop, stripslashes($v));
 				}
 			# normal
 			} else {
@@ -447,12 +480,12 @@ class ModelCore
 // ===========================================================
 	function has_one($table) {
 		$table = strtolower($table);
-		# if toOnes are empty make an array
-		if (empty($this->toOne)) {
-			$this->toOne = array();
-			$this->toOneObj = array();
+		# if to_ones are empty make an array
+		if (empty($this->to_one)) {
+			$this->to_one = array();
+			$this->to_one_obj = array();
 		}
-		$this->toOne[] = $table;
+		$this->to_one[] = $table;
 		
 		# include the classes
 		__autoload(ucfirst($table));
@@ -460,7 +493,7 @@ class ModelCore
 
 		# create the obj
 		$cname = ucfirst($table);
-		$this->toOneObj[$table] = new $cname;
+		$this->to_one_obj[$table] =& new $cname;
 	}
 
 	function has_many($class, $table=false) {
@@ -470,17 +503,17 @@ class ModelCore
 		}
 
 
-		# if toMany are empty make an array
-		if (empty($this->toMany)) {
-			$this->toMany = array();
-			$this->toManyObj	= array();
-			$this->toManyClass	= array();
+		# if to_many are empty make an array
+		if (empty($this->to_many)) {
+			$this->to_many = array();
+			$this->to_many_obj	= array();
+			$this->to_many_class	= array();
 		}
-		$this->toMany[] = $table;
+		$this->to_many[] = $table;
 
 		# create the obj
-		$this->toManyObj[$table] = array();
-		$this->toManyClass[$table] = $class;
+		$this->to_many_obj[$table] = array();
+		$this->to_many_class[$table] = $class;
 		
 		# include the classes
 		__autoload($class);
@@ -515,11 +548,11 @@ class ModelCore
 // - REPRESENTATIONS
 // ===========================================================
 	// get xml rep of this object
-	function xmlRep() {
+	function to_xml() {
 		/*
 		# make doc and root
 		$dom = new DomDocument;
-		$root = $dom->createElement($this->getTable());
+		$root = $dom->createElement($this->get_table());
 		$root = $dom->appendChild($root);
 		
 		# add id and uid
@@ -536,25 +569,25 @@ class ModelCore
 			$node = $root->appendChild($node);
 		}
 					
-		# add nodes for each toOne
-		if (!empty($this->toOneObj)) {
-			foreach ($this->toOneObj as $k=>$v) {
-				$node = $dom->importNode($v->xmlRep()->documentElement, true);
+		# add nodes for each to_one
+		if (!empty($this->to_one_obj)) {
+			foreach ($this->to_one_obj as $k=>$v) {
+				$node = $dom->importNode($v->to_xml()->documentElement, true);
 				$node = $root->appendChild($node);
 			}
 		}
 					
-		# add nodes for each toMany
-		if (!empty($this->toManyObj)) {
-			foreach ($this->toManyObj as $k=>$v) {
+		# add nodes for each to_many
+		if (!empty($this->to_many_obj)) {
+			foreach ($this->to_many_obj as $k=>$v) {
 				# add node for chirren
 				$list = $dom->createElement('to-many');
 				$list->setAttribute('name', $k);
 				$list = $root->appendChild($list);
 
 				# add items				
-				foreach ($this->getToManyObjects($k) as $obj) {
-					$node = $dom->importNode($obj->xmlRep()->documentElement, true);
+				foreach ($this->get_to_many_objects($k) as $obj) {
+					$node = $dom->importNode($obj->to_xml()->documentElement, true);
 					$node = $list->appendChild($node);
 				}
 			}
@@ -579,9 +612,9 @@ class ModelCore
 			$out[$k] = $v;
 		}
 
-		# add each toOne
-		if (!empty($this->toOneObj)) {
-			foreach ($this->toOneObj as $k=>$v) {
+		# add each to_one
+		if (!empty($this->to_one_obj)) {
+			foreach ($this->to_one_obj as $k=>$v) {
 				# get the array rep and loop through it, adding each prop
 				# and prepending the table name
 				$a = $v->to_array();
@@ -591,14 +624,14 @@ class ModelCore
 			}
 		}
 
-		# add each toMany
-		if (!empty($this->toManyObj)) {
-			foreach ($this->toManyObj as $k=>$v) {
+		# add each to_many
+		if (!empty($this->to_many_obj)) {
+			foreach ($this->to_many_obj as $k=>$v) {
 				# add array for chirren
 				$out[$k] = array();
 
 				# add items				
-				foreach ($this->getToManyObjects($k) as $obj) {
+				foreach ($this->get_to_many_objects($k) as $obj) {
 					$out[$k][] = $obj->to_array();
 				}
 			}
@@ -615,18 +648,18 @@ class ModelCore
 	function uf8_to_entities($str) {
 		$unicode = array();
 		$values = array();
-		$lookingFor = 1;
+		$looking_for = 1;
 		for ($i = 0; $i < strlen( $str ); $i++ ) {
-			$thisValue = ord( $str[ $i ] );
-			if ( $thisValue < 128 ) $unicode[] = $thisValue;
+			$this_value = ord( $str[ $i ] );
+			if ( $this_value < 128 ) $unicode[] = $this_value;
 			else {
-				if ( count( $values ) == 0 ) $lookingFor = ( $thisValue < 224 ) ? 2 : 3;
-				$values[] = $thisValue;
-				if ( count( $values ) == $lookingFor ) {
-					$number = ( $lookingFor == 3 ) ? ( ( $values[0] % 16 ) * 4096 ) + ( ( $values[1] % 64 ) * 64 ) + ( $values[2] % 64 ):( ( $values[0] % 32 ) * 64 ) + ( $values[1] % 64 );
+				if ( count( $values ) == 0 ) $looking_for = ( $this_value < 224 ) ? 2 : 3;
+				$values[] = $this_value;
+				if ( count( $values ) == $looking_for ) {
+					$number = ( $looking_for == 3 ) ? ( ( $values[0] % 16 ) * 4096 ) + ( ( $values[1] % 64 ) * 64 ) + ( $values[2] % 64 ):( ( $values[0] % 32 ) * 64 ) + ( $values[1] % 64 );
 					$unicode[] = $number;
 					$values = array();
-					$lookingFor = 1;
+					$looking_for = 1;
 				}
 			}
 		}

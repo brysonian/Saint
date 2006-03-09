@@ -22,7 +22,7 @@ class DBException extends Exception
 				break;
 			
 			case 'html':
-				$out = $this->getHTML($this->getMessage()."</p><p><code>".$this->getQuery()."<code>");
+				$out = $this->getHTML($this->getMessage()."</p><p><code>".$this->get_query()."<code>");
 				break;
 			
 			case 'xml':
@@ -47,7 +47,7 @@ class DBException extends Exception
 // - Accessors
 // ===========================================================
 	// getters
-	function getQuery() { return $this->query; }
+	function get_query() { return $this->query; }
 	
 	// setters
 	function setQuery($q) { $this->query = $q; }

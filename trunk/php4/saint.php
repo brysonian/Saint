@@ -89,6 +89,7 @@
 	# get the DB config params
 	require_once (PROJECT_ROOT."/config/database.php");
 	
+	// TODO: Use DB Service
 	# connect
 	$dbconnection =& new MySQLConnection($host, $user, $pass, $db_name);
 
