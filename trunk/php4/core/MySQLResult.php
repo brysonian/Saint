@@ -13,7 +13,8 @@ class MySQLResult {
 	}
 	
 	function & fetch_assoc() {
-		return mysql_fetch_assoc($this->result);
+		$r = mysql_fetch_assoc($this->result);
+		return $r;
 	}
 	
 	function free() {

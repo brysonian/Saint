@@ -64,7 +64,7 @@ class DBOIterator
 		return $this->key;
 	}
 	
-	function current() {
+	function &current() {
 		# reset the model
 		$themodel =& $this->get_model();
 		$themodel->reset();
@@ -87,9 +87,12 @@ class DBOIterator
 	}
 
 	function &loop() {
-		if (!$this->valid()) return false;
-		$v =& $this->current();
-		$this->next();
+		if (!$this->valid()) {
+			$v = false;
+		} else {
+			$v =& $this->current();
+			$this->next();
+		}
 		return $v;
 	}
 
@@ -131,10 +134,14 @@ class DBOIterator
 	}
 
 	// get array rep of this object
-	function arrayRep() {
+	function to_array($deep=false) {
 		$out = array();
 		while ($obj =& $this->loop()) {
-			$out[] = $obj->arrayRep();
+			if ($deep) {
+				$out[] = $obj->to_array();
+			} else {
+				$out[] = $obj;
+			}
 		}
 		return $out;
 	}

@@ -4,7 +4,6 @@
 class ControllerCore
 {
 	
-	var $_modelname;
 	var $_viewname;
 	var $_layout		= false;
 	var $_templatebase;
@@ -18,9 +17,8 @@ class ControllerCore
 // - CONSTRUCTOR
 // ===========================================================
 	function ControllerCore() {
-		# set the model name and template base
-		$this->_modelname = str_replace('controller', '', strtolower(get_class($this)));
-		$this->setTemplateBase($this->_modelname);
+		# set the template base
+		$this->setTemplateBase(str_replace('controller', '', strtolower(get_class($this))));
 		
 		# call if there is an appinit() method in the App class
 		if (method_exists($this, 'appinit')) $this->appinit();
@@ -138,22 +136,6 @@ class ControllerCore
 // ===========================================================
 // - ACCESSORS
 // ===========================================================
-	# return a model object for the controller
-	function &get_model() {
-		$c = $this->getModelName();
-		return new $c;
-	}
-	
-	# return the name of the model for this controller
-	function getModelName() {
-		return ucfirst($this->_modelname);
-	}
-	
-	# override the name of the model for this controller
-	function setModel($val) {
-		$this->_modelname =& $val;
-	}
-	
 	# get/set the template base
 	function getTemplateBase() { return PROJECT_VIEWS.'/'.$this->_templatebase.'/';}
 	function setTemplateBase($v) { $this->_templatebase = $v; }

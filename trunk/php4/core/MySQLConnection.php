@@ -27,7 +27,8 @@ class MySQLConnection {
 	}
 	
 	function &query($sql) {
-		return new MySQLResult(mysql_query($sql));
+		$q =& new MySQLResult(mysql_query($sql));
+		return $q;
 	}
 
 	function insert_id() {

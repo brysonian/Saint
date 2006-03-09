@@ -79,17 +79,17 @@ class Usher
 		__autoload($cname);
 
 		# make an instance of the controller class
-		$theController = &new $cname;
+		$controller = &new $cname;
 
 		# include the right class for this controller
-		__autoload($theController->getModelName());
+		__autoload(ucfirst($params['controller']));
 
 	
 		# set the method name
-		$theMethod = '_'.$params['action'];
+		$action = '_'.$params['action'];
 
 		# tell the controller to execute the action
-		$theController->execute($theMethod);
+		$controller->execute($action);
 
 		
 	}

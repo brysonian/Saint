@@ -85,7 +85,7 @@ class ModelCore
 		if ($tm) {
 			$out = array();
 			foreach ($tm as $obj) {
-				$out[] = $obj->arrayRep();
+				$out[] = $obj->to_array();
 			}
 			return $out;			
 		}
@@ -268,14 +268,14 @@ class ModelCore
 	function find($id) {
 		$this->set_uid($id);
 		$this->load();
-		return $this->arrayRep();
+		return $this->to_array();
 	}
 
 	// return an array of all objects of this type
 	function find_all($mode=false) {
 		$sibs = new DBOIterator($this, $this->getQuery());
 		if ($mode) return $sibs;		
-		return $sibs->arrayRep();
+		return $sibs;
 	}
 	
 	// return an array of all objects using this where clause
@@ -283,21 +283,21 @@ class ModelCore
 		$this->setWhere($where);
 		$sibs = new DBOIterator($this, $this->getQuery());
 		if ($mode) return $sibs;		
-		return $sibs->arrayRep();
+		return $sibs->to_array();
 	}
 	
 	// find an item by uid
 	function find_id($id) {
 		$this->set_id($id);
 		$this->load();
-		return $this->arrayRep();
+		return $this->to_array();
 	}
 
 	// return an array of all objects using this query
 	function find_sql($sql, $mode=false) {
 		$sibs = new DBOIterator($this, $sql);
 		if ($mode) return $sibs;		
-		return $sibs->arrayRep();
+		return $sibs->to_array();
 	}
 	
 	// run arbitrary sql without processing
@@ -566,7 +566,7 @@ class ModelCore
 
 
 	// get array rep of this object
-	function arrayRep() {
+	function to_array() {
 		$out = array();
 		
 		# add id and uid
@@ -584,7 +584,7 @@ class ModelCore
 			foreach ($this->toOneObj as $k=>$v) {
 				# get the array rep and loop through it, adding each prop
 				# and prepending the table name
-				$a = $v->arrayRep();
+				$a = $v->to_array();
 				foreach ($a as $a_k => $a_v) {
 					$out[$k."_$a_k"] = $a_v;
 				}
@@ -599,7 +599,7 @@ class ModelCore
 
 				# add items				
 				foreach ($this->getToManyObjects($k) as $obj) {
-					$out[$k][] = $obj->arrayRep();
+					$out[$k][] = $obj->to_array();
 				}
 			}
 		}

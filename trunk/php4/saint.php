@@ -19,8 +19,6 @@
 	set_include_path($inc);
 
 
-
-
 	// ===========================================================
 	// - INCLUDE SAINT LIB
 	// ===========================================================
@@ -142,8 +140,9 @@
 	function __autoload($class_name) {
 		$class_name = ucfirst($class_name);
 		if (!class_exists($class_name)) {
-			$ok = include_once("$class_name.php");
-			return ($ok)?true:false;
+			if(!@include_once("$class_name.php")) {
+				return false;
+			}
 		}
 		return true;
 	}
