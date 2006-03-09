@@ -1,0 +1,116 @@
+#!/usr/bin/php
+<?php
+	
+	# define some locations
+	define ('SAINT_APP_TEMPLATE', '/Users/chandler/Projects/Saint/Saint/application');
+
+
+	
+	
+	# grab out the args and create the application
+	if (!array_key_exists(1, $_SERVER['argv'])) {
+		echo "\n+------------------------------------------+\n";
+		echo "|	SAINT encountered an error:	   |\n";
+		echo "+------------------------------------------+\n";
+		die("Please specify an application name.\n\n\n");
+	}
+	$argv = $_SERVER['argv'][1];
+	
+	# make dir
+	$dir = safe_mkdir($argv);
+	
+	# copy application
+	copyr(SAINT_APP_TEMPLATE, $dir);
+	
+	# set perms on scripts
+	chmodr($dir."/scripts", "0777");
+
+
+
+
+
+
+
+
+
+
+
+// ===========================================================
+// - FUNCTIONS
+// ===========================================================
+	function safe_mkdir($dir) {
+		if ($dir{0} != '.' && $dir{0} != '/') $dir = getcwd().'/'.$dir;
+
+		if (!realpath($dir)) {
+			if (strpos($dir, '/') !== false) {
+				$path = explode('/', $dir);
+				array_pop($path);
+				safe_mkdir(join('/', $path));
+			}
+		}
+		if (!file_exists(realpath("../$dir").'/'.$dir)) {
+			echo "Create directory: $dir\n";
+			$ok = mkdir(realpath("../$dir").'/'.$dir);
+			if (!$ok) die ("Failed to create: $dir\n");
+			return $dir;
+		}
+	}
+
+
+	// copy a directory tree
+	function copyr($source, $dest) {
+		// Simple copy for a file
+		if (is_file($source)) {
+			return copy($source, $dest);
+		}
+
+		// Make destination directory
+		if (!is_dir($dest)) {
+			safe_mkdir($dest);
+		}
+
+		// Loop through the folder
+		$dir = dir($source);
+		while (false !== $entry = $dir->read()) {
+			// Skip pointers
+			if ($entry == '.' || $entry == '..') continue;
+
+			// Deep copy directories
+			if ($dest !== "$source/$entry") {
+				copyr("$source/$entry", "$dest/$entry");
+			}
+		}
+
+		// Clean up
+		$dir->close();
+		return true;
+	}
+	
+	
+	// change permissions on a dir tree
+	function chmodr($source, $mode) {
+		if ($source{0} != '.' && $source{0} != '/') $source = getcwd().'/'.$source;
+		
+		$source = realpath($source);
+		
+		// handle a file
+		if (is_file($source)) {
+			return chmod($source, octdec($mode));
+		}
+
+		// Loop through the folder
+		$dir = dir($source);
+		while (false !== $entry = $dir->read()) {
+			// Skip pointers
+			if ($entry{0} == '.') continue;
+
+			// recurse
+			chmodr("$source/$entry", $mode);
+		}
+
+		// Clean up
+		$dir->close();
+		return true;
+	}
+	
+?>

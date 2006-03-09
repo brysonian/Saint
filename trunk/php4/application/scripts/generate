@@ -1,0 +1,118 @@
+#!/usr/bin/php
+<?php
+
+	$argv = $_SERVER['argv'];
+	array_shift($argv);
+
+	# see how many args there are
+	if (count($argv) == 0) {
+		echo "\n+------------------------------------------+\n";
+		echo "|	SAINT encountered an error:	   |\n";
+		echo "+------------------------------------------+\n";
+		die("Please specify the name of what you would like to generate. Or a name and object type.\n\n\n");
+	}
+	
+	
+	
+	# if there's only one, generate the model
+	# and controller using the arg as the base name
+	# see what we are generating
+	switch($argv[0]) {
+		case 'model':
+			create_model($argv[1]);
+			break;
+
+		case 'controller':
+			create_controller($argv[1]);
+			break;
+
+		default:
+			if (count($argv) == 1) {
+				create_model($argv[0]);
+				create_controller($argv[0]);
+				create_view_folder($argv[0]);
+			}
+			break;
+	}
+
+
+
+
+// ===========================================================
+// - FUNCTIONS
+// ===========================================================
+	function safe_mkdir($dir) {
+		if ($dir{0} != '.' && $dir{0} != '/') $dir = getcwd().'/'.$dir;
+
+		if (!realpath($dir)) {
+			if (strpos($dir, '/') !== false) {
+				$path = explode('/', $dir);
+				array_pop($path);
+				safe_mkdir(join('/', $path));
+			}
+		}
+		if (!file_exists(realpath("../$dir").'/'.$dir)) {
+			echo "Create directory: $dir\n";
+			$ok = mkdir(realpath("../$dir").'/'.$dir);
+			if (!$ok) die ("Failed to create: $dir\n");
+		}
+	}
+
+
+
+
+	function create_model($name) {
+		$cname = ucfirst($name);
+		$code = "<?php\n\nclass $cname extends ModelCore \n{\n\t\n}\n\n?>";
+		write_script('app/models', $cname, $code);
+		
+	}
+
+	function create_controller($name) {
+		$cname = ucfirst($name).'Controller';
+		$code = "<?php\n\nclass $cname extends AppController\n{\n\t\n}\n\n?>";
+		write_script('app/controllers', $cname, $code);
+	}
+
+	function create_view_folder($name) {
+		safe_mkdir("views/$name");
+	}
+
+
+	function write_script($dir, $cname, $code) {
+		if (file_exists("$dir/$cname.php")) {
+			echo "\n+------------------------------------------+\n";
+			echo "|	SAINT encountered an error:	   |\n";
+			echo "+------------------------------------------+\n";
+			echo "Failed to create $dir/$cname file already exists.\n";
+		} else {
+			echo "Create: $dir/$cname\n";
+			safe_mkdir($dir);
+			$fp = fopen("$dir/$cname.php", "w");
+			fwrite($fp, $code);
+			fclose($fp);
+		}
+	}
+
+
+	function safe_mkdir($dir) {
+		if ($dir{0} != '.' && $dir{0} != '/') $dir = getcwd().'/'.$dir;
+
+		if (!realpath($dir)) {
+			if (strpos($dir, '/') !== false) {
+				$path = explode('/', $dir);
+				array_pop($path);
+				safe_mkdir(join('/', $path));
+			}
+		}
+		if (!file_exists(realpath("../$dir").'/'.$dir)) {
+			echo "Create directory: $dir\n";
+			$ok = mkdir(realpath("../$dir").'/'.$dir);
+			if (!$ok) die ("Failed to create: $dir\n");
+			return $dir;
+		}
+	}
+
+		
+?>
+

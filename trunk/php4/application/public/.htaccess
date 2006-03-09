@@ -1,0 +1,10 @@
+RewriteEngine On
+RewriteBase /
+RewriteCond %{REQUEST_URI} ^/_.*
+RewriteRule .* - [L]
+RewriteRule ^/?$ index.html [QSA]
+RewriteRule ^$ index.php [QSA]
+RewriteRule ^([^.]+)$ $1.html [QSA]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !favicon.ico
+RewriteRule ^(.*)$ dispatcher.php?%{QUERY_STRING} [T=application/x-httpd-php,L]
