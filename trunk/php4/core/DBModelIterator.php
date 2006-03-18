@@ -1,7 +1,7 @@
 <?php
 
 
-class DBOIterator
+class DBModelIterator
 {
 
 	var $result;
@@ -14,7 +14,7 @@ class DBOIterator
 // ===========================================================
 // - CONSTRUCTOR
 // ===========================================================
-	function DBOIterator(&$model, $query) {
+	function DBModelIterator(&$model, $query) {
 		$this->key = 0;
 		$this->model =& $model;
 		$this->query = $query;
@@ -110,6 +110,9 @@ class DBOIterator
 		}
 	}
 
+	function free() {
+		$this->result->free();
+	}
 
 // ===========================================================
 // - REPRESENTATIONS

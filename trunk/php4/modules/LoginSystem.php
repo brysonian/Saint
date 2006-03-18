@@ -15,7 +15,7 @@ if (!class_exists('User')) throw(new Exception('Login system requires a user def
 # in PHP5 this can go away
 new User;
 
-class LoginUser extends ModelCore
+class LoginUser extends DBModel
 {
 	
 // ===========================================================

@@ -3,13 +3,16 @@
 class MySQLResult {	
 
 	var $result;
+	var $parent;
 	
-	function MySQLResult(&$result) {
+	function MySQLResult(&$result, &$parent) {
 		$this->result =& $result;
-	}
-
-	function valid() {
-		return !empty($this->result);
+		$this->parent = & $parent;
+		
+		# increase parent's retain count if it's a result
+		if (is_resource($result)) {
+			$this->parent->retain();
+		}
 	}
 	
 	function & fetch_assoc() {
@@ -18,7 +21,12 @@ class MySQLResult {
 	}
 	
 	function free() {
-		return mysql_free_result($this->result);			
+		if (mysql_free_result($this->result)) {
+			$this->parent->free();
+		} else {
+			return false;
+		}
+		return true;
 	}	
 	
 }

@@ -23,7 +23,7 @@
 	// - INCLUDE SAINT LIB
 	// ===========================================================
 	# core
-	require_once (SAINT_ROOT.'/core/ModelCore.php');
+	require_once (SAINT_ROOT.'/core/DBModel.php');
 	require_once (SAINT_ROOT.'/core/Usher.php');
 	require_once (SAINT_ROOT.'/core/ViewCore.php');
 	require_once (SAINT_ROOT.'/core/ControllerCore.php');
@@ -31,7 +31,7 @@
 	require_once (SAINT_ROOT.'/core/Exception.php');
 	require_once (SAINT_ROOT.'/core/DBException.php');
 	require_once (SAINT_ROOT.'/core/DBDuplicateException.php');
-	require_once (SAINT_ROOT.'/core/DBOIterator.php');
+	require_once (SAINT_ROOT.'/core/DBModelIterator.php');
 
 	# db classes
 	require_once (SAINT_ROOT.'/core/MySQLConnection.php');

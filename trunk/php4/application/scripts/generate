@@ -63,7 +63,7 @@
 
 	function create_model($name) {
 		$cname = ucfirst($name);
-		$code = "<?php\n\nclass $cname extends ModelCore \n{\n\t\n}\n\n?>";
+		$code = "<?php\n\nclass $cname extends DBModel \n{\n\t\n}\n\n?>";
 		write_script('app/models', $cname, $code);
 		
 	}

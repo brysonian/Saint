@@ -1,7 +1,7 @@
 <?php
 
 
-class ModelCore
+class DBModel
 {
 	var $data = array();
 	var $table;
@@ -20,7 +20,7 @@ class ModelCore
 // ===========================================================
 // - CONSTRUCTOR
 // ===========================================================
-	function ModelCore($table=false) {
+	function DBModel($table=false) {
 		# set table name if none was given
 		if (!$table) {
 			$table = strtolower(get_class($this));
@@ -239,7 +239,7 @@ class ModelCore
 		$class = $db[0]['class'];
 
 		$m =& new $class;
-		$sibs =& new DBOIterator($m, $m->get_query());
+		$sibs =& new DBModelIterator($m, $m->get_query());
 		return $sibs;
 	}
 	
@@ -251,7 +251,7 @@ class ModelCore
 
 		$m =& new $class;
 		$m->set_where($where);
-		$sibs =& new DBOIterator($m, $m->get_query());
+		$sibs =& new DBModelIterator($m, $m->get_query());
 		return $sibs;
 	}
 	
@@ -274,7 +274,7 @@ class ModelCore
 		$class = $db[0]['class'];
 
 		$m =& new $class;
-		$sibs =& new DBOIterator($m, $sql);
+		$sibs =& new DBModelIterator($m, $sql);
 		return $sibs;		
 	}
 
