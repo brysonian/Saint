@@ -161,6 +161,7 @@ class ModelCore
 		$result = $this->db->query($sql);
 		if ($result->valid()) {
 			$this->set_id($this->db->insert_id());
+			$result->free();
 		} else {
 			if ($this->db->errno() == DUPLICATE_ENTRY) {
 				throw(new DBDuplicateException($this->db->error(), $this->db->errno(), $sql));
@@ -187,6 +188,8 @@ class ModelCore
 		$result = $this->db->query($sql);
 		if (!$result) {
 			throw(new DBException("Error loading ".__CLASS__.".\n".$this->db->error(), $this->db->errno(), $sql));
+		} else {
+			$result->free();
 		}
 	}
 
@@ -203,7 +206,10 @@ class ModelCore
 		$result = $this->db->query($sql);
 		if (!$result) {
 			throw(new DBException("Error deleting ".__CLASS__.".\n".$this->db->error(), $this->db->errno(), $sql));
+		} else {
+			$result->free();
 		}
+		
 	}
 
 
@@ -314,7 +320,7 @@ class ModelCore
 				do {
 					$this->process_row($row);
 				} while ($row = $result->fetch_assoc());
-				
+				$result->free();
 			} else {
 				throw(new Exception("Nothing found with id: ".$this->get_id()." or uid: ".$this->get_uid().".\n", 0));
 			}
@@ -348,6 +354,8 @@ class ModelCore
 		# process results
 		if (!$result) {
 			throw(new DBException("Query Failed .\n".$this->db->error(), $this->db->errno(), $sql));
+		} else {
+			$result->free();
 		}
 		return true;
 	}
