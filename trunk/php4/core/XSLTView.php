@@ -6,98 +6,60 @@
 class XSLTView extends ViewCore
 {
 	
-	var $_xml;
-	var $_xsl;
-	var $_mode;
-	var $_params = array();
+	var $params = array();
 
 
-	function XSLTView($xml, $xsl) {
-		$this->_xml = $xml;
-		$this->_xsl = $xsl;
+	function XSLTView($template) {
+		parent::ViewCore($template);
 		
 		# see if we're running sablo on PHP 4
-		if (function_exists('xslt_create')) {
-			$this->_mode = 4;
-		} else if (class_exists('DomDocument')) {
-			$this->_mode = 5;
-		} else {
+		if (!class_exists('DomDocument')) {
 			die("Couldn't find valid XSLT interface.");
 		}
 	}
 	
-	function display() {
-		if ($this->_mode == 4) {
-			echo $this->sablotron();
-		} else if ($this->_mode == 5) {
-			echo $this->domdoc();
+	function render($layout_template=false) {
+		parent::parse($layout_template);
+		
+		# make the source xml
+		# make doc and root
+		$xml = new DomDocument;
+		$root = $xml->createElement(params('controller').'-'.params('action'));
+		$root = $xml->appendChild($root);
+
+		
+		# unpack the props into xml
+		foreach($this->props as $k=>$v) {
+			# if it will become xml, do that, otherwise make a dumb tag
+			if (method_exists($v, 'to_xml')) {
+				$obj_xml = $v->to_xml();
+				$obj_xml = $xml->importNode($obj_xml->documentElement, true);
+				$root->appendChild($obj_xml);
+			} else {
+				$node = $xml->createElement($k);
+				if (is_numeric($v)) {
+					$cdata = $xml->createTextNode($v);
+				} else {
+					$cdata = $xml->createCDATASection($v);
+				}
+				$node->appendChild($cdata);
+				$node = $root->appendChild($node);				
+			}
 		}
+		$xsl = new DomDocument;
+		$xsl->load($this->template);
+		
+		$proc = new xsltprocessor();
+		$proc->importStyleSheet($xsl);
+		echo $proc->transformToXML($xml);
 	}
 
-	function setParam($tagname, $value, $namespace='')	{
-		$this->_params[$tagname] = array(
+	function set_param($tagname, $value, $namespace='')	{
+		$this->params[$tagname] = array(
 			'value'		=> $value,
 			'namespace'	=> $namespace);
 	}
 	
-	function sablotron() {
-		# perform XSLT
-		# create parser
-		$parser = xslt_create() or die("Can't create XSLT handle!");
-		
-		# Perform the XSL transformation
-		# need to switch if either var is a string of xml not a file
-		$params = array();
-		if (!file_exists($this->_xml)) {
-			$params['/_xml'] = $this->_xml;
-		}
-		if (!file_exists($this->_xsl)) {
-			$params['/_xsl'] = $this->_xsl;
-		}
-		
-		# if both are strings
-		if (array_key_exists('/_xml', $params) && array_key_exists('/_xsl', $params)) {
-			$output = xslt_process($parser, 'arg:/_xml', 'arg:/_xsl', NULL, $params);
-			
-		# if only xml is string
-		} else if (array_key_exists('/_xml', $params)) {
-			$output = xslt_process($parser, 'arg:/_xml', $this->_xsl, NULL, $params);
-			
-		# if only xsl is string
-		} else if (array_key_exists('/_xsl', $params)) {
-			$output = xslt_process($parser, $this->_xml, 'arg:/_xsl', NULL, $params);
-		
-		# if both are files
-		} else {
-			$output = xslt_process($parser, $this->_xml, $this->_xsl);
-		}
-				
-		# free the parser
-		xslt_free($parser);
-
-		# output the transformed XML file
-		return $output;
-	}	
-
-	function domdoc() {
-		$xml = new DomDocument();
-		if (file_exists($this->_xml)) {
-			$xml->load($this->_xml);
-		} else {
-			$xml->loadXML($this->_xml);
-		}
-		
-		$xsl = new DomDocument;
-		if (file_exists($this->_xsl)) {
-			$xsl->load($this->_xsl);
-		} else {
-			$xsl->loadXML($this->_xsl);
-		}
-		
-		$proc = new xsltprocessor();
-		$proc->importStyleSheet($xsl);
-		return $proc->transformToXML($xml);
-	}
 	
 	
 }

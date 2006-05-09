@@ -23,19 +23,19 @@
 	// - INCLUDE SAINT LIB
 	// ===========================================================
 	# core
-	require_once (SAINT_ROOT.'/core/DBModel.php');
+	require_once (SAINT_ROOT.'/core/DBRecord.php');
 	require_once (SAINT_ROOT.'/core/Usher.php');
 	require_once (SAINT_ROOT.'/core/ViewCore.php');
 	require_once (SAINT_ROOT.'/core/ControllerCore.php');
 	require_once (SAINT_ROOT.'/core/ViewFactory.php');
-	require_once (SAINT_ROOT.'/core/Exception.php');
+	require_once (SAINT_ROOT.'/core/SaintException.php');
 	require_once (SAINT_ROOT.'/core/DBException.php');
 	require_once (SAINT_ROOT.'/core/DBDuplicateException.php');
-	require_once (SAINT_ROOT.'/core/DBModelIterator.php');
+	require_once (SAINT_ROOT.'/core/DBRecordIterator.php');
 
 	# db classes
-	require_once (SAINT_ROOT.'/core/MySQLConnection.php');
-	require_once (SAINT_ROOT.'/core/MySQLResult.php');
+	require_once (SAINT_ROOT.'/core/MySQLiConnection.php');
+	require_once (SAINT_ROOT.'/core/MySQLiResult.php');
 	
 	# error codes
 	require_once (SAINT_ROOT.'/saint_errcodes.php');
@@ -83,15 +83,25 @@
 		
 
 
-	// ===========================================================
-	// - SETUP THE DB CONNECTION
-	// ===========================================================
+// ===========================================================
+// - SETUP THE DB CONNECTION
+// ===========================================================
 	# get the DB config params
 	require_once (PROJECT_ROOT."/config/database.php");
 	
 	// TODO: Use DB Service
 	# connect
-	$dbconnection =& new MySQLConnection($host, $user, $pass, $db_name);
+	#$dbconnection = new MySQLiConnection($host, $user, $pass, $db_name);
+
+
+	# DB SERVICE
+	$d = DBService::get_instance();
+	$d->add_connection_for_classes(
+		array('DBRecord'), 'mysqli', $db_name, $user, $pass, $host);
+
+
+	# clear DB setup vars
+	unset($db_name, $user, $pass, $host);
 
 
 
@@ -101,26 +111,10 @@
 // ===========================================================
 // - ERRORS
 // ===========================================================
-	//TODO: Everthing with the error system
-	# custom error handler
 	function saint_error_handler($errno, $errstr, $errfile, $errline) {
-		throw(new Exception($errstr, $errno, $errfile, $errline));
+		throw(new SaintException($errstr, $errno));
 	}
 	
-	$saint_error_thrown = false;
-	function throw(&$exception) {
-		global $saint_error_thrown;
-		die($exception->log());
-		$saint_error_thrown = $exception;
-	}
-	
-	function &did_throw() {
-		global $saint_error_thrown;
-		return $saint_error_thrown;
-	}
-	
-	set_error_handler("saint_error_handler");
-
 
 
 
@@ -140,12 +134,7 @@
 // ===========================================================
 	function __autoload($class_name) {
 		$class_name = ucfirst($class_name);
-		if (!class_exists($class_name)) {
-			if(!@include_once("$class_name.php")) {
-				return false;
-			}
-		}
-		return true;
+		require_once("$class_name.php");
 	}
 
 ?>

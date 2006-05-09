@@ -1,7 +1,7 @@
 <?php
 
 
-class DBModelIterator
+class DBRecordIterator implements Iterator
 {
 
 	var $result;
@@ -14,26 +14,22 @@ class DBModelIterator
 // ===========================================================
 // - CONSTRUCTOR
 // ===========================================================
-	function DBModelIterator(&$model, $query) {
+	function DBRecordIterator($model, $query, $db) {
 		$this->key = 0;
-		$this->model =& $model;
+		$this->model = $model;
 		$this->query = $query;
 
 		# clear props
 		$this->row = false;
 		
 		# get a ref to the dbconnection
-		// TODO: Use DB Service
-		global $dbconnection;
-		$this->db =& $dbconnection;
-		
-		$this->load();
+		$this->db = $db;
 	}
 
 // ===========================================================
 // - ACCESSORS
 // ===========================================================
-	function &get_model()		{ return $this->model; }
+	function  get_model()		{ return $this->model; }
 
 
 // ===========================================================
@@ -45,14 +41,13 @@ class DBModelIterator
 		$this->valid = false;
 		$this->result = false;
 		$this->load();
-		$this->row =& $this->result->fetch_assoc();
-
+		$this->row = $this->result->fetch_assoc();
 	}
 	
 	function valid() {
-		if (!$this->row) $this->row =& $this->result->fetch_assoc();
+		if (!$this->row) $this->row = $this->result->fetch_assoc();
 		if (!empty($this->row)) {
-			$this->nextRow =& $this->result->fetch_assoc();
+			$this->nextRow = $this->result->fetch_assoc();
 			$this->valid = true;
 		} else {
 			$this->valid = false;
@@ -64,9 +59,9 @@ class DBModelIterator
 		return $this->key;
 	}
 	
-	function &current() {
+	function  current() {
 		# reset the model
-		$themodel =& $this->get_model();
+		$themodel = $this->get_model();
 		$themodel->reset();
 		do {
 			$themodel->process_row($this->row);
@@ -83,17 +78,7 @@ class DBModelIterator
 	
 	function next() {
 		$this->key++;
-		$this->row =& $this->nextRow;
-	}
-
-	function &loop() {
-		if (!$this->valid()) {
-			$v = false;
-		} else {
-			$v =& $this->current();
-			$this->next();
-		}
-		return $v;
+		$this->row = $this->nextRow;
 	}
 
 
@@ -102,25 +87,29 @@ class DBModelIterator
 // ===========================================================
 	// load all entries from the DB
 	function load() {
-		$this->result =& $this->db->query($this->query);
+		$this->result = $this->db->query($this->query);
 
 		# check result
-		if (!$this->result) {
+		if ($this->result === false) {
 			throw(new DBException("Error loading ".__CLASS__.".\n".$this->db->error(), 0, $this->query));
 		}
 	}
 
 	function free() {
-		$this->result->free();
+		if($this->result) $this->result->free();
+	}
+	
+	function num_rows() {
+		if (!$this->result) $this->load();
+		return $this->result->num_rows();
 	}
 
+	
 // ===========================================================
 // - REPRESENTATIONS
 // ===========================================================
 	// get xml rep of this object
-	function to_xml() {
-		die ("no xml rep in the iterator yet");
-		/*
+	function to_xml($str=false) {
 		# make doc and root
 		$dom = new DomDocument;
 		$root = $dom->createElement($this->get_model()->get_table().'s');
@@ -132,14 +121,13 @@ class DBModelIterator
 			$obj_xml = $dom->importNode($obj_xml->documentElement, true);
 			$root->appendChild($obj_xml);
 		}
-		return $dom;
-		*/
+		return ($str)?$dom->saveXML():$dom;
 	}
 
 	// get array rep of this object
 	function to_array($deep=false) {
 		$out = array();
-		while ($obj =& $this->loop()) {
+		foreach($this as $obj) {
 			if ($deep) {
 				$out[] = $obj->to_array();
 			} else {

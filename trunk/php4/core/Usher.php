@@ -1,19 +1,16 @@
 <?php
 
 
-//	TODO: link generation
-	
-
-
-
 
 class Usher
 {
 	var $maps = array();
 	var $base = false;
 	
+	static public $params;
+	
 	# php 4 singleton
-	function &get_instance() {
+	function  get_instance() {
 		static $_instance;		
 		if (!isset($_instance)) {
 			$_instance = new Usher;
@@ -29,14 +26,8 @@ class Usher
 	}
 	
 	function get_base() {
-		return $this->base;
+		return $this->base?$this->base:'/';
 	}
-	
-	function get_root() {
-		$u =& Usher::get_instance();
-		return $u->get_base()?$u->get_base():'';
-	}
-
 	
 	
 	/**
@@ -44,9 +35,7 @@ class Usher
 	*/
 	function match_url($url) {
 		# remove the base
-		if ($this->get_base() !== false) {
-			$url = substr($url, strlen($this->get_base()));
-		}		
+		$url = substr($url, strlen($this->get_base()));
 		if ($url{0} != '/') $url = "/$url";
 				
 		foreach($this->maps as $k => $v) {
@@ -61,28 +50,28 @@ class Usher
 	* start hand off to the controller
 	*/
 	function handle_url($url) {
-		$u =& Usher::get_instance();
+		$u = Usher::get_instance();
 
 		$params = $u->match_url($url);
 
 		# if no match was found, show the error
-		if (!$params) throw(new Exception("No mapping was found for &quot;$url&quot;.", NOMAP));
+		if (!$params) throw(new SaintException("No mapping was found for &quot;$url&quot;.", NOMAP));
 
 		# add params to request
-		$_REQUEST = array_merge($_REQUEST, $params);
+		self::$params = $params;
 
 		# get the controller name
 		$cname = ucfirst($params['controller']).'Controller';
 
 		# include the right classes
 		# this can be killed in PHP5
-		__autoload($cname);
+		#__autoload($cname);
 
 		# make an instance of the controller class
 		$controller = &new $cname;
 
 		# include the right class for this controller
-		__autoload(ucfirst($params['controller']));
+		#__autoload(ucfirst($params['controller']));
 
 	
 		# set the method name
@@ -90,15 +79,21 @@ class Usher
 
 		# tell the controller to execute the action
 		$controller->execute($action);
-
-		
+	}
+	
+	/**
+	* Return a value for a param
+	*/
+	static function get_param($p=false) {
+		if ($p === false) return self::$params;
+		return self::$params[$p];
 	}
 	
 	/**
 	Just return how it would be parsed
 	*/
 	function get_params_for_url($url) {
-		$u =& Usher::get_instance();
+		$u = Usher::get_instance();
 
 		$params = $u->match_url($url);
 
@@ -108,40 +103,149 @@ class Usher
 	// add a map for the given pattern
 	function map($pattern, $defaults=false, $requirements=false) {
 		# parse pattern into regex
-		$this->maps[] =& new UsherMap($pattern, $defaults, $requirements);
+		$this->maps[] = new UsherMap($pattern, $defaults, $requirements);
 	}
 	
 	// add a named map
 	function map_named($name, $pattern, $defaults=false, $requirements=false) {
 		# parse pattern into regex
-		$this->maps[$name] =& new UsherMap($pattern, $defaults, $requirements);
+		$this->maps[$name] = new UsherMap($pattern, $defaults, $requirements);
+	}
+	
+}
+
+
+
+// ===========================================================
+// - SOME THINGS IN USHER NEED TO BE EASIER TO GET TO
+// ===========================================================
+function params($name=false) {
+	return Usher::get_param($name);
+}
+
+
+// URL STUFF
+function get_root() {
+	$u = Usher::get_instance();
+	return $u->get_base();
+}
+
+function link_to($name, $args) {
+	if (!is_array($args)) {
+		$args = func_get_args();
+		array_shift($args);
+	}
+
+	return "<a href='".url_for($args)."'>$name</a>";
+}
+
+// construct a url using the maps
+# call using either an array, or in this order:
+# controller, action, uid, params
+function url_for($args=false) {
+	$u = Usher::get_instance();
+
+	# build URL
+	$url = $u->get_base();
+
+	# if nothing is passed, return a url for the root
+	if ($args === false || $args == '/') {
+		return $url;
+
+	} else if (!is_array($args)) {
+		# if the args is not an array, grab them all
+		$args = func_get_args();
+	}
+	
+	# reinterpret using order
+	if (array_key_exists(0, $args)) {
+		$args['controller']	= $args[0];
+		unset($args[0]);
+	}
+	if (array_key_exists(1, $args)) {
+		$args['action']			= $args[1];
+		unset($args[1]);
+	}
+	if (array_key_exists(2, $args)) {
+		$args['uid']				= $args[2];
+		unset($args[2]);
+	}
+	if (array_key_exists(3, $args)) {
+		$args['params']			= $args[3];
+		unset($args[3]);
 	}
 	
 	
-	
-	// construct a url using the maps
-	function url_for($controller=false, $action=false, $params=false) {
-		$u =& Usher::get_instance();
+	# if controller is empty, use the current controller
+	if (!array_key_exists('controller', $args)) {
+		$args['controller'] = params('controller');
+	}
 
-		# build URL
-		$url = $u->get_base()?$u->get_base().'/':'';
+	# for each param, try to find the map that fits the best
+	$score = 999;
+	foreach($u->maps as $k => $v) {
+		$theargs = $args;
+		# get the map
+		$temp = $v->usermap;
 		
-		if ($action) $url .= "/$action";
-		
-		# if there is an ID, add it
-		if ($id) $url .= "?item=$id";
-		
-		# if there are params, add them
-		if (is_array($params)) {
-			foreach ($params as $k=>$v) {
-				$url .= "&$k=$v";
+		# replace tokens with values
+		foreach($theargs as $k2 => $v2) {
+			if (strpos($temp, ":$k2") !== false) {
+				$temp = str_replace(":$k2", $v2, $temp);	
+				unset($theargs[$k2]);
 			}
 		}
-		return realpath($url)?realpath($url):$url;
-	}
-	
+		
+		# replace defaults
+		foreach($v->defaults as $k2 => $v2) {
+			$temp = str_replace(":$k2", '', $temp);
+		}
+		
+		# clear out //
+		$temp = str_replace("//", '', $temp);
 
+		
+		# score based on number of : left
+		$s = substr_count(':', $temp);
+		if ($s < $score) {
+			$score = $s;
+			$url = $temp;
+		}
+	}
+		
+	# if there are any left over make them into a query string
+	if (!empty($theargs)) {
+		$urlparams = array();
+		foreach($theargs as $k => $v) {
+			$urlparams[] = "$k=$v";
+		}
+		# trim trailing /
+		if ($url{strlen($url)-1} == '/') 
+			$url = substr($url, 0, strlen($url)-1);
+		$url .= "?".join("&amp;", $urlparams);
+	}
+
+	return $url;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -176,7 +280,7 @@ class UsherMap
 		# create the regex
 		$this->regex = '|'.preg_replace_callback(
 			'/\/([:|\*])?([a-zA-Z0-9_]*)/',
-			array(&$this, 'map_to_regex'),
+			array($this, 'map_to_regex'),
 			$map
 		).'/?$|';
 
@@ -254,10 +358,11 @@ class UsherMap
 						} else {
 							if (!preg_match($this->requirements[$name], $out[$name])) return false;
 						}
-					} else {
-						$c = @__autoload($out[$name].'Controller');
-						if (!$c) return false;
-					}
+					} 
+					#else {
+					#	$c = @__autoload($out[$name].'Controller');
+					#	if (!$c) return false;
+					#}
 				} else {
 					# if there is a requirement for this, 
 					# and it isn't NULL

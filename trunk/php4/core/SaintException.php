@@ -1,7 +1,7 @@
 <?php
 
 
-class Exception
+class SaintException extends Exception
 {	
 	var $message;
 	var $code;
@@ -11,11 +11,8 @@ class Exception
 // ===========================================================
 // - Constructor
 // ===========================================================
-	function Exception($message, $code=0, $file=0, $line=0) {
-		$this->set_message($message);
-		$this->set_code($code);
-		$this->set_file($file);
-		$this->set_line($line);
+	function __construct($message, $code=0) {
+		parent::__construct($message, $code);
 	}
 
 // ===========================================================
@@ -29,7 +26,7 @@ class Exception
 				break;
 			
 			case 'html':
-				$out = $this->get_html("<b>".$this->get_message()."</b> in ".$this->get_file()." on line ".$this->get_line());
+				$out = $this->get_html("<b>".$this->get_message()."</b><br />Occured in ".$this->get_file()." on line ".$this->get_line());
 				break;
 			
 			case 'xml':
@@ -50,16 +47,13 @@ class Exception
 // - Accessors
 // ===========================================================
 	// getters
-	function get_message() { return $this->message; }
-	function get_code()	 { return $this->code; }
-	function get_file()	 { return $this->file; }
-	function get_line()	 { return $this->line; }
-	
-	// setters
-	function set_message($v) { $this->message = $v; }
-	function set_code($v)		{ $this->code = $v; }
-	function set_file($v)		{ $this->file = $v; }
-	function set_line($v)		{ $this->line = $v; }
+	function get_message()					{ return $this->getMessage(); }
+	function get_code()							{ return $this->getCode(); }
+	function get_file()							{ return $this->getFile(); }
+	function get_line()							{ return $this->getLine(); }
+	function get_trace()	 					{ return $this->getTrace(); }
+	function get_trace_as_string()	{ return $this->getTraceAsString(); }
+
 
 // ===========================================================
 // - ERROR HTML

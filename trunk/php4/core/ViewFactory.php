@@ -5,7 +5,7 @@ class ViewFactory
 	
 	function ViewFactory() {}
 	
-	function & make_view($template, $layout=false) {
+	function  make_view($template, $layout=false) {
 		# get the template type
 		$tempinfo = ViewFactory::template_info($template);
 
@@ -13,17 +13,14 @@ class ViewFactory
 		switch ($tempinfo['type']) {
 			case 'phtml':
 				# make sure it's loaded
-				require_once (SAINT_ROOT.'/core/QuickView.php');
-				$the_view = new QuickView($tempinfo['file']);
+				#__autoload('PHTMLView');
+				$the_view = new PHTMLView($tempinfo['file']);
 				break;
 
 			case 'pxml':
 				# make sure it's loaded
-				require_once (SAINT_ROOT.'/core/QuickView.php');
-				
-				# set the header
-				header('Content-Type: application/xml');
-				$the_view = new QuickView($tempinfo['file']);
+				#__autoload('PXMLView');				
+				$the_view = new PXMLView($tempinfo['file']);
 				break;
 				
 			case 'xsl':
@@ -31,7 +28,7 @@ class ViewFactory
 				break;
 				
 			default:
-				throw(new Exception("ViewFactory doesn't know what view object to use for ".$tempinfo['file']."."));
+				throw(new SaintException("ViewFactory doesn't know what view object to use for ".$tempinfo['file']."."));
 
 		}
 		return $the_view;
@@ -65,7 +62,7 @@ class ViewFactory
 				);
 	
 			default:
-				throw(new Exception("No html, xml, or xsl template was found at $template."));
+				throw(new SaintException("No html, xml, or xsl template was found at $template."));
 		}
 	}
 }

@@ -41,29 +41,9 @@
 // ===========================================================
 // - FUNCTIONS
 // ===========================================================
-	function safe_mkdir($dir) {
-		if ($dir{0} != '.' && $dir{0} != '/') $dir = getcwd().'/'.$dir;
-
-		if (!realpath($dir)) {
-			if (strpos($dir, '/') !== false) {
-				$path = explode('/', $dir);
-				array_pop($path);
-				safe_mkdir(join('/', $path));
-			}
-		}
-		if (!file_exists(realpath("../$dir").'/'.$dir)) {
-			echo "Create directory: $dir\n";
-			$ok = mkdir(realpath("../$dir").'/'.$dir);
-			if (!$ok) die ("Failed to create: $dir\n");
-		}
-	}
-
-
-
-
 	function create_model($name) {
 		$cname = ucfirst($name);
-		$code = "<?php\n\nclass $cname extends DBModel \n{\n\t\n}\n\n?>";
+		$code = "<?php\n\nclass $cname extends DBRecord \n{\n\t\n}\n\n?>";
 		write_script('app/models', $cname, $code);
 		
 	}

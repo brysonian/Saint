@@ -1,7 +1,7 @@
 <?php
 
 
-class DBModel
+class DBRecord implements Iterator, Serviceable
 {
 	var $data = array();
 	var $table;
@@ -20,7 +20,7 @@ class DBModel
 // ===========================================================
 // - CONSTRUCTOR
 // ===========================================================
-	function DBModel($table=false) {
+	function DBRecord($table=false) {
 		# set table name if none was given
 		if (!$table) {
 			$table = strtolower(get_class($this));
@@ -28,9 +28,7 @@ class DBModel
 		$this->set_table($table);
 		
 		# get a ref to the dbconnection
-		// TODO: Use DB Service
-		global $dbconnection;
-		$this->db =& $dbconnection;
+		$this->db = DBService::get_connection();
 
 		if (method_exists($this, 'init')) $this->init();
 	}
@@ -45,14 +43,14 @@ class DBModel
 	// for id
 	function get_id()		{ return isset($this->data['id'])?$this->data['id']:false; }
 	function set_id($id)	{ 
-		if (!is_numeric($id)  && $id !== false) throw(new Exception("Invalid ID.", 0));
+		if (!is_numeric($id)  && $id !== false) throw(new SaintException("Invalid ID.", 0));
 		$this->data['id'] = $id; 
 	}
 
 	// for uid
 	function get_uid()		{ return isset($this->data['uid'])?$this->data['uid']:false; }
 	function set_uid($uid)	{
-		if (strlen($uid) != 32 && $uid !== false) throw(new Exception("Invalid UID.", 0));
+		if (strlen($uid) != 32 && $uid !== false) throw(new SaintException("Invalid UID.", 0));
 		$this->data['uid'] = $uid; 
 	}
 
@@ -74,7 +72,8 @@ class DBModel
 	function set_limit($t)	{ $this->limit = $t; }
 	
 	// get
-	function get($prop) {
+	function get($prop) { return $this->__get($prop); }	
+	function __get($prop) {
 		# first check in data
 		if (isset($this->data[$prop])) return $this->data[$prop];
 		
@@ -82,7 +81,7 @@ class DBModel
 		if (isset($this->to_one_obj[$prop])) return $this->to_one_obj[$prop];
 
 		# then try the to_manys
-		$tm =& $this->get_to_many_objects($prop);
+		$tm = $this->get_to_many_objects($prop);
 		
 		# if they're are some, return each as an array
 		if ($tm) {
@@ -97,7 +96,8 @@ class DBModel
 	}
 	
 	// set
-	function set($prop, $val) {
+	function set($prop, $val) { $this->__set($prop, $val); }
+	function __set($prop, $val) {
 		if (is_null($val)) {
 			unset($this->data[$prop]);
 		} else {
@@ -106,7 +106,7 @@ class DBModel
 	}
 
 	// get a list of to_many object
-	function &get_to_many_objects($prop) {
+	function get_to_many_objects($prop) {
 		# check if it's there
 		if (isset($this->to_many_obj[$prop])) {
 			#$ao = new ArrayObject($this->to_many_obj[$prop]);
@@ -159,9 +159,8 @@ class DBModel
 
 		$sql .= '('.join(',', $name).')'.' VALUES '.'('.join(',', $value).')';
 		$result = $this->db->query($sql);
-		if ($result->valid()) {
+		if ($result) {
 			$this->set_id($this->db->insert_id());
-			$result->free();
 		} else {
 			if ($this->db->errno() == DUPLICATE_ENTRY) {
 				throw(new DBDuplicateException($this->db->error(), $this->db->errno(), $sql));
@@ -188,8 +187,6 @@ class DBModel
 		$result = $this->db->query($sql);
 		if (!$result) {
 			throw(new DBException("Error loading ".__CLASS__.".\n".$this->db->error(), $this->db->errno(), $sql));
-		} else {
-			$result->free();
 		}
 	}
 
@@ -197,7 +194,7 @@ class DBModel
 
 	function delete() {
 		if (!($this->get_id() || $this->get_uid())) {
-			throw(new Exception("You must define an ID or UID to delete an item", 666));			
+			throw(new SaintException("You must define an ID or UID to delete an item", 666));			
 		}
 			
 		$sql = "DELETE FROM ".$this->get_table()." WHERE ";
@@ -206,76 +203,72 @@ class DBModel
 		$result = $this->db->query($sql);
 		if (!$result) {
 			throw(new DBException("Error deleting ".__CLASS__.".\n".$this->db->error(), $this->db->errno(), $sql));
-		} else {
-			$result->free();
 		}
 		
 	}
 
 
 
-
+// ===========================================================
+// - PHP is retarded
+// ===========================================================
+// this is one way to find the class name
+	static function get_class_from_backtrace() {
+		$db = debug_backtrace();
+		$file = file($db[1]['file']);
+		$c = array();
+		preg_match('|([a-zA-Z0-9_]+)::'.$db[1]['function'].'.*|', $file[($db[1]['line']-1)], $c);
+		return $c[1];
+	}
 
 
 // ===========================================================
 // - FIND
 // ===========================================================
 	// return an a single item by uid
-	function &find($uid) {
-		# get the class name
-		$db = debug_backtrace();
-		$class = $db[0]['class'];
-
-		$m =& new $class;
+	static function find($uid) {
+		$class = self::get_class_from_backtrace();
+		$m = new $class;
 		$m->set_uid($uid);
 		$m->load();
 		return $m;
 	}
 
 	// return an array of all objects of this type
-	function &find_all() {
-		# get the class name
-		$db = debug_backtrace();
-		$class = $db[0]['class'];
-
-		$m =& new $class;
-		$sibs =& new DBModelIterator($m, $m->get_query());
+	function find_all() {
+		$class = self::get_class_from_backtrace();
+		$m = new $class;
+		$sibs = new DBRecordIterator($m, $m->get_query(), $m->db);
+		#$sibs = $sibs->to_array();
 		return $sibs;
 	}
 	
 	// return an array of all objects using this where clause
-	function &find_where($where, $mode=false) {
-		# get the class name
-		$db = debug_backtrace();
-		$class = $db[0]['class'];
-
-		$m =& new $class;
+	static function find_where($where, $mode=false) {
+		$class = self::get_class_from_backtrace();
+		$m = new $class;
 		$m->set_where($where);
-		$sibs =& new DBModelIterator($m, $m->get_query());
+		$sibs = new DBRecordIterator($m, $m->get_query(), $m->db);
+		#$sibs = $sibs->to_array();
 		return $sibs;
 	}
 	
 	// find an item by id
-	function &find_id($id) {
-		# get the class name
-		$db = debug_backtrace();
-		$class = $db[0]['class'];
-
-		$m =& new $class;
+	static function find_id($id) {
+		$class = self::get_class_from_backtrace();
+		$m = new $class;
 		$m->set_id($id);
 		$m->load();
 		return $m;
 	}
 
 	// return an array of all objects using this query
-	function &find_sql($sql, $mode=false) {
-		# get the class name
-		$db = debug_backtrace();
-		$class = $db[0]['class'];
-
-		$m =& new $class;
-		$sibs =& new DBModelIterator($m, $sql);
-		return $sibs;		
+	static function find_sql($sql, $mode=false) {
+		$class = self::get_class_from_backtrace();
+		$m = new $class;
+		$sibs = new DBRecordIterator($m, $sql, $m->db);
+		#$sibs = $sibs->to_array();
+		return $sibs;
 	}
 
 
@@ -299,7 +292,7 @@ class DBModel
 		} else if ($this->get_uid()) {
 			$where .= $this->get_table().".uid='".$this->get_uid()."'";
 		} else {
-			throw(new Exception("You must define a ID or UID to load an object.", 0));
+			throw(new SaintException("You must define a ID or UID to load an object.", 0));
 		}
 		
 		# get the query
@@ -322,7 +315,7 @@ class DBModel
 				} while ($row = $result->fetch_assoc());
 				$result->free();
 			} else {
-				throw(new Exception("Nothing found with id: ".$this->get_id()." or uid: ".$this->get_uid().".\n", 0));
+				throw(new SaintException("Nothing found with id: ".$this->get_id()." or uid: ".$this->get_uid().".\n", 0));
 			}
 		}
 	}
@@ -354,7 +347,7 @@ class DBModel
 		# process results
 		if (!$result) {
 			throw(new DBException("Query Failed .\n".$this->db->error(), $this->db->errno(), $sql));
-		} else {
+		} else if ($result !== true) {
 			$result->free();
 		}
 		return true;
@@ -435,7 +428,7 @@ class DBModel
 		# set props (loop columns)
 		foreach ($row as $k=>$v) {
 			if ($k == $skipme) continue;
-			# split the k at the last _ and see if we need to make a model object
+			# split the k at the last _ and see if we need to make a DBRecord object
 			# using the names of our to_many and to_one's
 
 			$pos = strrpos($k, '_');
@@ -450,7 +443,7 @@ class DBModel
 				} else if ($prop == 'uid') {
 					if (!empty($v)) $this->to_one_obj[$split]->set_uid($v);
 				} else {
-					$this->to_one_obj[$split]->set($prop, stripslashes($v));
+					$this->to_one_obj[$split]->$prop = stripslashes($v);
 				}
 	
 	
@@ -463,7 +456,7 @@ class DBModel
 				# objs are in the to_many_obj[name] array indexed by id
 				if (!isset($this->to_many_obj[$split][$row[$split.'_id']])) {
 					$cname = $this->to_many_class[$split];
-					$this->to_many_obj[$split][$row[$split.'_id']] =& new $cname;
+					$this->to_many_obj[$split][$row[$split.'_id']] = new $cname;
 				}
 				
 				# remove the prefix from the prop names
@@ -473,11 +466,11 @@ class DBModel
 				} else if ($prop == 'uid') {
 					$this->to_many_obj[$split][$row[$split.'_id']]->set_uid($v);
 				} else {
-					$this->to_many_obj[$split][$row[$split.'_id']]->set($prop, stripslashes($v));
+					$this->to_many_obj[$split][$row[$split.'_id']]->$prop = stripslashes($v);
 				}
 			# normal
 			} else {
-				$this->set($k, stripslashes($v));
+				$this->$k = stripslashes($v);
 			}
 		}
 	}
@@ -496,12 +489,11 @@ class DBModel
 		$this->to_one[] = $table;
 		
 		# include the classes
-		__autoload(ucfirst($table));
-		__autoload(ucfirst($table)."Controller");
+		#__autoload(ucfirst($table));
 
 		# create the obj
 		$cname = ucfirst($table);
-		$this->to_one_obj[$table] =& new $cname;
+		$this->to_one_obj[$table] = new $cname;
 	}
 
 	function has_many($class, $table=false) {
@@ -524,8 +516,7 @@ class DBModel
 		$this->to_many_class[$table] = $class;
 		
 		# include the classes
-		__autoload($class);
-		__autoload($class."Controller");
+		#__autoload($class);
 	}
 
 
@@ -536,8 +527,16 @@ class DBModel
 // ===========================================================
 	// initalize UID
 	function gen_uid() {
-		# need to make sure this UID isn't taken already
-		$this->set_uid(md5(uniqid(rand(), true)));
+		//make sure this UID isn't taken already
+		do {
+			$uid = md5(uniqid(rand(), true));
+			$sql = "SELECT uid from ".$this->get_table()." WHERE uid='$uid'";
+			$result = $this->db->query($sql);
+
+			# if nothing is found, break the loop
+			if ($result->num_rows() == 0) break;
+		} while(true);
+		$this->set_uid($uid);
 		return $this->get_uid();
 	}
 
@@ -551,13 +550,51 @@ class DBModel
 	}
 	
 
+
+// ===========================================================
+// - ITERATOR INTERFACE
+// ===========================================================
+	function rewind() {
+		reset($this->data);
+		$this->key = key($this->data);
+		$this->valid = true;
+	}
+	
+	function valid() {
+		return $this->valid;
+	}
+
+	function key() {
+		return $this->key;
+	}
+	
+	function current() {
+		return current($this->data);
+	}
+	
+	function next() {
+		$ok = next($this->data);
+		$this->key = key($this->data);
+		if ($ok === false) $this->valid = false;
+	}
+
+
+
+// ===========================================================
+// - REQUIRED FOR THE SERVICEABLE INTERFACE
+// ===========================================================
+	static public function get_service_id() {
+		return 'DBRecord';
+	}
+	
+	
+	
 	
 // ===========================================================
 // - REPRESENTATIONS
 // ===========================================================
 	// get xml rep of this object
-	function to_xml() {
-		/*
+	function to_xml($str=false) {
 		# make doc and root
 		$dom = new DomDocument;
 		$root = $dom->createElement($this->get_table());
@@ -571,7 +608,11 @@ class DBModel
 		foreach ($this->data as $k=>$v) {
 			if ($k == 'id' || $k == 'uid') continue;
 			$node = $dom->createElement($k);
-			$cdata = $dom->createCDATASection($v);
+			if (is_numeric($v)) {
+				$cdata = $dom->createTextNode($v);
+			} else {
+				$cdata = $dom->createCDATASection($v);
+			}
 			$node->appendChild($cdata);
 
 			$node = $root->appendChild($node);
@@ -600,9 +641,7 @@ class DBModel
 				}
 			}
 		}
-		return $dom;
-		*/
-		die ("not yet");
+		return ($str)?$dom->saveXML():$dom;
 	}
 
 
@@ -675,7 +714,7 @@ class DBModel
 		foreach( $unicode as $value ) $entities .= ( $value > 127 ) ? '&#' . $value . ';' : chr( $value );
 		return $entities;
 	}
-}
 
+}
 
 ?>

@@ -3,7 +3,7 @@
 
 
 /**
-	SmartTags class for text formatting.
+	Sparkup class for text formatting.
 
 	@param  $n maximum value for header tags. Useful in keeping document heirarchy intact.
 
@@ -23,7 +23,7 @@
 		";
 
 	
-		$st = new SmartTags();
+		$st = new Sparkup();
 		
 		# parse for bold, italic, etc as well as UL and OL
 		$st->parse($text);
@@ -34,13 +34,14 @@
 		
 **/
 
-class SmartTags {
+class Sparkup
+{
 	var $usertags 		=	array();		# array of user tags and functions see add_tag() method;
-	var $_skiptags 		=	'';				# string of tags to skip
-	var $_parselinks	=	true;			# if false, fully qualified url's won't be parsed into links
-	var $_linkformat		=	"<a href='{url}'>{name}</a>";	# format for href replacements
-	var $_lineheads	= false;
-	var $_tagpattern 	=	'/(.)\[(.*)\]\1/U';
+	var $skiptags 		=	'';				# string of tags to skip
+	var $parselinks	=	true;			# if false, fully qualified url's won't be parsed into links
+	var $linkformat		=	"<a href='{url}'>{name}</a>";	# format for href replacements
+	var $lineheads	= false;
+	var $tagpattern 	=	'/(.)\[(.*)\]\1/U';
 	
 	var $tags;
 	var $head_pats;
@@ -50,15 +51,15 @@ class SmartTags {
 	/**
 	* constructor, sets the base header
 	*/
-	function SmartTags($n=0) {
+	function Sparkup($n=0) {
 		$this->baseHeaderNumber = $n;		# define a default for the base header level
 		$this->tags = array();
-		$this->_lineheads = array(
-			'0' => array('type' => 'line', 	'func' => array(&$this, 'format_plain')),
-			'+' => array('type' => 'block', 	'func' => array(&$this, 'format_ul')),
-			'#' => array('type' => 'block', 	'func' => array(&$this, 'format_ol')),
-			';' => array('type' => 'line', 	'func' => array(&$this, 'format_code')),
-			'|' => array('type' => 'line', 	'func' => array(&$this, 'format_blockquote')),
+		$this->lineheads = array(
+			'0' => array('type' => 'line', 	'func' => array($this, 'format_plain')),
+			'+' => array('type' => 'block', 	'func' => array($this, 'format_ul')),
+			'#' => array('type' => 'block', 	'func' => array($this, 'format_ol')),
+			';' => array('type' => 'line', 	'func' => array($this, 'format_code')),
+			'|' => array('type' => 'line', 	'func' => array($this, 'format_blockquote')),
 		);
 	}
 
@@ -66,26 +67,26 @@ class SmartTags {
 	/**
 	* add custom line headers
 	*/
-	function add_line_header($type, $pattern, &$callback) {
-		$this->_lineheads[$pattern] = array('type' => $type, 'func' => &$callback);
+	function add_line_header($type, $pattern, $callback) {
+		$this->lineheads[$pattern] = array('type' => $type, 'func' => $callback);
 	}
 	
 	/**
 	* add custom tags
 	*/
-	function add_tag($pattern, &$callback) {
-		$this->tags[$pattern] =& $callback;
+	function add_tag($pattern, $callback) {
+		$this->tags[$pattern] = $callback;
 	}
 	
 
 	/**
-	* parse a str for smarttags
+	* parse a str for Sparkup
 	*/
 	function parse($output, $includeStartandEndP=true) {
 		$this->linenum = 0;
 
 		# get list of line headers
-		$this->head_pats = array_keys($this->_lineheads);
+		$this->head_pats = array_keys($this->lineheads);
 		array_shift($this->head_pats);
 
 		# build the regex
@@ -97,9 +98,11 @@ class SmartTags {
 
 
 		$output = $this->parse_line_headers($output, $includeStartandEndP);
-		if ($this->_parselinks) $output = $this->parselinks($output);
+		if ($this->parselinks) $output = $this->parselinks($output);
 		return $output;
 	}
+
+
 
 	function parse_line_headers($str,$includeStartandEndP=false) {
 		$str = trim($str);
@@ -158,7 +161,7 @@ class SmartTags {
 	function parse_tags($str) {
 		#$tagpattern = '/(.)\[([^\]]*)\]\1/';
 		$output = preg_replace_callback(
-			$this->_tagpattern,
+			$this->tagpattern,
 			array($this, 'tag_callback'),
 			$str
 		);
@@ -175,11 +178,11 @@ class SmartTags {
 		$content = $matches[2];
 		
 		# if the content contains [], recurse
-		if (preg_match($this->_tagpattern, $content)) $content = $this->parse_tags($content);
+		if (preg_match($this->tagpattern, $content)) $content = $this->parse_tags($content);
 		
 		# if this tag is in the skip string,
 		# return the tag unparsed
-		if (strstr($this->_skiptags, $tag) !== false) return $tag.'['.$matches[2].']'.$tag;
+		if (strstr($this->skiptags, $tag) !== false) return $tag.'['.$matches[2].']'.$tag;
 		
 		# do the right thing for each tag
 		switch($tag) {
@@ -201,6 +204,11 @@ class SmartTags {
 			# strikethrough
 			case '-':
 				$output = "<span class='strike'>$content</span>";
+				break;
+
+			# code
+			case ';':
+				$output = "<code>$content</code>";
 				break;
 				
 			# line
@@ -296,7 +304,7 @@ class SmartTags {
 			$blockbuffer = preg_replace('/^'.preg_quote($blocktype, '/').'/m', '', $blockbuffer);
 		}
 		
-		$lh = $this->_lineheads[$blocktype];
+		$lh = $this->lineheads[$blocktype];
 
 		# if the type is line, just call,
 		# otherwise recurse the block first
@@ -313,8 +321,8 @@ class SmartTags {
 	/**
 	* handle a line header
 	*/
-	function handle_line_header(&$blocktype, $matches, &$buffer, &$blockbuffer, $line) {
-		if (isset($this->_lineheads[$blocktype])) {
+	function handle_line_header($blocktype, $matches, $buffer, $blockbuffer, $line) {
+		if (isset($this->lineheads[$blocktype])) {
 			$buffer .= $this->format_line_head($blockbuffer, $blocktype);
 		}
 		$blockbuffer = '';
@@ -362,8 +370,29 @@ class SmartTags {
 	
 	function format_plain($str, $pat) {
 		#$output = $this->parse_tags($str);
-		$output = $this->parse_tags(preg_replace('/&(?!#)/', '&amp;', $str));
-		return "$output";
+		$output = $this->parse_tags(preg_replace('/(?!#)/', '&amp;', $str));
+		
+		# replace typography stuff
+		$output = preg_replace('/\'/', '&apos;', $output);
+		$output = preg_replace('/--/', '&emdash;', $output);
+
+		$matches =array();
+		preg_match_all('/"/', $output, $matches, PREG_OFFSET_CAPTURE);
+		$flipper = 0;
+		$offset = 0;
+		foreach ($matches[0] as $match) {
+			$pre = substr($output, 0, $match[1]+$offset);
+			if ($flipper == 0) {
+				$q = "&ldquo;";
+			} else {
+				$q = "&rdquo;";
+			}
+			$post = substr($output, $match[1]+$offset+1);
+			$flipper = 1 - $flipper;
+			$output = $pre.$q.$post;
+			$offset += 6;
+		}
+		return $output;
 	}
 		
 		
@@ -376,7 +405,7 @@ class SmartTags {
 	*	http://www.pre-cursor.com[my website]
 	* would become:
 	*	<a href="http://www.pre-cursor.com">my website</a>
-	* The format of the anchor is set in the $this->_linkformat property.
+	* The format of the anchor is set in the $this->linkformat property.
 	**/
 	function parselinks($str) {
 		# try to skip links in attributes
@@ -390,10 +419,10 @@ class SmartTags {
 					 $url = str_replace("mailto://","mailto:",$matches[1]);
                 if (!empty($matches[3])) {
                 	$name = str_replace("mailto://","",$matches[3]);
-                	return str_replace(array("{url}","{name}"), array($url,$name), "'.$this->_linkformat.'");
+                	return str_replace(array("{url}","{name}"), array($url,$name), "'.$this->linkformat.'");
                 } else {
                 	$name = str_replace("mailto://","",$matches[1]);
-                	return str_replace(array("{url}","{name}"), array($url, $name), "'.$this->_linkformat.'");
+                	return str_replace(array("{url}","{name}"), array($url, $name), "'.$this->linkformat.'");
                 }
                 '
               ),
@@ -408,7 +437,7 @@ class SmartTags {
 	* by passing a string of tags to disable
 	*/
 	function disable_tags($skip) {
-		$this->_skiptags = $skip;
+		$this->skiptags = $skip;
 	}
 	
 	/**
@@ -416,10 +445,51 @@ class SmartTags {
 	* ie: "<a href='{url}' rel='external'>{name}</a>"
 	**/
 	function set_link_format($str) {
-		$this->_linkformat		=	$str;	# format for href replacements
+		$this->linkformat		=	$str;	# format for href replacements
+	}
+	
+	
+	// ===========================================================
+	// - STATIC METHODS FOR CONVIENCE
+	// ===========================================================
+	/**
+		htmlify content including p tags
+
+		@param  text the text to parse
+		@return text
+	*/
+	function textToHTML($text) {
+		$st = new Sparkup(1);
+		$output = $st->parse($text);
+		return trim($output);
+	}
+
+	/**
+		Only replace Sparkup tags in text
+
+		@param  text the text to parse
+		@return text
+	*/
+	function tagText($text) {
+		$st = new Sparkup(1);
+		$output = $st->parselinks($st->parse_tags($text));
+		return trim($output);
 	}
 }
 
+
+// ===========================================================
+// - ADD SOME NORMAL FUNCTIONS SO THESE ARE MORE ACCESSIBLE
+// ===========================================================
+	// text to html
+	function h($text) {
+		return Sparkup::textToHTML($text);
+	}
+	
+	// tag text
+	function stag($text) {
+		return Sparkup::tagText($text);
+	}
 
 
 ?>

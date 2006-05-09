@@ -1,5 +1,16 @@
 <?php
 
+/**
+	Base class for controller objects.
+	All controllers should subclass this base class.
+	
+	Note that in the php4 version all instance vars are prefaced with a _, this
+	is a trick to convert vars set in the controller methods into properties for the view
+	in PHP 5 this is done using the magical __get and __set methods.
+
+	@author Chandler McWilliams
+	@version 2006-03-22
+*/
 
 class ControllerCore
 {
@@ -7,55 +18,57 @@ class ControllerCore
 	var $_viewname;
 	var $_layout		= false;
 	var $_templatebase;
-	var $_forcedTemplate;
+	var $_forced_template;
 	var $_beforefilters;
 	var $_afterfilters;
 	var $_beforefilterexceptions = array();
 	var $_afterfilterexceptions = array();
+	var $_cache_page = false;
 	
 // ===========================================================
 // - CONSTRUCTOR
 // ===========================================================
 	function ControllerCore() {
 		# set the template base
-		$this->setTemplateBase(str_replace('controller', '', strtolower(get_class($this))));
+		$this->set_template_base(str_replace('controller', '', strtolower(get_class($this))));
 		
-		# call if there is an appinit() method in the App class
-		if (method_exists($this, 'appinit')) $this->appinit();
+		# call if there is an init() method in the App class
+		$m = get_class_methods('AppController');
+		if (in_array('init', $m)) AppController::init();
 		
 		# if there is an init method, call it		
 		if (method_exists($this, 'init')) $this->init();
 	}
-
+	
 
 // ===========================================================
 // - EXECUTE A URL ACTION
 // ===========================================================
-	function execute($theMethod) {
+	function execute($the_method) {
 		# make sure the method exists
-		if (!method_exists($this, $theMethod)) {
+		if (!method_exists($this, $the_method)) {
 			# if it doesn't, look for default
 			if (method_exists($this, '_index')) {
-				$theMethod = '_index';
+				$the_method = '_index';
 			} else {
 				# if that's no good
 				# cause an error
-				throw(new Exception("Invalid action ".substr($theMethod,1).".", 0));
+				throw(new SaintException("Invalid action ".substr($the_method,1).".", 0));
 			}
 		}
 		
 		# perform the before filters
-		$bf = $this->getBeforeFilters();
-		$bfe = $this->getBeforeFilterExceptions();
+		$bf = $this->get_before_filters();
+		$bfe = $this->get_before_filter_exceptions();
 		$ok = true;
-		$testMethod = substr($theMethod,1);
+		$test_method = substr($the_method,1);
 		if ($bf) {
 			foreach ($bf as $method => $filters) {
 				# if it's excepted, skip
-				if (array_key_exists($testMethod, $bfe)) continue;
+				if (array_key_exists($test_method, $bfe)) continue;
 				
 				# if it's a global filter or one for this method
-				if ($method == '*' || $method == $testMethod) {
+				if ($method == '*' || $method == $test_method) {
 
 
 					# loop through all filters and call each
@@ -70,18 +83,18 @@ class ControllerCore
 		}
 
 		# call the method if none of the filters returned false
-		if ($ok) call_user_func(array(&$this, $theMethod));
+		if ($ok) call_user_func(array($this, $the_method));
 		
 		# perform the after filters
-		$af = $this->getAfterFilters();
-		$afe = $this->getAfterFilterExceptions();
+		$af = $this->get_after_filters();
+		$afe = $this->get_after_filter_exceptions();
 		if ($af) {
 			foreach ($af as $method => $filters) {
 				# if it's excepted, skip
-				if (array_key_exists($testMethod, $afe)) continue;
+				if (array_key_exists($test_method, $afe)) continue;
 
 				# if it's a global filter or one for this method
-				if ($method == '*' || $method == $theMethod) {
+				if ($method == '*' || $method == $the_method) {
 					# loop through all filters and call each
 					foreach($filters as $filter) {
 						call_user_func($filter);
@@ -91,22 +104,106 @@ class ControllerCore
 		}
 		
 		# render the view
-		$this->renderView(substr($theMethod,1));
+		$this->render_view(substr($the_method,1));
 	}
 	
 
 // ===========================================================
 // - RENDER
 // ===========================================================
-	function renderView($viewname=false) {
-		$view =& $this->getViewForAction($viewname);
+	function render_view($viewname=false) {
+		$view = $this->get_view_for_action($viewname);
 		# add all user data to the view
 		foreach($this as $k=>$v) {
-			if ($k{0} != '_') $view->addProp($k, $v);
+			if ($k{0} != '_') $view->add_prop($k, $v);
 		}
-		$view->render($this->getLayout());
+
+		# if we cache, do that
+		if ($this->_cache_page && empty($_GET) && empty($_POST)) {
+			$output = $view->parse($this->get_layout());
+			$this->save_cache($_SERVER['REQUEST_URI'], $output);
+		}
+		$view->render($this->get_layout());
 	}
 
+
+
+// ===========================================================
+// - CACHE
+// ===========================================================
+	function save_cache($path, $data) {
+		if ($path == '/') $path = '/index';
+		
+		# trim trailing /
+		$path = (strrpos($path, '/') == (strlen($path)-1))?substr($path,0, -1):$path;
+		
+		# parse path
+		$dirs = explode('/', $path);
+
+		# pop filename
+		$file = array_pop($dirs).'.cache';
+		
+		# new path
+		$mkdir = PROJECT_ROOT.'/public_html';
+		
+		# create path
+		foreach($dirs as $dir) {
+			if (empty($dir)) continue;
+			$mkdir .= '/'.$dir;
+
+			if (!file_exists($mkdir)) {
+				$ok = mkdir($mkdir);
+				if (!$ok) return false;
+			}
+		}
+		
+		#save file
+		$fp = fopen($mkdir.'/'.$file, "w");
+		$ok = fwrite($fp, $data);
+		fclose($fp);
+		if (!$ok) {
+			throw(new SaintException("Failed to write cache file to: ".$mkdir.'/'.$file.".", 0));
+		}
+		return true;
+	}
+
+
+	function clear_cache($path) {
+		$base = PROJECT_ROOT.'/public_html';
+	
+		# trim trailing /
+		$path = (strrpos($path, '/') == (strlen($path)-1))?substr($path,0, -1):$path;
+
+		# parse path
+		$dirs = explode('/', $path);
+	
+		# if the last item is a * then clear all cache files at that location
+		$last = array_pop($dirs);
+		if ($last == '*') {
+			$targetpath = join('/', $dirs);
+			if (file_exists($base.$targetpath)) {
+				$dirhandle=opendir($base.$targetpath);
+				while (($file = readdir($dirhandle))!==false) {
+					$pi = pathinfo($file);
+					if ($pi['extension'] == 'cache') {
+						unlink($base.$targetpath.'/'.$file);
+					} else if ($file{0} != '.' && is_dir($base.$targetpath.'/'.$file)) {
+						ControllerCore::clear_cache($targetpath.'/'.$file.'/*');
+					}
+				}
+				closedir($dirhandle);
+			}
+		
+			# also delete the cache file for the dir
+			if (file_exists($base.$targetpath.'.cache')) {
+				unlink($base.$targetpath.'.cache');
+			}
+		
+		} else {
+			unlink($base.$path.'.cache');
+		}
+		
+	}
 
 
 
@@ -115,18 +212,18 @@ class ControllerCore
 // ===========================================================		
 	// get a view using the template
 	// this is the only method that returns an actual view object
-	function & getView($template) {
+	function  get_view($template) {
 		return ViewFactory::make_view($template);
 	}
 
 	// get a view object using the specified action
-	function & getViewForAction($action) {
-		if ($this->getForcedTemplate()) {
-			$template = $this->getForcedTemplate();
+	function  get_view_for_action($action) {
+		if ($this->get_forced_template()) {
+			$template = $this->get_forced_template();
 		} else {
-			$template = $this->getTemplateBase().$action;
+			$template = $this->get_template_base().$action;
 		}
-		return $this->getView($template);
+		return $this->get_view($template);
 	}
 
 
@@ -137,29 +234,25 @@ class ControllerCore
 // - ACCESSORS
 // ===========================================================
 	# get/set the template base
-	function getTemplateBase() { return PROJECT_VIEWS.'/'.$this->_templatebase.'/';}
-	function setTemplateBase($v) { $this->_templatebase = $v; }
+	function get_template_base() { return PROJECT_VIEWS.'/'.$this->_templatebase.'/';}
+	function set_template_base($v) { $this->_templatebase = $v; }
 
 	
 	# get/set the forced template
-	function getForcedTemplate() {
-		if ($this->_forcedTemplate) return PROJECT_VIEWS.'/'.$this->_forcedTemplate;
+	function get_forced_template() {
+		if ($this->_forced_template) return PROJECT_VIEWS.'/'.$this->_forced_template;
 		return false;
 	}
 	
 	function force_template($template) {
-		$this->_forcedTemplate = $template;
+		$this->_forced_template = $template;
 	}
 
-	function silent() {
-		$this->forceTemplate(false);
-	}
-
-	function setLayout($x) {
+	function set_layout($x) {
 		$this->_layout = $x;
 	}
 
-	function getLayout() {
+	function get_layout() {
 		if ($this->_layout) return PROJECT_VIEWS.'/layouts/'.$this->_layout;
 		return false;
 	}
@@ -168,19 +261,19 @@ class ControllerCore
 // ===========================================================
 // - FILTER METHODS
 // ===========================================================
-	function filterBefore($filter, $methods='*', $except=false) { $this->addFilter('before', $filter, $methods, $except); }
-	function filterAfter($filter, $methods='*', $except=false) { $this->addFilter('after', $filter, $methods, $except); }
+	function filter_before($filter, $methods='*', $except=false) { $this->add_filter('before', $filter, $methods, $except); }
+	function filter_after($filter, $methods='*', $except=false) { $this->add_filter('after', $filter, $methods, $except); }
 
-	function filterBeforeExcept($filter, $except) { $this->addFilter('before', $filter, '*', $except); }
-	function filterAfterExcept($filter, $except) { $this->addFilter('after', $filter, '*', $except); }
+	function filter_before_except($filter, $except) { $this->add_filter('before', $filter, '*', $except); }
+	function filter_after_except($filter, $except) { $this->add_filter('after', $filter, '*', $except); }
 	
 	
-	function addFilter($type, $filter, $methods='*', $except=false) {
+	function add_filter($type, $filter, $methods='*', $except=false) {
 		# grab the filter array to use
 		if ($type = 'before') {
-			$farray =& $this->getBeforeFilters();
+			$farray = $this->get_before_filters();
 		} else {
-			$farray =& $this->getAfterFilters();
+			$farray = $this->get_after_filters();
 		}			
 
 		# make sure the arry is set
@@ -206,9 +299,9 @@ class ControllerCore
 		if ($except !== false) {
 			# get the right exceptions array
 			if ($type = 'before') {
-				$earray =& $this->getBeforeFilterExceptions();
+				$earray = $this->get_before_filter_exceptions();
 			} else {
-				$earray =& $this->getAfterFilterExceptions();
+				$earray = $this->get_after_filter_exceptions();
 			}			
 
 			if (is_array($except)) {
@@ -226,11 +319,11 @@ class ControllerCore
 		
 	}
 
-	function &getBeforeFilters() { return $this->_beforefilters; }
-	function &getAfterFilters() { return $this->_afterfilters; }
+	function  get_before_filters() { return $this->_beforefilters; }
+	function  get_after_filters() { return $this->_afterfilters; }
 
-	function &getBeforeFilterExceptions() { return $this->_beforefilterexceptions; }
-	function &getAfterFilterExceptions() { return $this->_afterfilterexceptions; }
+	function  get_before_filter_exceptions() { return $this->_beforefilterexceptions; }
+	function  get_after_filter_exceptions() { return $this->_afterfilterexceptions; }
 
 
 
@@ -238,28 +331,13 @@ class ControllerCore
 // ===========================================================
 // - REDIRECT TO A NEW CONTROLLER
 // ===========================================================
-	function redirect_to($controller, $action=false, $id=false, $params=false) {
-
-		# build URL
-		$url = "/$controller";
-		
-		if ($action) $url .= "/$action";
-		
-		# if there is an ID, add it
-		if ($id) $url .= "?item=$id";
-		
-		# if there are params, add them
-		if (is_array($params)) {
-			foreach ($params as $k=>$v) {
-				$url .= "&$k=$v";
-			}
+	function redirect_to($args) {
+		if (!is_array($args)) {
+			$args = func_get_args();
 		}
-		if (substr($url, 0,2) == '//') $url = substr($url, 1);
-		$url = realpath($url)?realpath($url):$url;
-		header('Location: '.WEBBASE.$url);
-		
+		$url = url_for($args);
+		header("Location: $url");	
 	}
-
 }
 
 

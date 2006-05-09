@@ -3,19 +3,15 @@
 # start session
 session_start();
 
-# include required subclass
-__autoload('User');
-
-
 # if the user class didn't happen, tell them they need it
-if (!class_exists('User')) throw(new Exception('Login system requires a user defined subclass of LoginUser'));
+if (!class_exists('User')) throw(new SaintException('Login system requires a user defined subclass of LoginUser'));
 
 # make an instance to start it off
 # this makes sure the associated classes are loaded.
 # in PHP5 this can go away
 new User;
 
-class LoginUser extends DBModel
+class LoginUser extends DBRecord
 {
 	
 // ===========================================================

@@ -1,26 +1,25 @@
 <?php
 
 
-class MySQLConnection {
+class MySQLiConnection
+{
 
 	var $db;
 	var $host;
 	var $user;
 	var $pass;
 	var $dbname;
-	var $persistent;
 	var $last_query;
 
 	// ===========================================================
 	// - CONSTRUCTOR
 	// ===========================================================
-	function MySQLConnection($host, $user, $pass, $dbname, $persistent=false) {
+	function MySQLiConnection($host, $user, $pass, $dbname) {
 		$this->db			= false;
 		$this->host			= $host;
 		$this->user			= $user;
 		$this->pass			= $pass;
 		$this->dbname		= $dbname;
-		$this->persistent	= $persistent;
 		
 		$this->open();
 	}
@@ -30,20 +29,11 @@ class MySQLConnection {
 	}
 	
 	function open() {
-		if ($this->persistent) {
-			$this->db = @mysql_pconnect($this->host, $this->user, $this->pass);			
-		} else {
-			$this->db = @mysql_connect($this->host, $this->user, $this->pass);
-		}
+		$this->db = new mysqli($this->host, $this->user, $this->pass, $this->dbname);
 		
 		# make sure we conneted
 		if (!$this->db)
-			throw new DBException("Failed to connect to mysql.\n".mysql_error(), mysql_errno(), '');
-		
-		# choose our db
-		if (!mysql_select_db($this->dbname)) {
-			throw new DBException('Failed to select database '.$this->dbname.".\n".mysql_error(), mysql_errno(), '');
-		}
+			throw new DBException("Failed to connect to mysql.\n".$this->db->error, $this->db->errno, '');		
 		
 	}
 	
@@ -52,7 +42,7 @@ class MySQLConnection {
 	// - INTERFACE
 	// ===========================================================	
 	function escape_string($str) {
-		return mysql_real_escape_string($str);
+		return $this->db->real_escape_string($str);
 	}
 	
 	function  query($sql) {
@@ -60,7 +50,7 @@ class MySQLConnection {
 		if(!$this->db) $this->open();
 		
 		# get result
-		$r = mysql_query($sql);
+		$r = $this->db->query($sql);
 		
 		# if it's true, return that (insert, etc)
 		# else make sure it's a resource and has rows
@@ -69,18 +59,18 @@ class MySQLConnection {
 		} else if ($r === false) {
 			$q = false;
 		} else {
-			$q = new MySQLResult($r, $this);
+			$q = new MySQLiResult($r);
 		}		
 		return $q;
 	}
 
 	function insert_id() {
-		return mysql_insert_id($this->db);
+		return $this->db->insert_id;
 	}
 	
 	function table_info($table) {
 		$sql = "SHOW COLUMNS FROM $table";
-		$result = new MySQLResult(mysql_query($sql), $this);
+		$result = new MySQLiResult($this->db->query($sql));
 		$output = array();
 		$output['order'] = array();
 		$i=0;
@@ -92,11 +82,11 @@ class MySQLConnection {
 	}
 	
 	function errno() {
-		return mysql_errno($this->db);
+		return $this->db->errno;
 	}
 
 	function error() {
-		return mysql_error($this->db);
+		return $this->db->error;
 	}
 	
 	function free() {
@@ -104,7 +94,7 @@ class MySQLConnection {
 	}
 	
 	function close() {
-		if ($this->db && !$this->persistent) mysql_close($this->db);
+		if ($this->db) $this->db->close();
 	}
 }
 

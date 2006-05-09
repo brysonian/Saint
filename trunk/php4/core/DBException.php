@@ -1,14 +1,14 @@
 <?php
 
 
-class DBException extends Exception
+class DBException extends SaintException
 {
 	
 	var $query = false;
 
 	function DBException($message, $errorcode, $query) {
-		$this->setQuery($query);
-		parent::Exception($message, $errorcode);
+		$this->set_query($query);
+		parent::__construct($message, $errorcode);
 	}
 	
 	/**
@@ -18,16 +18,16 @@ class DBException extends Exception
 		$out = '';
 		switch ($format) {
 			case 'txt':
-				$out .= $this->getMessage();
+				$out .= $this->get_message();
 				break;
 			
 			case 'html':
-				$out = $this->getHTML($this->getMessage()."</p><p><code>".$this->get_query()."<code>");
+				$out = $this->get_html($this->get_message()."</p><p><code>".$this->get_query()."<code>");
 				break;
 			
 			case 'xml':
-				$out .= "<error code='".$this->getCode()."'>";
-				$out .= $this->getMessage();
+				$out .= "<error code='".$this->get_code()."'>";
+				$out .= $this->get_message();
 				$out .= "</error>";
 				break;
 			
@@ -35,7 +35,7 @@ class DBException extends Exception
 				# do nothing
 				break;
 		}
-		error_log("Exception in ".$this->getFile()." : ".$this->getMessage());	
+		error_log("Exception in ".$this->get_file()." : ".$this->get_message());	
 		return $out;
 	}
 
@@ -50,7 +50,7 @@ class DBException extends Exception
 	function get_query() { return $this->query; }
 	
 	// setters
-	function setQuery($q) { $this->query = $q; }
+	function set_query($q) { $this->query = $q; }
 
 }
 

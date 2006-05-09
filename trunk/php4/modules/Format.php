@@ -1,36 +1,16 @@
 <?php
 /**
-	Privides access to common string formatters
+	Provides access to common formatters.
+	Includes a bunch of handy date formatting methods
 
 	@author Chandler McWilliams
 	@version 2005-05-23
 */
+
 class Format {
 	
 	function Format() {}
-
-	# htmlify content including p tags
-	function textToHTML($text) {
-		$st = new SmartTags(2);
-		$output = $st->parse($text);
-		return trim($output);
-	}
-
-	# only replace "smarttags" in text
-	function tagText($text) {
-		$st = new SmartTags(2);
-		$output = $st->parselinks($st->parse_tags($text));
-		return trim($output);
-	}
-	
-	# like textToHtml but no leading and trailing p tags
-	function textToHTMLNoPara($text) {
-		$st = new SmartTags(2);
-		$output = $st->parse($text,false);
-		return trim($output);
-
-	}
-	
+		
 	# format a date string into something like: April 1, 1976 11:05am
 	function prettyDatetime($value) {
 		if (strlen($value) == 14) $value = Format::parseMySQLTime($value);
@@ -88,5 +68,20 @@ class Format {
 	}
 
 }
-
+	
+	function dt($value) {
+		return Format::prettyDatetime($value);
+	}
+	
+	function d($value) {
+		return Format::prettyDate($value);
+	}
+	
+	function t($value) {
+		return Format::prettyTime($value);
+	}
+	
+	function dateAs($value, $format) {
+		return Format::dateAs($value, $format);
+	}
 ?>
