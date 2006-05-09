@@ -15,6 +15,9 @@ class DBRecord implements Iterator, Serviceable
 	var $where;
 	var $group;
 	var $limit;
+	var $valid;
+	var $key;
+
 
 
 // ===========================================================

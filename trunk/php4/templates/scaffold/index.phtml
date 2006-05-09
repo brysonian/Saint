@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<title><%=ucfirst(params('controller'))%></title>
+		<style type="text/css">
+			body { font-family: Trebuchet MS, Arial, San-Serif; }
+			a:link, a:visited, a:hover, a:active { color: #222; }
+		</style>
+	</head>
+
+	<body>
+		<h1><%=ucfirst(params('controller'))%>s</h1>
+		
+		<ol>			
+			<% foreach ($items as $item): %>
+			
+				<li><%=link_to($item->title?$item->title:$item->name,array('action'=>'show', 'uid'=>$item->uid))%></li>
+					
+			<% endforeach %>
+		</ol>
+		
+		<div>
+			<%=link_to('create', array('action'=>'create'))%>
+		</div>
+
+	</body>
+</html>
