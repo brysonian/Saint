@@ -1,8 +1,10 @@
 #!/usr/bin/php
 <?php
+
+	define ('SAINT_ROOT', realpath(dirname(__FILE__).'/..'));
 	
 	# define some locations
-	define ('SAINT_APP_TEMPLATE', '/Users/chandler/Projects/Saint/Saint/application');
+	define ('SAINT_APP_TEMPLATE', SAINT_ROOT.'/application');
 
 
 	
@@ -23,10 +25,18 @@
 	copyr(SAINT_APP_TEMPLATE, $dir);
 	
 	# set perms on scripts
-	chmodr($dir."/scripts", "0777");
-
-
-
+	chmodr("$dir/scripts", "0777");
+	
+	# set saint root in scripts
+	$scripts = get_files("$dir/scripts");
+	foreach($scripts as $k => $v) {
+		$s = file_get_contents("$dir/scripts/$v");
+		$s = str_replace("<?php\n", "<?php\n	define('SAINT_ROOT', '".SAINT_ROOT."');\n", $s);
+		
+		$f = fopen("$dir/scripts/$v", 'w');
+		fwrite($f, $s);
+		fclose($f);
+	}
 
 
 
@@ -111,6 +121,20 @@
 		// Clean up
 		$dir->close();
 		return true;
+	}
+
+	/**
+	* get a list of files as an array
+	* skipping dir pointers and hidden files
+	*/
+	function get_files($dirname) {
+		$filelist = array();
+		$dirhandle=opendir($dirname);
+		while (($file = readdir($dirhandle))!==false) {
+			if ($file{0} != '.') $filelist[] = $file;	// if not dir pointer, or hidden
+		}
+		closedir($dirhandle);
+		return $filelist;
 	}
 	
 ?>
