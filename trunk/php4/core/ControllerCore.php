@@ -324,21 +324,6 @@ class ControllerCore
 
 	function  get_before_filter_exceptions() { return $this->_beforefilterexceptions; }
 	function  get_after_filter_exceptions() { return $this->_afterfilterexceptions; }
-
-
-
-
-// ===========================================================
-// - REDIRECT TO A NEW CONTROLLER
-// ===========================================================
-	function redirect_to($args) {
-		if (!is_array($args)) {
-			$args = func_get_args();
-		}
-		$url = url_for($args);
-		header("Location: $url");	
-	}
 }
-
 
 ?>

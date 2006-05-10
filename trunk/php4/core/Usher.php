@@ -4,19 +4,21 @@
 
 class Usher
 {
-	var $maps = array();
-	var $base = false;
-	
+	public $maps = array();
+	public $base = false;
+
+	static private	$instance = false;
 	static public $params;
 	
-	# php 4 singleton
-	function  get_instance() {
-		static $_instance;		
-		if (!isset($_instance)) {
-			$_instance = new Usher;
+	# singleton
+	static function get_instance() {
+		if(!self::$instance) {
+			$c = __CLASS__;
+			self::$instance = new $c;
 		}
-		return $_instance;
+		return self::$instance;
 	}
+
 	
 	/**
 	* Set the base for urls
@@ -49,7 +51,7 @@ class Usher
 	* find the best map include the right classes and
 	* start hand off to the controller
 	*/
-	function handle_url($url) {
+	static function handle_url($url) {
 		$u = Usher::get_instance();
 
 		$params = $u->match_url($url);
@@ -228,7 +230,16 @@ function url_for($args=false) {
 	return $url;
 }
 
-
+// ===========================================================
+// - REDIRECT TO A NEW CONTROLLER
+// ===========================================================
+function redirect_to($args) {
+	if (!is_array($args)) {
+		$args = func_get_args();
+	}
+	$url = url_for($args);
+	header("Location: $url");	
+}
 
 
 

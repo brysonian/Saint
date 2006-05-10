@@ -56,6 +56,7 @@
 	// ===========================================================
 	// - GET USER CONFIG VALUES.
 	// ===========================================================
+	$redirect_on_error = false;
 	require_once (PROJECT_ROOT."/config/environment.php");
 
 
@@ -112,9 +113,17 @@
 // - ERRORS
 // ===========================================================
 	function saint_error_handler($errno, $errstr, $errfile, $errline) {
-		throw(new SaintException($errstr, $errno));
+		global $redirect_on_error;
+		
+		$e = new SaintException($errstr, $errno);
+		if ($redirect_on_error === false) {
+			die($e->log());
+		} else {
+			redirect_to($redirect_on_error);
+			die();
+		}
 	}
-	
+	set_error_handler('saint_error_handler');
 
 
 
@@ -134,6 +143,16 @@
 // ===========================================================
 	function __autoload($class_name) {
 		$class_name = ucfirst($class_name);
+
+		# if it's a controller, make sure it exists
+		# this is handy if people ask for a non-existent controller
+		if (strpos($class_name, 'Controller') !== false) {
+			$ok = file_exists(PROJECT_ROOT."/app/controllers/$class_name.php");
+			if(!$ok) {			
+				trigger_error("No class with the name $class_name could be found.");
+			}
+		}
+				
 		require_once("$class_name.php");
 	}
 

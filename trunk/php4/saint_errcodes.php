@@ -4,6 +4,8 @@
 // - CODES
 // ===========================================================
 	define ('NOMAP', 1);
+	define ('NOCLASS', 2);
+
 	define ('DUPLICATE_ENTRY', 1062);
 
 
