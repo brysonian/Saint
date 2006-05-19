@@ -132,7 +132,7 @@ function get_root() {
 	return $u->get_base();
 }
 
-function link_to($name, $args) {
+function link_to($name, $args=false) {
 	if (!is_array($args)) {
 		$args = func_get_args();
 		array_shift($args);
@@ -150,9 +150,9 @@ function url_for($args=false) {
 	# build URL
 	$url = $u->get_base();
 
-	# if nothing is passed, return a url for the root
-	if ($args === false || $args == '/') {
-		return $url;
+	# if nothing is passed, return a url for the default action of the current controller
+	if ($args === false) {
+		$args = array('controller' => params('controller'));
 
 	} else if (!is_array($args)) {
 		# if the args is not an array, grab them all
@@ -161,7 +161,11 @@ function url_for($args=false) {
 	
 	# reinterpret using order
 	if (array_key_exists(0, $args)) {
-		$args['controller']	= $args[0];
+		if ($args[0] == false) {
+			$args['controller'] = params('controller');
+		} else {
+			$args['controller']	= $args[0];
+		}
 		unset($args[0]);
 	}
 	if (array_key_exists(1, $args)) {
@@ -177,11 +181,11 @@ function url_for($args=false) {
 		unset($args[3]);
 	}
 	
-	
 	# if controller is empty, use the current controller
-	if (!array_key_exists('controller', $args)) {
-		$args['controller'] = params('controller');
-	}
+	if (!array_key_exists('controller', $args)) $args['controller'] = params('controller');
+
+	# if the controller is root and it's the only arg, then go there
+	if ($args['controller'] == '/' && count($args) == 1) return $url;
 
 	# for each param, try to find the map that fits the best
 	$score = 999;
@@ -233,8 +237,8 @@ function url_for($args=false) {
 // ===========================================================
 // - REDIRECT TO A NEW CONTROLLER
 // ===========================================================
-function redirect_to($args) {
-	if (!is_array($args)) {
+function redirect_to($args=false) {
+	if (!is_array($args) && $args !== false) {
 		$args = func_get_args();
 	}
 	$url = url_for($args);

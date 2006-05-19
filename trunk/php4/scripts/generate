@@ -1,6 +1,19 @@
 <?php
-	define('SAINT_ROOT', '/Users/chandler/Projects/Saint/Saint');
 
+	require_once (SAINT_ROOT."/saint.php");
+
+
+// ===========================================================
+// - LIB
+// ===========================================================
+# errors
+#	require_once (SAINT_ROOT."/error_codes.php");
+#	require_once (SAINT_ROOT."/error_messages.php");
+
+
+// ===========================================================
+// - MAIN
+// ===========================================================
 	$argv = $_SERVER['argv'];
 	array_shift($argv);
 
@@ -8,9 +21,7 @@
 	if (count($argv) == 0) {
 		error("Please specify the name of what you would like to generate. Or a name and object type.");
 	}
-	
-	
-	
+
 	# if there's only one, generate the model
 	# and controller using the arg as the base name
 	# see what we are generating
@@ -55,6 +66,9 @@
 			break;
 	}
 
+	display_errors();
+
+
 
 
 
@@ -63,7 +77,7 @@
 // ===========================================================
 	function create_model($name) {
 		$cname = ucfirst($name);
-		$code = "<?php\n\nclass $cname extends DBRecord \n{\n\t\n}\n\n?>";
+		$code = "<?php\n\nclass $cname extends DBRecord \n{\n\tfunction init() {\n\t\t\n\t}\n}\n\n?>";
 		write_script('app/models', $cname, $code);
 		
 	}
@@ -72,7 +86,7 @@
 		$mname = ucfirst($name);
 		$cname = $mname.'Controller';
 		if ($scafolding) {
-			$code = "<?php\n\nclass $cname extends AppController\n{\n\tfunction _index() {\n\t\t\$this->items = $mname::find_all();\n\t}\n\n\tfunction _show() {\n\t\t\$this->item = $mname::find(params('uid'));\n\t}\n\n\tfunction _create() {\n\t\tif (false) {\n\t\t\t\$m = new $mname();\n\t\t\t\$m->save();\n\t\t}\n\t\t\n\t\t\$this->redirect_to(false, 'index');\n\t}\n\n}\n\n?>";
+			$code = "<?php\n\nclass $cname extends AppController\n{\n\tfunction _index() {\n\t\t\$this->items = $mname::find_all();\n\t}\n\n\tfunction _show() {\n\t\t\$this->item = $mname::find(params('uid'));\n\t}\n\n\tfunction _new() {}\n\n\tfunction _create() {\n\t\t\$obj = new $mname();\n\n\t\tforeach(\$_POST as \$k => \$v) {\n\t\t\tif (\$k == 'submit') continue;\n\t\t\tif (!empty(\$v)) \$obj->\$k = \$v;\n\t\t}\n\t\ttry {\n\t\t\t\$obj->save();\n\t\t\tredirect_to(false);\n\t\t} catch (ValidationException \$e) {\n\t\t\tdie((\$e->log()));\n\t\t}\n\t}\n\n\n}\n\n?>";
 		} else {
 			$code = "<?php\n\nclass $cname extends AppController\n{\n\t\n}\n\n?>";
 		}
@@ -86,19 +100,114 @@
 	function create_scaffold($name) {
 		$path = strtolower("app/views/$name");
 		copy(SAINT_ROOT.'/templates/scaffold/index.phtml', "$path/index.phtml");
-		copy(SAINT_ROOT.'/templates/scaffold/create.phtml', "$path/create.phtml");
 		copy(SAINT_ROOT.'/templates/scaffold/show.phtml', "$path/show.phtml");
+		
+		$html = create_new_scaffold($name);
+		$f = fopen("$path/new.phtml", 'w');
+		fwrite($f, $html);
+		fclose($f);
+
+	}
+
+
+	function create_new_scaffold($name) {
+# 		define('PROJECT_ROOT', realpath(dirname($_SERVER['PATH_TRANSLATED']).'/../'));
+
+# 		# Add some things to the include path
+# 		# lib modules
+# 		$inc = get_include_path();
+# 		$inc .= PATH_SEPARATOR.SAINT_ROOT.'/core';
+	
+# 		# user locations
+# 		$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/models';
+# 		set_include_path($inc);
+
+# 		# get the DB config params
+# 		require_once (PROJECT_ROOT."/config/database.php");
+
+
+# 		# DB SERVICE
+# 		$d = DBService::get_instance();
+# 		$d->add_connection_for_classes(
+# 			array('DBRecord'), 'mysqli', $db_name, $user, $pass, $host);
+		
+		
+		// ===========================================================
+		// - NOW DO THE WORK
+		// ===========================================================
+			$mname = ucfirst($name);
+			
+			$obj = new $mname;
+			$info = $obj->table_info();
+	
+			# get the html for each element
+			$elements = '';
+			foreach($info as $k => $v) {
+				$type = $v['Type'];
+				$field = $v['Field'];
+				
+				switch (true) {
+					case ($field == 'id'):
+					case ($field == 'uid'):
+						break;
+					
+					# fk relationships
+					case (strpos($field, '_uid') !== false):
+						break;
+					
+					case (strpos($type, 'varchar')!==false):
+						# if it's less than 100 use a line, otherwise use a small textarea
+						$m = array();
+						preg_match('/varchar\(([0-9]+)\)/', $type, $m);
+						$temp = ($m[1]>100)?'_varchar255':'_varchar100';
+						
+						ob_start();
+						include (SAINT_ROOT."/templates/scaffold/$temp.phtml");
+						$elements .= ob_get_clean();						
+						break;
+						
+					case ($type == 'text'):
+					case ($type == 'date'):
+					case ($type == 'datetime'):
+					case ($type == 'time'):
+						ob_start();
+						include (SAINT_ROOT.'/templates/scaffold/_'.strtolower($type).'.phtml');
+						$elements .= ob_get_clean();
+						break;
+												
+				}
+			}
+
+			ob_start();
+			include (SAINT_ROOT.'/templates/scaffold/new.phtml');
+			$html = ob_get_clean();						
+
+			return $html;
+
+
 	}
 
 
 // ===========================================================
 // - HELPERS
 // ===========================================================
-	function error($msg) {
-		echo "\n+------------------------------------------+\n";
-		echo "|	SAINT encountered an error:	   |\n";
-		echo "+------------------------------------------+\n";
-		die($msg."\n\n\n");
+	$errors = array();
+	function error($msg, $fatal=false) {
+		global $errors;
+		$errors[] = $msg;
+		if ($fatal) {
+			display_errors();
+			die();
+		}
+	}
+	
+	function display_errors() {
+		global $errors;
+		if (empty($errors)) return;
+		echo "\n+----------------------------+\n";
+		echo "|     SAINT some errors:     |\n";
+		echo "+----------------------------+\n";
+		echo(join("\n", $errors)."\n\n\n");
 	}
 
 	function write_script($dir, $cname, $code) {
@@ -132,6 +241,14 @@
 		}
 	}
 
+
+
+
+
+#	function __autoload($class_name) {
+#		$class_name = ucfirst($class_name);
+#		require_once("$class_name.php");
+#	}
 		
 ?>
 

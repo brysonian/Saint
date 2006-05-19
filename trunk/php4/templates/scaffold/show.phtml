@@ -3,7 +3,7 @@
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 	<head>
-		<title><%=ucfirst(params('controller'))%>: <%=$item->title?$item->title:$item->name%></title>
+		<title><?php echo ucfirst(params('controller')); ?>: <?php echo $item->title?$item->title:$item->name; ?></title>
 		<style type="text/css">
 			body { font-family: Trebuchet MS, Arial, San-Serif; }
 			a:link, a:visited, a:hover, a:active { color: #222; }
@@ -11,14 +11,14 @@
 	</head>
 
 	<body>
-		<h1><%=ucfirst(params('controller'))%>: <%=$item->title?$item->title:$item->name%></h1>
+		<h1><?php echo ucfirst(params('controller')); ?>: <?php echo $item->title?$item->title:$item->name; ?></h1>
 		<dl>			
-			<% foreach ($item as $k=>$v): %>
+			<?php foreach ($item as $k=>$v): ?>
 				
-				<dt><%=$k%></dt>
-				<dd><%=$v%></dd>
+				<dt><?php echo $k; ?></dt>
+				<dd><?php echo $v; ?></dd>
 					
-			<% endforeach %>
+			<?php endforeach ?>
 		</dl>
 
 		

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<title>Create <?php echo '<'.'?php echo ucfirst(params("controller"));?'.'>'; ?></title>
+		<style type="text/css">
+			body { font-family: Trebuchet MS, Arial, San-Serif; }
+			a:link, a:visited, a:hover, a:active { color: #222; }
+			ul { list-style: none; padding: 0px;}
+			label { display: block; padding-top: 10px;}
+			span.tool { font-size: .8em; }
+		</style>
+	</head>
+
+	<body>
+		<h1>Create <?php echo '<'.'?php echo ucfirst(params("controller"));?'.'>'; ?></h1>
+		<form action="<?php echo '<'.'?php echo url_for(array(\'action\'=>\'create\'));?'.'>'; ?>" method="post">
+			<ul>
+				<?php echo $elements; ?>
+			</ul>
+			<input type="submit" name="submit" value="Save" id="submit" />
+		</form>
+
+		
+	</body>
+</html>

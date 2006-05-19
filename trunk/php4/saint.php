@@ -1,9 +1,10 @@
 <?php
+#die(var_export($_SERVER['HTTP_HOST']));
 
 	// ===========================================================
 	// - GET THE SAINT ROOT
 	// ===========================================================
-	define('SAINT_ROOT', realpath(dirname(__FILE__)));
+	if(!defined('SAINT_ROOT')) define('SAINT_ROOT', realpath(dirname(__FILE__)));
 	define('PROJECT_ROOT', realpath(dirname($_SERVER['PATH_TRANSLATED']).'/../'));
 
 
@@ -37,8 +38,9 @@
 	require_once (SAINT_ROOT.'/core/MySQLiConnection.php');
 	require_once (SAINT_ROOT.'/core/MySQLiResult.php');
 	
-	# error codes
-	require_once (SAINT_ROOT.'/saint_errcodes.php');
+	# error codes and messages //TODO: Localize
+	require_once (SAINT_ROOT.'/error_codes.php');
+	require_once (SAINT_ROOT.'/error_messages.php');
 
 	# base application controller
 	require_once (PROJECT_ROOT.'/app/controllers/AppController.php');
@@ -70,16 +72,18 @@
 	// ===========================================================
 	// - DEFINE LOCATION CONSTANTS. MAY BE OVERRIDDEN BY config.php
 	// ===========================================================
-	# define the base url for the html pages
-	if (!defined('WEBBASE'))
-		define('WEBBASE', 		'http://'.$_SERVER['HTTP_HOST']);
-
 	# define the base url for views (templates)
 	if (!defined('PROJECT_VIEWS'))
 		define('PROJECT_VIEWS', 		PROJECT_ROOT.'/app/views/');
 
-	# define the translated URI for this request
-	define('PROJECT_URI', str_replace(WEBBASE, '', 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']));
+	# define the base url for the html pages if this is web request
+	if (array_key_exists('HTTP_HOST', $_SERVER)) {
+		if (!defined('WEBBASE'))
+			define('WEBBASE', 		'http://'.$_SERVER['HTTP_HOST']);
+
+		# define the translated URI for this request
+		define('PROJECT_URI', str_replace(WEBBASE, '', 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']));
+	}
 
 		
 
@@ -90,11 +94,6 @@
 	# get the DB config params
 	require_once (PROJECT_ROOT."/config/database.php");
 	
-	// TODO: Use DB Service
-	# connect
-	#$dbconnection = new MySQLiConnection($host, $user, $pass, $db_name);
-
-
 	# DB SERVICE
 	$d = DBService::get_instance();
 	$d->add_connection_for_classes(
@@ -115,7 +114,7 @@
 	function saint_error_handler($errno, $errstr, $errfile, $errline) {
 		global $redirect_on_error;
 		
-		$e = new SaintException($errstr, $errno);
+		$e = new SaintException($errstr, $errno, $errfile, $errline);
 		if ($redirect_on_error === false) {
 			die($e->log());
 		} else {

@@ -68,14 +68,18 @@ class MySQLiConnection
 		return $this->db->insert_id;
 	}
 	
-	function table_info($table) {
-		$sql = "SHOW COLUMNS FROM $table";
+	function table_info($table, $full=false) {
+		$sql = "SHOW COLUMNS FROM `$table`";
 		$result = new MySQLiResult($this->db->query($sql));
 		$output = array();
-		$output['order'] = array();
+		if (!$full) $output['order'] = array();
 		$i=0;
 		while ($row = $result->fetch_assoc()) {
-			$output['order'][$row['Field']] = $i;
+			if ($full) {
+				$output[] = $row;
+			} else {
+				$output['order'][$row['Field']] = $i;
+			}
 			$i++;
 		}
 		return $output;

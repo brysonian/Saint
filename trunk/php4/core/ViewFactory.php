@@ -38,7 +38,7 @@ class ViewFactory
 	* Given a path to a template without an extension, returns the type of the template
 	* and the filesystem path of the template including the extension
 	*/
-	function template_info($template) {
+	static function template_info($template) {
 		switch (true) {
 			case file_exists("$template.phtml"):
 				return array(

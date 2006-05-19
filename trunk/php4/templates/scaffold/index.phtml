@@ -3,7 +3,7 @@
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 	<head>
-		<title><%=ucfirst(params('controller'))%></title>
+		<title><?php echo ucfirst(params('controller'));?></title>
 		<style type="text/css">
 			body { font-family: Trebuchet MS, Arial, San-Serif; }
 			a:link, a:visited, a:hover, a:active { color: #222; }
@@ -11,18 +11,18 @@
 	</head>
 
 	<body>
-		<h1><%=ucfirst(params('controller'))%>s</h1>
+		<h1><?php echo ucfirst(params('controller'));?>s</h1>
 		
 		<ol>			
-			<% foreach ($items as $item): %>
+			<?php foreach ($items as $item): ?>
 			
-				<li><%=link_to($item->title?$item->title:$item->name,array('action'=>'show', 'uid'=>$item->uid))%></li>
+				<li><?php echo link_to($item->title?$item->title:$item->name,array('action'=>'show', 'uid'=>$item->uid));?></li>
 					
-			<% endforeach %>
+			<?php endforeach ?>
 		</ol>
 		
 		<div>
-			<%=link_to('create', array('action'=>'create'))%>
+			<?php echo link_to('create', array('action'=>'new'));?>
 		</div>
 
 	</body>

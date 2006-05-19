@@ -11,8 +11,10 @@ class SaintException extends Exception
 // ===========================================================
 // - Constructor
 // ===========================================================
-	function __construct($message, $code=0) {
+	function __construct($message, $code=0, $file=false, $line=false) {
 		parent::__construct($message, $code);
+		if ($file !== false) $this->file = $file; 
+		if ($line !== false) $this->line = $line; 
 	}
 
 // ===========================================================

@@ -24,11 +24,13 @@ class ControllerCore
 	var $_beforefilterexceptions = array();
 	var $_afterfilterexceptions = array();
 	var $_cache_page = false;
+	private static $_cache_extension = 'cache';
+	
 	
 // ===========================================================
 // - CONSTRUCTOR
 // ===========================================================
-	function ControllerCore() {
+	function ControllerCore() {		
 		# set the template base
 		$this->set_template_base(str_replace('controller', '', strtolower(get_class($this))));
 		
@@ -141,7 +143,7 @@ class ControllerCore
 		$dirs = explode('/', $path);
 
 		# pop filename
-		$file = array_pop($dirs).'.cache';
+		$file = array_pop($dirs).'.'.ControllerCore::_cache_extension;
 		
 		# new path
 		$mkdir = PROJECT_ROOT.'/public_html';
@@ -185,7 +187,7 @@ class ControllerCore
 				$dirhandle=opendir($base.$targetpath);
 				while (($file = readdir($dirhandle))!==false) {
 					$pi = pathinfo($file);
-					if ($pi['extension'] == 'cache') {
+					if ($pi['extension'] == ControllerCore::_cache_extension) {
 						unlink($base.$targetpath.'/'.$file);
 					} else if ($file{0} != '.' && is_dir($base.$targetpath.'/'.$file)) {
 						ControllerCore::clear_cache($targetpath.'/'.$file.'/*');
@@ -195,12 +197,12 @@ class ControllerCore
 			}
 		
 			# also delete the cache file for the dir
-			if (file_exists($base.$targetpath.'.cache')) {
-				unlink($base.$targetpath.'.cache');
+			if (file_exists($base.$targetpath.'.'.ControllerCore::_cache_extension)) {
+				unlink($base.$targetpath.'.'.ControllerCore::_cache_extension);
 			}
 		
 		} else {
-			unlink($base.$path.'.cache');
+			unlink($base.$path.'.'.ControllerCore::_cache_extension);
 		}
 		
 	}

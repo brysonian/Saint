@@ -257,12 +257,12 @@ class Sparkup
 	|	The function returns the processed content and the content
 	|	is then added to the overall string buffer.
 	*/
-	function process_line_headers($str) {
-		$db = debug_backtrace();
-		$main = false;
-		if ($db[1]['function'] == 'parse_line_headers') $main = true;
-		unset($db);
-		
+	function process_line_headers($str, $main=true) {
+		#$db = debug_backtrace();
+		#$main = false;
+		#if ($db[1]['function'] == 'parse_line_headers') $main = true;
+		#unset($db);
+				
 		# break the string at lines
 		$lines = array();
 		preg_match_all('/^(.*)$/m', $str, $lines);
@@ -299,7 +299,6 @@ class Sparkup
 	}
 	
 	function format_line_head($blockbuffer, $blocktype) {
-		
 		if ($blocktype) {
 			$blockbuffer = preg_replace('/^'.preg_quote($blocktype, '/').'/m', '', $blockbuffer);
 		}
@@ -313,7 +312,7 @@ class Sparkup
 		} else {
 			$blockbuffer = trim($blockbuffer);
 			#$blockbuffer = preg_replace('/^'.preg_quote($blocktype, '/').'/m', '', $blockbuffer);
-			$blockbuffer = $this->process_line_headers($blockbuffer);
+			$blockbuffer = $this->process_line_headers($blockbuffer, false);
 			return call_user_func($lh['func'], $blockbuffer, $blocktype, $this->linenum);
 		}
 	}
@@ -369,8 +368,9 @@ class Sparkup
 	}
 	
 	function format_plain($str, $pat) {
-		#$output = $this->parse_tags($str);
-		$output = $this->parse_tags(preg_replace('/(?!#)/', '&amp;', $str));
+		$output = $this->parse_tags($str);
+		#$output = $this->parse_tags(preg_replace('/(?!#)/', '&amp;', $str));
+
 		
 		# replace typography stuff
 		$output = preg_replace('/\'/', '&apos;', $output);
@@ -458,7 +458,7 @@ class Sparkup
 		@param  text the text to parse
 		@return text
 	*/
-	function textToHTML($text) {
+	static function textToHTML($text) {
 		$st = new Sparkup(1);
 		$output = $st->parse($text);
 		return trim($output);
@@ -470,7 +470,7 @@ class Sparkup
 		@param  text the text to parse
 		@return text
 	*/
-	function tagText($text) {
+	static function tagText($text) {
 		$st = new Sparkup(1);
 		$output = $st->parselinks($st->parse_tags($text));
 		return trim($output);
