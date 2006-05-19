@@ -1,5 +1,4 @@
 <?php
-#die(var_export($_SERVER['HTTP_HOST']));
 
 	// ===========================================================
 	// - GET THE SAINT ROOT
