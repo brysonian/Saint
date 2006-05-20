@@ -3,20 +3,24 @@
 
 class DBRecord implements Iterator, Serviceable
 {
-	var $data = array();
-	var $table;
-	var $db;
-	var $to_many;
-	var $to_one;
-	var $to_many_obj;
-	var $to_one_obj;
-	var $to_many_class;
-	var $order;
-	var $where;
-	var $group;
-	var $limit;
-	var $valid;
-	var $key;
+	protected $data = array();
+	
+	public $id;
+	public $uid;
+	
+	protected $table;
+	protected $db;
+	protected $to_many;
+	protected $to_one;
+	protected $to_many_obj;
+	protected $to_one_obj;
+	protected $to_many_class;
+	protected $order;
+	protected $where;
+	protected $group;
+	protected $limit;
+	protected $valid;
+	protected $key;
 
 	protected $validate_presence_of			= array();
 	protected $validate_numericality_of	= array();
@@ -25,7 +29,6 @@ class DBRecord implements Iterator, Serviceable
 	protected $validate_format_of				= array();
 	protected $validate_politeness_of		= array();
 	
-
 	protected $errors = array();
 
 // ===========================================================
@@ -57,17 +60,17 @@ class DBRecord implements Iterator, Serviceable
 // - ACCESSORS
 // ===========================================================
 	// for id
-	function get_id()		{ return isset($this->data['id'])?$this->data['id']:false; }
-	function set_id($id)	{ 
-		if (!is_numeric($id)  && $id !== false) throw(new SaintException("Invalid ID.", 0));
-		$this->data['id'] = $id; 
+	function get_id()		{ return isset($this->id)?$this->id:false; }
+	function set_id($anId)	{ 
+		if (!is_numeric($anId)  && $anId !== false) throw(new SaintException("Invalid ID.", 0));
+		$this->id = $anId; 
 	}
 
 	// for uid
-	function get_uid()		{ return isset($this->data['uid'])?$this->data['uid']:false; }
-	function set_uid($uid)	{
-		if (strlen($uid) != 32 && $uid !== false) throw(new SaintException("Invalid UID.", 0));
-		$this->data['uid'] = $uid; 
+	function get_uid()		{ return isset($this->uid)?$this->uid:false; }
+	function set_uid($aUid)	{
+		if (strlen($aUid) != 32 && $aUid !== false) throw(new SaintException("Invalid UID.", 0));
+		$this->uid = $aUid; 
 	}
 
 	// for table
@@ -157,7 +160,7 @@ class DBRecord implements Iterator, Serviceable
 		$this->validate();
 		if (!empty($this->errors)) {
 			$db = debug_backtrace();
-			throw new ValidationException($this->errors, VALIDATION_ERROR, $db[1]['file'], $db[1]['line']);
+			throw new ValidationException($this->errors, get_class($this), VALIDATION_ERROR, $db[1]['file'], $db[1]['line']);
 		}
 
 
@@ -173,8 +176,6 @@ class DBRecord implements Iterator, Serviceable
 		
 		# add each key/val to the sql
 		foreach ($this->data as $k=>$v) {
-			if ($k == 'id' || $k == 'uid') continue;
-			
 			# validate this key/value if need be
 			$values[$k] = $this->escape_string($v);
 		}
@@ -195,22 +196,33 @@ class DBRecord implements Iterator, Serviceable
 	}
 	
 	
-	function update() {
+	function update($args) {
+		foreach($args as $k => $v) {
+			$this->$k = $v;
+		}
+		
+		# validate the data
+		$this->validate_builtins();
+		$this->validate();
+		if (!empty($this->errors)) {
+			$db = debug_backtrace();
+			throw new ValidationException($this->errors, get_class($this), VALIDATION_ERROR, $db[1]['file'], $db[1]['line']);
+		}
+
+
 		$sql = "UPDATE `".$this->get_table()."` SET ";
 		$props = array();
 		foreach ($this->data as $k=>$v) {
-			if ($k == 'id' || $k == 'uid') continue;
-			# if add slashes is on, strip them
-			if (get_magic_quotes_gpc() == 1) $v = stripslashes($v);
-			$props[] = "$k='".$this->escape_string($v)."'";
+			if (!empty($v)) {
+				$props[] = "$k='".$this->escape_string($v)."'";
+			}
 		}	
 		
-		$sql .= join(',',$props)." WHERE id=".$this->escape_string($this->get_id());
-		
+		$sql .= join(',',$props)." WHERE id=".$this->escape_string($this->get_id());		
 
 		$result = $this->db->query($sql);
 		if (!$result) {
-			throw(new DBException("Error loading ".__CLASS__.".\n".$this->db->error(), $this->db->errno(), $sql));
+			throw(new DBException("Database error while attempting to update record.\n".$this->db->error(), $this->db->errno(), $sql));
 		}
 	}
 
@@ -315,7 +327,10 @@ class DBRecord implements Iterator, Serviceable
 		if (!array_key_exists($prop, $this->data)) return true;
 
 		$c = get_class($this);
-		$r = self::find_where("$prop = '".$this->data[$prop]."'", $c);
+		$where = "$prop = '".$this->data[$prop]."'";
+		if ($this->get_id()) $where .= " AND id <> ".$this->get_id();
+		
+		$r = self::find_where($where, $c);
 		if ($r->num_rows() > 0) {
 			$this->add_error($prop, VALIDATION_UNIQUE, $msg);
 			return false;
@@ -372,6 +387,11 @@ class DBRecord implements Iterator, Serviceable
 // ===========================================================
 // - EXECUTE THE VALIDATION
 // ===========================================================
+	public function errors() {
+		if (!empty($this->errors)) 
+			return new ValidationException($this->errors, get_class($this));
+	}
+
 	protected function add_error($name, $code, $message) {
 		$this->errors[] = array($name, $code, $message);
 	}
@@ -800,8 +820,37 @@ class DBRecord implements Iterator, Serviceable
 	}
 	
 	
-	
-	
+// ===========================================================
+// - ESCAPE FOR DB
+// ===========================================================
+	function escape_string($v) {
+		return $this->db->escape_string($this->utf8_to_entities($v));
+	}
+
+	function utf8_to_entities($str) {
+		$unicode = array();
+		$values = array();
+		$looking_for = 1;
+		for ($i = 0; $i < strlen( $str ); $i++ ) {
+			$this_value = ord( $str[ $i ] );
+			if ( $this_value < 128 ) $unicode[] = $this_value;
+			else {
+				if ( count( $values ) == 0 ) $looking_for = ( $this_value < 224 ) ? 2 : 3;
+				$values[] = $this_value;
+				if ( count( $values ) == $looking_for ) {
+					$number = ( $looking_for == 3 ) ? ( ( $values[0] % 16 ) * 4096 ) + ( ( $values[1] % 64 ) * 64 ) + ( $values[2] % 64 ):( ( $values[0] % 32 ) * 64 ) + ( $values[1] % 64 );
+					$unicode[] = $number;
+					$values = array();
+					$looking_for = 1;
+				}
+			}
+		}
+		$entities = '';
+		foreach( $unicode as $value ) $entities .= ( $value > 127 ) ? '&#' . $value . ';' : chr( $value );
+		return $entities;
+	}
+
+
 // ===========================================================
 // - REPRESENTATIONS
 // ===========================================================
@@ -818,7 +867,6 @@ class DBRecord implements Iterator, Serviceable
 
 		# add node for each prop
 		foreach ($this->data as $k=>$v) {
-			if ($k == 'id' || $k == 'uid') continue;
 			$node = $dom->createElement($k);
 			if (is_numeric($v)) {
 				$cdata = $dom->createTextNode($v);
@@ -867,7 +915,6 @@ class DBRecord implements Iterator, Serviceable
 		
 		# add each prop
 		foreach ($this->data as $k=>$v) {
-			if ($k == 'id' || $k == 'uid') continue;
 			$out[$k] = $v;
 		}
 
@@ -900,33 +947,12 @@ class DBRecord implements Iterator, Serviceable
 		return $out;
 	}
 	
-	function escape_string($v) {
-		return $this->db->escape_string($this->utf8_to_entities($v));
+	function to_string() { return $this->__toString(); }
+	function __toString() {
+		if ($this->title) return $this->title;
+		if ($this->name) return $this->name;
+		return $this->get_uid();
 	}
-
-	function utf8_to_entities($str) {
-		$unicode = array();
-		$values = array();
-		$looking_for = 1;
-		for ($i = 0; $i < strlen( $str ); $i++ ) {
-			$this_value = ord( $str[ $i ] );
-			if ( $this_value < 128 ) $unicode[] = $this_value;
-			else {
-				if ( count( $values ) == 0 ) $looking_for = ( $this_value < 224 ) ? 2 : 3;
-				$values[] = $this_value;
-				if ( count( $values ) == $looking_for ) {
-					$number = ( $looking_for == 3 ) ? ( ( $values[0] % 16 ) * 4096 ) + ( ( $values[1] % 64 ) * 64 ) + ( $values[2] % 64 ):( ( $values[0] % 32 ) * 64 ) + ( $values[1] % 64 );
-					$unicode[] = $number;
-					$values = array();
-					$looking_for = 1;
-				}
-			}
-		}
-		$entities = '';
-		foreach( $unicode as $value ) $entities .= ( $value > 127 ) ? '&#' . $value . ';' : chr( $value );
-		return $entities;
-	}
-
 }
 
 ?>
