@@ -132,13 +132,19 @@ function get_root() {
 	return $u->get_base();
 }
 
-function link_to($name, $args=false) {
+function link_to($name, $args=false, $confirm=false) {
 	if (!is_array($args)) {
 		$args = func_get_args();
 		array_shift($args);
 	}
-
-	return "<a href='".url_for($args)."'>$name</a>";
+	
+	ob_start();
+	echo "<a href='".url_for($args)."'";
+	if ($confirm) echo ' onclick="return confirm(\'Are You Sure?\');"';
+	echo ">";
+	echo $name;
+	echo "</a>";
+	return ob_get_clean();
 }
 
 // construct a url using the maps
@@ -158,6 +164,9 @@ function url_for($args=false) {
 		# if the args is not an array, grab them all
 		$args = func_get_args();
 	}
+	
+	# if only one arg is passed, treat it as the action on the current controller
+	if (count($args) == 1) array_unshift($args, params('controller'));
 	
 	# reinterpret using order
 	if (array_key_exists(0, $args)) {
@@ -180,7 +189,7 @@ function url_for($args=false) {
 		$args['params']			= $args[3];
 		unset($args[3]);
 	}
-	
+
 	# if controller is empty, use the current controller
 	if (!array_key_exists('controller', $args)) $args['controller'] = params('controller');
 
@@ -235,7 +244,7 @@ function url_for($args=false) {
 }
 
 // ===========================================================
-// - REDIRECT TO A NEW CONTROLLER
+// - REDIRECT TO A NEW LOCATION
 // ===========================================================
 function redirect_to($args=false) {
 	if (!is_array($args) && $args !== false) {
