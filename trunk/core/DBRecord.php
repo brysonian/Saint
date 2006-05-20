@@ -31,17 +31,22 @@ class DBRecord implements Iterator, Serviceable
 // ===========================================================
 // - CONSTRUCTOR
 // ===========================================================
-	function DBRecord($table=false) {
+	function DBRecord($props=false) {
 		# set table name if none was given
-		if (!$table) {
-			$table = strtolower(get_class($this));
-		}
+		$table = strtolower(get_class($this));
 		$this->set_table($table);
 		
 		# get a ref to the dbconnection
 		$this->db = DBService::get_connection();
 
 		if (method_exists($this, 'init')) $this->init();
+		
+		# if props, add them all
+		if (is_array($props)) {
+			foreach($props as $k => $v) {
+				$this->$k = $v;
+			}
+		}
 	}
 
 

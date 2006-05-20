@@ -236,7 +236,7 @@ class ControllerCore
 // - ACCESSORS
 // ===========================================================
 	# get/set the template base
-	function get_template_base() { return PROJECT_VIEWS.'/'.$this->_templatebase.'/';}
+	function get_template_base() { return $this->_templatebase.'/';}
 	function set_template_base($v) { $this->_templatebase = $v; }
 
 	

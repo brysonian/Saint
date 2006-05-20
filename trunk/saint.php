@@ -73,7 +73,7 @@
 	// ===========================================================
 	# define the base url for views (templates)
 	if (!defined('PROJECT_VIEWS'))
-		define('PROJECT_VIEWS', 		PROJECT_ROOT.'/app/views/');
+		define('PROJECT_VIEWS', 		PROJECT_ROOT.'/app/views');
 
 	# define the base url for the html pages if this is web request
 	if (array_key_exists('HTTP_HOST', $_SERVER)) {

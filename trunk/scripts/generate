@@ -111,80 +111,54 @@
 
 
 	function create_new_scaffold($name) {
-# 		define('PROJECT_ROOT', realpath(dirname($_SERVER['PATH_TRANSLATED']).'/../'));
-
-# 		# Add some things to the include path
-# 		# lib modules
-# 		$inc = get_include_path();
-# 		$inc .= PATH_SEPARATOR.SAINT_ROOT.'/core';
-	
-# 		# user locations
-# 		$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/models';
-# 		set_include_path($inc);
-
-# 		# get the DB config params
-# 		require_once (PROJECT_ROOT."/config/database.php");
-
-
-# 		# DB SERVICE
-# 		$d = DBService::get_instance();
-# 		$d->add_connection_for_classes(
-# 			array('DBRecord'), 'mysqli', $db_name, $user, $pass, $host);
+		$mname = ucfirst($name);
 		
-		
-		// ===========================================================
-		// - NOW DO THE WORK
-		// ===========================================================
-			$mname = ucfirst($name);
+		$obj = new $mname;
+		$info = $obj->table_info();
+
+		# get the html for each element
+		$elements = '';
+		foreach($info as $k => $v) {
+			$type = $v['Type'];
+			$field = $v['Field'];
 			
-			$obj = new $mname;
-			$info = $obj->table_info();
-	
-			# get the html for each element
-			$elements = '';
-			foreach($info as $k => $v) {
-				$type = $v['Type'];
-				$field = $v['Field'];
+			switch (true) {
+				case ($field == 'id'):
+				case ($field == 'uid'):
+					break;
 				
-				switch (true) {
-					case ($field == 'id'):
-					case ($field == 'uid'):
-						break;
+				# fk relationships
+				case (strpos($field, '_uid') !== false):
+					break;
+				
+				case (strpos($type, 'varchar')!==false):
+					# if it's less than 100 use a line, otherwise use a small textarea
+					$m = array();
+					preg_match('/varchar\(([0-9]+)\)/', $type, $m);
+					$temp = ($m[1]>100)?'_varchar255':'_varchar100';
 					
-					# fk relationships
-					case (strpos($field, '_uid') !== false):
-						break;
+					ob_start();
+					include (SAINT_ROOT."/templates/scaffold/$temp.phtml");
+					$elements .= ob_get_clean();						
+					break;
 					
-					case (strpos($type, 'varchar')!==false):
-						# if it's less than 100 use a line, otherwise use a small textarea
-						$m = array();
-						preg_match('/varchar\(([0-9]+)\)/', $type, $m);
-						$temp = ($m[1]>100)?'_varchar255':'_varchar100';
-						
-						ob_start();
-						include (SAINT_ROOT."/templates/scaffold/$temp.phtml");
-						$elements .= ob_get_clean();						
-						break;
-						
-					case ($type == 'text'):
-					case ($type == 'date'):
-					case ($type == 'datetime'):
-					case ($type == 'time'):
-						ob_start();
-						include (SAINT_ROOT.'/templates/scaffold/_'.strtolower($type).'.phtml');
-						$elements .= ob_get_clean();
-						break;
-												
-				}
+				case ($type == 'text'):
+				case ($type == 'date'):
+				case ($type == 'datetime'):
+				case ($type == 'time'):
+					ob_start();
+					include (SAINT_ROOT.'/templates/scaffold/_'.strtolower($type).'.phtml');
+					$elements .= ob_get_clean();
+					break;
+											
 			}
+		}
 
-			ob_start();
-			include (SAINT_ROOT.'/templates/scaffold/new.phtml');
-			$html = ob_get_clean();						
+		ob_start();
+		include (SAINT_ROOT.'/templates/scaffold/new.phtml');
+		$html = ob_get_clean();						
 
-			return $html;
-
-
+		return $html;
 	}
 
 

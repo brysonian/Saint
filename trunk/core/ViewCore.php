@@ -41,6 +41,22 @@ class ViewCore
 		# save the layout
 		$this->layout = $layout_template;
 	}
+	
+	function parse_partial($var=false, $obj=false) {
+		# unpack the props
+		if ($var) {
+			$$var = $obj;
+		}
+
+		# trap the buffer
+		ob_start();
+
+		# include the template
+		include $this->template;
+
+		# get the buffer contents
+		return ob_get_clean();
+	}
 }
 
 // ===========================================================
@@ -76,27 +92,43 @@ class ViewCore
 		}
 		
 		# make an instance of the controller class
-		$conname = "{$controller}Controller";
+		$conname = ucfirst("{$controller}Controller");
 		$theController = new $conname;
 
 		# set the method name
 		$theMethod = '_'.$action;
 		
+		# see if there is a method with this name, if not just use the template
+		$me = method_exists($theController, $theMethod);
+		
+		if (!$me) {
+			$view = ViewFactory::make_view(strtolower($controller).'/'.$theMethod);
+		}
+					
 		# if it's a collection, call it for each item in the obj
 		if ($collect === true) {
 			foreach($obj as $k => $v) {
+				if (!$me) {
+					# add the obj to the controller if there is one
+					if ($obj !== false) $theController->$action = $v;
+				
+					# tell the controller to execute the action
+					$theController->execute($theMethod);
+				} else {
+					echo $view->parse_partial($controller, $obj);
+				}
+			}
+
+		} else {
+			if ($me) {
 				# add the obj to the controller if there is one
-				if ($obj !== false) $theController->$action = $v;
+				if ($obj !== false) $theController->$action = $obj;
 
 				# tell the controller to execute the action
 				$theController->execute($theMethod);
+			} else {
+				echo $view->parse_partial($controller, $obj);				
 			}
-		} else {
-			# add the obj to the controller if there is one
-			if ($obj !== false) $theController->$action = $obj;
-
-			# tell the controller to execute the action
-			$theController->execute($theMethod);
 		}
 	}
 

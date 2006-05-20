@@ -5,9 +5,9 @@ class ViewFactory
 	
 	function ViewFactory() {}
 	
-	function  make_view($template, $layout=false) {
+	static function  make_view($template, $layout=false) {
 		# get the template type
-		$tempinfo = ViewFactory::template_info($template);
+		$tempinfo = ViewFactory::template_info(PROJECT_VIEWS.'/'.$template);
 
 		# return the right view depending on the extension of the template
 		switch ($tempinfo['type']) {
