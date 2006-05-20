@@ -15,16 +15,16 @@
 class ControllerCore
 {
 	
-	var $_viewname;
-	var $_layout		= false;
-	var $_templatebase;
-	var $_forced_template;
-	var $_beforefilters;
-	var $_afterfilters;
-	var $_beforefilterexceptions = array();
-	var $_afterfilterexceptions = array();
-	var $_cache_page = false;
-	private static $_cache_extension = 'cache';
+	protected $_viewname;
+	protected $_layout		= false;
+	protected $_templatebase;
+	protected $_template;
+	protected $_beforefilters;
+	protected $_afterfilters;
+	protected $_beforefilterexceptions = array();
+	protected $_afterfilterexceptions = array();
+	protected $_cache_page = false;
+	protected static $_cache_extension = 'cache';
 	
 	
 // ===========================================================
@@ -105,8 +105,11 @@ class ControllerCore
 			}
 		}
 		
+		# set the template
+		if (!$this->_template) $this->set_template(substr($the_method,1));
+		
 		# render the view
-		$this->render_view(substr($the_method,1));
+		$this->render_view();
 	}
 	
 
@@ -114,7 +117,12 @@ class ControllerCore
 // - RENDER
 // ===========================================================
 	function render_view($viewname=false) {
-		$view = $this->get_view_for_action($viewname);
+		if ($viewname === false) {
+			$view = $this->get_view_for_action($this->_template);
+		} else {
+			$view = $this->get_view_for_action($viewname);
+		}
+		
 		# add all user data to the view
 		foreach($this as $k=>$v) {
 			if ($k{0} != '_') $view->add_prop($k, $v);
@@ -220,11 +228,7 @@ class ControllerCore
 
 	// get a view object using the specified action
 	function  get_view_for_action($action) {
-		if ($this->get_forced_template()) {
-			$template = $this->get_forced_template();
-		} else {
-			$template = $this->get_template_base().$action;
-		}
+		$template = $this->get_template_base().$this->_template;
 		return $this->get_view($template);
 	}
 
@@ -240,14 +244,8 @@ class ControllerCore
 	function set_template_base($v) { $this->_templatebase = $v; }
 
 	
-	# get/set the forced template
-	function get_forced_template() {
-		if ($this->_forced_template) return PROJECT_VIEWS.'/'.$this->_forced_template;
-		return false;
-	}
-	
-	function force_template($template) {
-		$this->_forced_template = $template;
+	function set_template($template) {
+		$this->_template = $template;
 	}
 
 	function set_layout($x) {
