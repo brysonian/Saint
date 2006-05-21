@@ -1,1 +1,4 @@
-				<li><label for="<?php echo $field; ?>"><?php echo ucfirst($field); ?></label><input type="text" name="<?php echo $field; ?>" value="" id="<?php echo $field; ?>" size="40" maxlength="100" /></li>
+	<li>
+		<label for=":object_:field">:Field</label>
+		<?php echo text_field($:object, ':object', ':field'); ?>
+	</li>

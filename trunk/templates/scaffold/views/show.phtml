@@ -1,26 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" 
+	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 	<head>
-		<title><?php echo ucfirst(params('controller')); ?>: <?php echo $item->title?$item->title:$item->name; ?></title>
-		<style type="text/css">
-			body { font-family: Trebuchet MS, Arial, San-Serif; }
-			a:link, a:visited, a:hover, a:active { color: #222; }
-		</style>
+		<title>Show <?php echo ucfirst(params('controller')); ?>: <?php echo $:object; ?></title>
+  	<link href="/_css/scaffold.css" media="screen" rel="Stylesheet" type="text/css" />
 	</head>
 
 	<body>
-		<h1><?php echo ucfirst(params('controller')); ?>: <?php echo $item->title?$item->title:$item->name; ?></h1>
-		<dl>			
-			<?php foreach ($item as $k=>$v): ?>
-				
-				<dt><?php echo $k; ?></dt>
+		<h1>Show <?php echo ucfirst(params('controller')); ?>: <?php echo $:object; ?></h1>
+		<dl>
+			<?php foreach ($:object as $k=>$v): ?>
+				<dt><strong><?php echo str_replace('_', ' ', ucfirst($k)); ?></strong>:</dt>
 				<dd><?php echo $v; ?></dd>
-					
 			<?php endforeach ?>
 		</dl>
-
 		
+		<div id="footer">
+			<?php echo link_to('Back', false);?> | 
+			<?php echo link_to('Edit', array('action'=>'edit', 'uid'=>$:object->uid));?>
+		</div>
 	</body>
 </html>

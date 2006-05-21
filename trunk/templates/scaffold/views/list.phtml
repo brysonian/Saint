@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" 
+	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<title><?php echo ucfirst(params('controller'));?>: index</title>
+  	<link href="/_css/scaffold.css" media="screen" rel="Stylesheet" type="text/css" />
+	</head>
+
+	<body>
+		<h1>Listing <?php echo ucfirst(params('controller'));?></h1>
+		
+		<ul id="listing">			
+			<?php $alt = 0;	?>
+			<?php foreach ($:objects as $:object): ?>
+			
+				<li class="row<?php echo $alt; ?>">
+					<?php echo link_to($:object, array('action'=>'show', 'uid'=>$:object->uid));?>
+					<span class="controls">
+						<?php echo link_to("Edit", array('action'=>'edit', 'uid'=>$:object->uid));?> |
+						<?php echo link_to("Delete", array('action'=>'delete', 'uid'=>$:object->uid), true);?>
+					</span>
+				</li>
+			<?php $alt = 1 - $alt;	?>
+			<?php endforeach ?>
+		</ul>
+		
+		<div id="footer">
+			<?php echo link_to('New '.ucfirst(params('controller')), array('action'=>'new'));?>
+		</div>
+
+	</body>
+</html>
