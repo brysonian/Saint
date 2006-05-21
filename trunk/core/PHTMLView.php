@@ -73,8 +73,8 @@ function text_area($obj, $name, $prop, $size=2000) {
 	return "<textarea name='{$name}[{$prop}]' id='{$name}_$prop' rows='$rows' cols='40'$ku>$v</textarea>\n";
 }
 
-#echo collection_select($person, 'person', 'image_uid', $collection, 'uid', 'title');
-function collection_select($obj, $name, $prop, $collection, $key, $value, $options=array()) {
+#echo select($person, 'person', 'image_uid', $collection, 'uid', 'title');
+function select($obj, $name, $prop, $collection, $key, $value, $options=array()) {
 	$html = "<select id='{$name}[{$prop}]' id='{$name}_$prop'>\n";
 		
 	# get selected value
