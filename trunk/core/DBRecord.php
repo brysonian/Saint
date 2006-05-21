@@ -345,6 +345,12 @@ class DBRecord implements Iterator, Serviceable
 		$this->validates_format_of($prop, '/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/', get_error_message(VALIDATION_EMAIL, $prop));
 	}
 	
+	public function validates_url_of($prop, $message=false) {
+		$this->validates_format_of($prop, 
+			'/(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/xis',
+			get_error_message(VALIDATION_URL, $prop));
+	}
+	
 	public function validates_format_of($prop, $format, $message=false) {
 		if ($prop === false) {
 			$this->validate_format_of = array();
