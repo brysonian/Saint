@@ -59,7 +59,12 @@ class Usher
 		# if no match was found, show the error
 		if (!$params) throw(new SaintException("No mapping was found for &quot;$url&quot;.", NOMAP));
 
-		# add params to request
+		# add request to params and make sure magic quotes are dealt with
+		foreach($_REQUEST as $k => $v) {
+			$params[$k] = (get_magic_quotes_gpc() == 1)?stripslashes($v):$v;
+		}
+		
+		# save the params
 		self::$params = $params;
 
 		# get the controller name
