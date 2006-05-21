@@ -51,16 +51,27 @@ class PHTMLView extends ViewCore
 }
 
 
+
+
+
 // ===========================================================
 // - FORM HELPERS
 // ===========================================================
 function text_field($obj, $name, $prop) {
-	$v = ($obj !== false)?$obj->$prop:'';	
+	if ($obj) {
+		$v = (is_object($obj))?$obj->$prop:$obj[$prop];
+	} else {
+		$v = '';
+	}
 	return "<input type='text' name='{$name}[{$prop}]' value='$v' id='{$name}_$prop' size='40' maxlength='100' />\n";
 }
 
 function text_area($obj, $name, $prop, $size=2000) {
-	$v = ($obj !== false)?$obj->$prop:'';	
+	if ($obj) {
+		$v = (is_object($obj))?$obj->$prop:$obj[$prop];
+	} else {
+		$v = '';
+	}
 	
 	if ($size < 256) {
 		$rows = 3;
@@ -73,14 +84,17 @@ function text_area($obj, $name, $prop, $size=2000) {
 	return "<textarea name='{$name}[{$prop}]' id='{$name}_$prop' rows='$rows' cols='40'$ku>$v</textarea>\n";
 }
 
-#echo select($person, 'person', 'image_uid', $collection, 'uid', 'title');
 function select($obj, $name, $prop, $collection, $key, $value, $options=array()) {
-	$html = "<select id='{$name}[{$prop}]' id='{$name}_$prop'>\n";
+	$html = "<select name='{$name}[{$prop}]' id='{$name}_$prop'>\n";
 		
 	# get selected value
 	$default = false;
-	if ($obj !== false) {
-		if ($obj->$prop) $default = $obj->$prop;
+	if ($obj) {
+		if (is_object($obj)) {
+			if ($obj->$prop) $default = $obj->$prop;
+		} else {
+			if ($obj[$prop]) $default = $obj[$prop];
+		}
 	}
 	if ($default === false && array_key_exists('default', $options)) {
 		$default = $options['default'];
@@ -94,25 +108,25 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 	# add before items
 	if (array_key_exists('before', $options)) {
 		foreach($options['before'] as $item) {
-			$v = $item[$value];
-			$k = $item[$key];
+			$v = is_object($item)?$item->$value:$item[$value];
+			$k = is_object($item)?$item->$key:$item[$key];
 			$sel = ($default !== false && $k == $default)?" selected='true'":'';
 			$html .= "<option$sel value='$k'>$v</option>\n";
 		}
 	}
 	
 	foreach($collection as $item) {
-		$v = $item[$value];
-		$k = $item[$key];
-			$sel = ($default !== false && $k == $default)?" selected='true'":'';
+		$v = is_object($item)?$item->$value:$item[$value];
+		$k = is_object($item)?$item->$key:$item[$key];
+		$sel = ($default !== false && $k == $default)?" selected='true'":'';
 		$html .= "<option$sel value='$k'>$v</option>\n";
 	}
 
 	# add after items
 	if (array_key_exists('after', $options)) {
 		foreach($options['after'] as $item) {
-			$v = $item[$value];
-			$k = $item[$key];
+			$v = is_object($item)?$item->$value:$item[$value];
+			$k = is_object($item)?$item->$key:$item[$key];
 			$sel = ($default !== false && $k == $default)?" selected='true'":'';
 			$html .= "<option$sel value='$k'>$v</option>\n";
 		}
