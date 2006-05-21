@@ -955,7 +955,9 @@ class DBRecord implements Iterator, Serviceable
 	function __toString() {
 		if ($this->title) return $this->title;
 		if ($this->name) return $this->name;
-		return $this->get_uid();
+		if ($this->label) return $this->label;
+		if ($this->get_uid()) return $this->get_uid();
+		return '';
 	}
 }
 
