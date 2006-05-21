@@ -29,7 +29,7 @@ class ControllerCore
 // ===========================================================
 	function ControllerCore() {		
 		# set the template base
-		$this->settemplate_base(str_replace('controller', '', strtolower(get_class($this))));
+		$this->set_template_base(str_replace('controller', '', strtolower(get_class($this))));
 		
 		# call if there is an init() method in the App class
 		$m = get_class_methods('AppController');
@@ -105,33 +105,36 @@ class ControllerCore
 		}
 		
 		# set the template
-		if (!$this->template) $this->settemplate(substr($the_method,1));
+		if (!$this->template) $this->set_template(substr($the_method,1));
 		
 		# render the view
-		$this->render_view();
+		$this->render_view(false, true);
 	}
 	
 
 // ===========================================================
 // - RENDER
 // ===========================================================
-	function render_view($viewname=false) {
-		if ($viewname === false) {
-			$view = $this->get_view_for_action($this->template);
-		} else {
-			$view = $this->get_view_for_action($viewname);
-		}
+	function render_view($viewname=false, $final=false) {
+		if ($viewname !== false) $this->set_template($viewname);
+		if (!$final) return;
+		
+		$view = $this->get_view_for_action($this->template);
 		
 		$view->set_all_props($this->data);
 
 		# if we cache, do that
 		if ($this->cache_page && empty($_GET) && empty($_POST)) {
-			$output = $view->parse($this->getlayout());
+			$output = $view->parse($this->get_layout());
 			$this->save_cache($_SERVER['REQUEST_URI'], $output);
 		}
-		$view->render($this->getlayout());
+		$view->render($this->get_layout());
 	}
 
+	function render_action($action) {
+		$this->render_view($action);
+		call_user_func(array($this, "_{$action}"));
+	}
 
 
 // ===========================================================
@@ -224,7 +227,7 @@ class ControllerCore
 
 	// get a view object using the specified action
 	function  get_view_for_action($action) {
-		$template = $this->gettemplate_base().$this->template;
+		$template = $this->get_template_base().$this->template;
 		return $this->get_view($template);
 	}
 
@@ -255,19 +258,18 @@ class ControllerCore
 
 
 	# get/set the template base
-	function gettemplate_base() { return $this->templatebase.'/';}
-	function settemplate_base($v) { $this->templatebase = $v; }
+	function get_template_base() { return $this->templatebase.'/';}
+	function set_template_base($v) { $this->templatebase = $v; }
 
-	
-	function settemplate($template) {
+	function set_template($template) {
 		$this->template = $template;
 	}
 
-	function setlayout($x) {
+	function set_layout($x) {
 		$this->layout = $x;
 	}
 
-	function getlayout() {
+	function get_layout() {
 		if ($this->layout) return PROJECT_VIEWS.'/layouts/'.$this->layout;
 		return false;
 	}
@@ -340,5 +342,6 @@ class ControllerCore
 	function  get_before_filter_exceptions() { return $this->before_filter_exceptions; }
 	function  get_after_filter_exceptions() { return $this->after_filter_exceptions; }
 }
+
 
 ?>
