@@ -58,21 +58,12 @@ class PHTMLView extends ViewCore
 // - FORM HELPERS
 // ===========================================================
 function text_field($obj, $name, $prop) {
-	if ($obj) {
-		$v = (is_object($obj))?$obj->$prop:$obj[$prop];
-	} else {
-		$v = '';
-	}
+	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
 	return "<input type='text' name='{$name}[{$prop}]' value='$v' id='{$name}_$prop' size='40' maxlength='100' />\n";
 }
 
 function text_area($obj, $name, $prop, $size=2000) {
-	if ($obj) {
-		$v = (is_object($obj))?$obj->$prop:$obj[$prop];
-	} else {
-		$v = '';
-	}
-	
+	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
 	if ($size < 256) {
 		$rows = 3;
 		$ku = "onkeyup='if(this.value.length >= $size) this.value = this.value.substr(0,".($size-1).");'";
@@ -91,15 +82,19 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 	$default = false;
 	if ($obj) {
 		if (is_object($obj)) {
-			if ($obj->$prop) $default = $obj->$prop;
+			$p = (strpos($prop, '_uid') > 0)?str_replace('_uid','',$prop):$prop;
+			if ($obj->$p) $default = $obj->$p;
 		} else {
-			if ($obj[$prop]) $default = $obj[$prop];
+			if ($obj[$p]) $default = $obj[$p];
 		}
 	}
+	
 	if ($default === false && array_key_exists('default', $options)) {
 		$default = $options['default'];
 	}
 	
+	if (is_object($default)) $default = $default->get_uid();
+
 	# add blank
 	if (array_key_exists('include_blank', $options)) {
 		$html .= "<option value=''></option>\n";
@@ -108,7 +103,7 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 	# add before items
 	if (array_key_exists('before', $options)) {
 		foreach($options['before'] as $item) {
-			$v = is_object($item)?$item->$value:$item[$value];
+			$v = is_object($item)?((!$value)?$item->__toString():$item->$value):$item[$value];
 			$k = is_object($item)?$item->$key:$item[$key];
 			$sel = ($default !== false && $k == $default)?" selected='true'":'';
 			$html .= "<option$sel value='$k'>$v</option>\n";
@@ -116,7 +111,7 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 	}
 	
 	foreach($collection as $item) {
-		$v = is_object($item)?$item->$value:$item[$value];
+		$v = is_object($item)?((!$value)?$item->__toString():$item->$value):$item[$value];
 		$k = is_object($item)?$item->$key:$item[$key];
 		$sel = ($default !== false && $k == $default)?" selected='true'":'';
 		$html .= "<option$sel value='$k'>$v</option>\n";
@@ -125,7 +120,7 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 	# add after items
 	if (array_key_exists('after', $options)) {
 		foreach($options['after'] as $item) {
-			$v = is_object($item)?$item->$value:$item[$value];
+			$v = is_object($item)?((!$value)?$item->__toString():$item->$value):$item[$value];
 			$k = is_object($item)?$item->$key:$item[$key];
 			$sel = ($default !== false && $k == $default)?" selected='true'":'';
 			$html .= "<option$sel value='$k'>$v</option>\n";
@@ -136,6 +131,27 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 	return $html;
 }
 
+function date_field($obj, $name, $prop) {
+	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
+	$out = "<input type='text' name='{$name}[{$prop}]' value='$v' id='{$name}_$prop' size='40' maxlength='100' />\n";
+	$out .= "<span class='tip'><a href='#' onclick='d=new Date(); ds=d.toString(); ds=ds.split(\" \"); v=ds[1]+' '+ds[2]+', '+ds[3]; document.getElementById('{$name}_$prop').value=v;return false;'>Insert Current Date</a></span>";
+	return $out;
+}
 
+function datetime_field($obj, $name, $prop) {
+	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
+	$out = "<input type='text' name='{$name}[{$prop}]' value='$v' id='{$name}_$prop' size='40' maxlength='100' />\n";
+	$out .= "<span class='tip'><a href='#' onclick='d=new Date(); ds=d.toString(); ds=ds.split(\" \"); v=ds[1]+' '+ds[2]+', '+ds[3]+' '+ds[4].substring(0,ds[4].lastIndexOf(':'))+(d.getHours()>11?' PM':' AM'); document.getElementById('{$name}_$prop').value=v;return false;'>Insert Current Date and Time</a></span>";
+	return $out;
+}
+
+function time_field($obj, $name, $prop) {
+	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
+	$out = "<input type='text' name='{$name}[{$prop}]' value='$v' id='{$name}_$prop' size='40' maxlength='100' />\n";
+	$out .= "<span class='tip'><a href='#' onclick='d=new Date(); ds=d.toString(); ds=ds.split(\" \"); v=ds[4].substring(0,ds[4].lastIndexOf(':'))+(d.getHours()>11?' PM':' AM'); document.getElementById('{$name}_$prop').value=v;return false;'>Insert Current Time</a></span>";
+	return $out;
+}
 
 ?>
+
+
