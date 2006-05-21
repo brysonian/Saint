@@ -22,6 +22,7 @@ define('VALIDATION_UNIQUE',			2004);
 define('VALIDATION_FORMAT',			2005);
 define('VALIDATION_EMAIL',			2006);
 define('VALIDATION_CURSE',			2007);
+define('VALIDATION_URL',				2008);
 
 
 
