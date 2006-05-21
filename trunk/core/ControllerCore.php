@@ -122,14 +122,7 @@ class ControllerCore
 			$view = $this->get_view_for_action($viewname);
 		}
 		
-		# add all user data to the view
-		#foreach($this as $k=>$v) {
-		#	if ($k{0} != '_') $view->add_prop($k, $v);
-		#}
-
-		foreach($this->data as $k=>$v) {
-			$view->add_prop($k, $v);
-		}
+		$view->set_all_props($this->data);
 
 		# if we cache, do that
 		if ($this->cache_page && empty($_GET) && empty($_POST)) {
