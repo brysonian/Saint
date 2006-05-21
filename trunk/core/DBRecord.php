@@ -957,7 +957,12 @@ class DBRecord implements Iterator, Serviceable
 		if ($this->name) return $this->name;
 		if ($this->label) return $this->label;
 		if ($this->get_uid()) return $this->get_uid();
-		return '';
+		
+		# if there isn't any data for this object, return an empty string
+		if (empty($this->fields)) return '';
+		
+		# otherwise return something somewhat useful
+		return str_replace('Object id ', '', 'Instance '.$this.' of class '.get_class($this));
 	}
 }
 
