@@ -6,9 +6,10 @@
 // ===========================================================
 // - LIB
 // ===========================================================
-# errors
-#	require_once (SAINT_ROOT."/error_codes.php");
-#	require_once (SAINT_ROOT."/error_messages.php");
+	require_once (SAINT_ROOT."/scripts/shell_lib");
+
+	# set the exception format
+	SaintException::set_log_format('text');
 
 
 // ===========================================================
@@ -45,16 +46,16 @@
 				error("Please specify the name of the scaffold you would like to generate.");
 			else
 				create_model($argv[1]);
-				create_controller($argv[1], true);
+				#create_controller($argv[1], true);
 				create_view_folder($argv[1]);
-				create_scaffold($argv[1]);
+				create_scaffold($argv[1], true);
 			break;
 
 		case 'view':
 			if (count($argv) == 1)
 				error("Please specify the name of the scaffold you would like to generate.");
 			else
-				create_scaffold($argv[1]);
+				create_scaffold($argv[1], true);
 			break;
 
 		default:
@@ -97,27 +98,54 @@
 		safe_mkdir(strtolower("app/views/$name"));
 	}
 	
-	function create_scaffold($name) {
+	function create_scaffold($name, $controller=false) {
 		$path = strtolower("app/views/$name");
-		copy(SAINT_ROOT.'/templates/scaffold/index.phtml', "$path/index.phtml");
-		copy(SAINT_ROOT.'/templates/scaffold/show.phtml', "$path/show.phtml");
+				
+		#list
+		write_scaffold_template('list', $name, $path);
 		
-		$html = create_new_scaffold($name);
-		$f = fopen("$path/new.phtml", 'w');
-		fwrite($f, $html);
-		fclose($f);
+		#show
+		write_scaffold_template('show', $name, $path);
+		
+		#edit
+		write_scaffold_template('edit', $name, $path);
+		
+		#new
+		write_scaffold_template('new', $name, $path);
+		
+		# make the form
+		$form = create_scaffold_form(strtolower($name));
+		write_file("$path/_form.phtml", $form);
 
+		# write the css
+		safe_mkdir("public/_css");
+		safe_copy(SAINT_ROOT."/templates/scaffold/css/scaffold.css", "public/_css/scaffold.css");
+
+		if ($controller) {
+			$t = str_replace(
+				array(':object',':Object'),
+				array(strtolower($name), ucfirst($name)),
+				file_get_contents(SAINT_ROOT."/templates/scaffold/controllers/Controller.php"));
+			write_file("app/controllers/".ucfirst($name)."Controller.php", $t);
+		}
+	}
+	
+	function write_scaffold_template($template, $name, $path) {	
+		$t = str_replace(':object', strtolower($name), file_get_contents(SAINT_ROOT."/templates/scaffold/views/$template.phtml"));
+		write_file("$path/$template.phtml", $t);
 	}
 
 
-	function create_new_scaffold($name) {
+	function create_scaffold_form($name) {
 		$mname = ucfirst($name);
 		
 		$obj = new $mname;
 		$info = $obj->table_info();
 
 		# get the html for each element
-		$elements = '';
+		ob_start();
+		echo '<'.'?'.'php'." echo \$$name"."->errors(); ?".'>'."\n<ul>\n";
+
 		foreach($info as $k => $v) {
 			$type = $v['Type'];
 			$field = $v['Field'];
@@ -129,100 +157,40 @@
 				
 				# fk relationships
 				case (strpos($field, '_uid') !== false):
+					echo str_replace(
+						array(':field', ':Field', ':object'), 
+						array($field, str_replace('_uid','',ucfirst($field)), strtolower($name)),
+						file_get_contents(SAINT_ROOT."/templates/scaffold/views/__".strtolower($type).".phtml"));
 					break;
 				
 				case (strpos($type, 'varchar')!==false):
 					# if it's less than 100 use a line, otherwise use a small textarea
 					$m = array();
 					preg_match('/varchar\(([0-9]+)\)/', $type, $m);
-					$temp = ($m[1]>100)?'_varchar255':'_varchar100';
+					$temp = ($m[1]>100)?'__varchar255':'__varchar100';
 					
-					ob_start();
-					include (SAINT_ROOT."/templates/scaffold/$temp.phtml");
-					$elements .= ob_get_clean();						
+					echo str_replace(
+						array(':field', ':Field', ':object'), 
+						array($field, str_replace('_', ' ', ucfirst($field)), strtolower($name)),
+						file_get_contents(SAINT_ROOT."/templates/scaffold/views/$temp.phtml"));
 					break;
 					
 				case ($type == 'text'):
 				case ($type == 'date'):
 				case ($type == 'datetime'):
 				case ($type == 'time'):
-					ob_start();
-					include (SAINT_ROOT.'/templates/scaffold/_'.strtolower($type).'.phtml');
-					$elements .= ob_get_clean();
+					echo str_replace(
+						array(':field', ':Field', ':object'), 
+						array($field, str_replace('_', ' ', ucfirst($field)), strtolower($name)),
+						file_get_contents(SAINT_ROOT."/templates/scaffold/views/__".strtolower($type).".phtml"));
 					break;
 											
 			}
 		}
+		echo "\n</ul>";
 
-		ob_start();
-		include (SAINT_ROOT.'/templates/scaffold/new.phtml');
-		$html = ob_get_clean();						
-
-		return $html;
+		return ob_get_clean();
 	}
-
-
-// ===========================================================
-// - HELPERS
-// ===========================================================
-	$errors = array();
-	function error($msg, $fatal=false) {
-		global $errors;
-		$errors[] = $msg;
-		if ($fatal) {
-			display_errors();
-			die();
-		}
-	}
-	
-	function display_errors() {
-		global $errors;
-		if (empty($errors)) return;
-		echo "\n+----------------------------+\n";
-		echo "|     SAINT some errors:     |\n";
-		echo "+----------------------------+\n";
-		echo(join("\n", $errors)."\n\n\n");
-	}
-
-	function write_script($dir, $cname, $code) {
-		if (file_exists("$dir/$cname.php")) {
-			error("Failed to create $dir/$cname file already exists.");
-		} else {
-			echo "Create: $dir/$cname\n";
-			safe_mkdir($dir);
-			$fp = fopen("$dir/$cname.php", "w");
-			fwrite($fp, $code);
-			fclose($fp);
-		}
-	}
-
-
-	function safe_mkdir($dir) {
-		if ($dir{0} != '.' && $dir{0} != '/') $dir = getcwd().'/'.$dir;
-
-		if (!realpath($dir)) {
-			if (strpos($dir, '/') !== false) {
-				$path = explode('/', $dir);
-				array_pop($path);
-				safe_mkdir(join('/', $path));
-			}
-		}
-		if (!file_exists(realpath("../$dir").'/'.$dir)) {
-			echo "Create directory: $dir\n";
-			$ok = mkdir(realpath("../$dir").'/'.$dir);
-			if (!$ok) error("Failed to create: $dir");
-			return $dir;
-		}
-	}
-
-
-
-
-
-#	function __autoload($class_name) {
-#		$class_name = ucfirst($class_name);
-#		require_once("$class_name.php");
-#	}
 		
 ?>
 
