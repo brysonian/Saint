@@ -21,6 +21,8 @@ class DBRecord implements Iterator, Serviceable
 	protected $limit;
 	protected $valid;
 	protected $key;
+	protected $current;
+	protected $fields;
 
 	protected $validate_presence_of			= array();
 	protected $validate_numericality_of	= array();
@@ -176,7 +178,6 @@ class DBRecord implements Iterator, Serviceable
 		
 		# add each key/val to the sql
 		foreach ($this->data as $k=>$v) {
-			# validate this key/value if need be
 			$values[$k] = $this->escape_string($v);
 		}
 		
@@ -328,7 +329,7 @@ class DBRecord implements Iterator, Serviceable
 
 		$c = get_class($this);
 		$where = "$prop = '".$this->data[$prop]."'";
-		if ($this->get_id()) $where .= " AND id <> ".$this->get_id();
+		if ($this->get_id()) $where .= " AND ".$this->get_table().".id <> ".$this->get_id();
 		
 		$r = self::find_where($where, $c);
 		if ($r->num_rows() > 0) {
@@ -566,6 +567,7 @@ class DBRecord implements Iterator, Serviceable
 			}
 		}
 		$this->data = array();
+		$this->fields = array();
 	}
 	
 	
@@ -623,7 +625,7 @@ class DBRecord implements Iterator, Serviceable
 		# join to_one
 		if (!empty($this->to_one)) {
 			foreach ($this->to_one as $v) {
-				$sql .= " LEFT JOIN {$v} ON {$v}.id = `".$this->get_table()."`.{$v}_id ";
+				$sql .= " LEFT JOIN {$v} ON {$v}.uid = `".$this->get_table()."`.{$v}_uid ";
 				
 			}
 		}
@@ -632,7 +634,7 @@ class DBRecord implements Iterator, Serviceable
 		if (!empty($this->to_many)) {
 			# loop through to_many's
 			foreach ($this->to_many as $v) {
-				$sql .= " LEFT JOIN $v ON `$v.".$this->get_table()."_id` = `".$this->get_table()."`.id ";
+				$sql .= " LEFT JOIN $v ON `$v.".$this->get_table()."_uid` = `".$this->get_table()."`.uid ";
 			}
 		}
 		
@@ -705,6 +707,9 @@ class DBRecord implements Iterator, Serviceable
 				$this->$k = stripslashes($v);
 			}
 		}
+		$this->fields = array_keys($this->data);
+		if (is_array($this->to_one_obj)) $this->fields = array_merge($this->fields, array_keys($this->to_one_obj));
+		if (is_array($this->to_many_obj)) $this->fields = array_merge($this->fields, array_keys($this->to_many_obj));
 	}
 
 
@@ -720,9 +725,6 @@ class DBRecord implements Iterator, Serviceable
 		}
 		$this->to_one[] = $table;
 		
-		# include the classes
-		#__autoload(ucfirst($table));
-
 		# create the obj
 		$cname = ucfirst($table);
 		$this->to_one_obj[$table] = new $cname;
@@ -787,8 +789,9 @@ class DBRecord implements Iterator, Serviceable
 // - ITERATOR INTERFACE
 // ===========================================================
 	function rewind() {
-		reset($this->data);
-		$this->key = key($this->data);
+		reset($this->fields);
+		$k = $this->key = current($this->fields);
+		$this->current = $this->$k;
 		$this->valid = true;
 	}
 	
@@ -801,12 +804,13 @@ class DBRecord implements Iterator, Serviceable
 	}
 	
 	function current() {
-		return current($this->data);
+		return $this->current;
 	}
 	
 	function next() {
-		$ok = next($this->data);
-		$this->key = key($this->data);
+		$ok = next($this->fields);
+		$k = $this->key = current($this->fields);
+		$this->current = $this->$k;
 		if ($ok === false) $this->valid = false;
 	}
 
