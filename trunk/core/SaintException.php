@@ -3,10 +3,11 @@
 
 class SaintException extends Exception
 {	
-	var $message;
-	var $code;
-	var $file;
-	var $line;
+	public $message;
+	public $code;
+	public $file;
+	public $line;
+	public static $log_format = 'html';
 	
 // ===========================================================
 // - Constructor
@@ -20,11 +21,12 @@ class SaintException extends Exception
 // ===========================================================
 // - logs error
 // ===========================================================
-	function log($format='html') {
+	function log($format=false) {
 		$out = '';
+		if ($format === false) $format = SaintException::$log_format;
 		switch ($format) {
-			case 'txt':
-				$out .= $this->get_message();
+			case 'text':
+				$out .= $this->get_message()."\n\n";
 				break;
 			
 			case 'html':
@@ -48,13 +50,15 @@ class SaintException extends Exception
 // ===========================================================
 // - Accessors
 // ===========================================================
-	// getters
 	function get_message()					{ return $this->getMessage(); }
 	function get_code()							{ return $this->getCode(); }
 	function get_file()							{ return $this->getFile(); }
 	function get_line()							{ return $this->getLine(); }
 	function get_trace()	 					{ return $this->getTrace(); }
 	function get_trace_as_string()	{ return $this->getTraceAsString(); }
+
+
+	public static function set_log_format($v)		{ SaintException::$log_format = $v; }
 
 
 // ===========================================================
