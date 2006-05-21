@@ -4,10 +4,6 @@
 	Base class for controller objects.
 	All controllers should subclass this base class.
 	
-	Note that in the php4 version all instance vars are prefaced with a _, this
-	is a trick to convert vars set in the controller methods into properties for the view
-	in PHP 5 this is done using the magical __get and __set methods.
-
 	@author Chandler McWilliams
 	@version 2006-03-22
 */
@@ -15,16 +11,17 @@
 class ControllerCore
 {
 	
-	protected $_viewname;
-	protected $_layout		= false;
-	protected $_templatebase;
-	protected $_template;
-	protected $_beforefilters;
-	protected $_afterfilters;
-	protected $_beforefilterexceptions = array();
-	protected $_afterfilterexceptions = array();
-	protected $_cache_page = false;
-	protected static $_cache_extension = 'cache';
+	protected $viewname;
+	protected $layout		= false;
+	protected $templatebase;
+	protected $template;
+	protected $beforefilters;
+	protected $afterfilters;
+	protected $before_filter_exceptions = array();
+	protected $after_filter_exceptions = array();
+	protected $cache_page = false;
+	protected static $cache_extension = 'cache';
+	protected $data;
 	
 	
 // ===========================================================
@@ -32,7 +29,7 @@ class ControllerCore
 // ===========================================================
 	function ControllerCore() {		
 		# set the template base
-		$this->set_template_base(str_replace('controller', '', strtolower(get_class($this))));
+		$this->settemplate_base(str_replace('controller', '', strtolower(get_class($this))));
 		
 		# call if there is an init() method in the App class
 		$m = get_class_methods('AppController');
@@ -40,6 +37,8 @@ class ControllerCore
 		
 		# if there is an init method, call it		
 		if (method_exists($this, 'init')) $this->init();
+		
+		$this->data = array();
 	}
 	
 
@@ -106,7 +105,7 @@ class ControllerCore
 		}
 		
 		# set the template
-		if (!$this->_template) $this->set_template(substr($the_method,1));
+		if (!$this->template) $this->settemplate(substr($the_method,1));
 		
 		# render the view
 		$this->render_view();
@@ -118,22 +117,26 @@ class ControllerCore
 // ===========================================================
 	function render_view($viewname=false) {
 		if ($viewname === false) {
-			$view = $this->get_view_for_action($this->_template);
+			$view = $this->get_view_for_action($this->template);
 		} else {
 			$view = $this->get_view_for_action($viewname);
 		}
 		
 		# add all user data to the view
-		foreach($this as $k=>$v) {
-			if ($k{0} != '_') $view->add_prop($k, $v);
+		#foreach($this as $k=>$v) {
+		#	if ($k{0} != '_') $view->add_prop($k, $v);
+		#}
+
+		foreach($this->data as $k=>$v) {
+			$view->add_prop($k, $v);
 		}
 
 		# if we cache, do that
-		if ($this->_cache_page && empty($_GET) && empty($_POST)) {
-			$output = $view->parse($this->get_layout());
+		if ($this->cache_page && empty($_GET) && empty($_POST)) {
+			$output = $view->parse($this->getlayout());
 			$this->save_cache($_SERVER['REQUEST_URI'], $output);
 		}
-		$view->render($this->get_layout());
+		$view->render($this->getlayout());
 	}
 
 
@@ -151,7 +154,7 @@ class ControllerCore
 		$dirs = explode('/', $path);
 
 		# pop filename
-		$file = array_pop($dirs).'.'.ControllerCore::_cache_extension;
+		$file = array_pop($dirs).'.'.ControllerCore::cache_extension;
 		
 		# new path
 		$mkdir = PROJECT_ROOT.'/public_html';
@@ -195,7 +198,7 @@ class ControllerCore
 				$dirhandle=opendir($base.$targetpath);
 				while (($file = readdir($dirhandle))!==false) {
 					$pi = pathinfo($file);
-					if ($pi['extension'] == ControllerCore::_cache_extension) {
+					if ($pi['extension'] == ControllerCore::cache_extension) {
 						unlink($base.$targetpath.'/'.$file);
 					} else if ($file{0} != '.' && is_dir($base.$targetpath.'/'.$file)) {
 						ControllerCore::clear_cache($targetpath.'/'.$file.'/*');
@@ -205,12 +208,12 @@ class ControllerCore
 			}
 		
 			# also delete the cache file for the dir
-			if (file_exists($base.$targetpath.'.'.ControllerCore::_cache_extension)) {
-				unlink($base.$targetpath.'.'.ControllerCore::_cache_extension);
+			if (file_exists($base.$targetpath.'.'.ControllerCore::cache_extension)) {
+				unlink($base.$targetpath.'.'.ControllerCore::cache_extension);
 			}
 		
 		} else {
-			unlink($base.$path.'.'.ControllerCore::_cache_extension);
+			unlink($base.$path.'.'.ControllerCore::cache_extension);
 		}
 		
 	}
@@ -228,7 +231,7 @@ class ControllerCore
 
 	// get a view object using the specified action
 	function  get_view_for_action($action) {
-		$template = $this->get_template_base().$this->_template;
+		$template = $this->gettemplate_base().$this->template;
 		return $this->get_view($template);
 	}
 
@@ -239,21 +242,40 @@ class ControllerCore
 // ===========================================================
 // - ACCESSORS
 // ===========================================================
+	function __get($prop) {
+		# check in data
+		if (isset($this->data[$prop])) return $this->data[$prop];
+				
+		return false;
+	}
+	
+	// set
+	function __set($prop, $val) {
+		if (is_null($val)) {
+			unset($this->data[$prop]);
+		} else {
+			$this->data[$prop] = $val;
+		}
+	}
+
+
+
+
 	# get/set the template base
-	function get_template_base() { return $this->_templatebase.'/';}
-	function set_template_base($v) { $this->_templatebase = $v; }
+	function gettemplate_base() { return $this->templatebase.'/';}
+	function settemplate_base($v) { $this->templatebase = $v; }
 
 	
-	function set_template($template) {
-		$this->_template = $template;
+	function settemplate($template) {
+		$this->template = $template;
 	}
 
-	function set_layout($x) {
-		$this->_layout = $x;
+	function setlayout($x) {
+		$this->layout = $x;
 	}
 
-	function get_layout() {
-		if ($this->_layout) return PROJECT_VIEWS.'/layouts/'.$this->_layout;
+	function getlayout() {
+		if ($this->layout) return PROJECT_VIEWS.'/layouts/'.$this->layout;
 		return false;
 	}
 
@@ -319,11 +341,11 @@ class ControllerCore
 		
 	}
 
-	function  get_before_filters() { return $this->_beforefilters; }
-	function  get_after_filters() { return $this->_afterfilters; }
+	function  get_before_filters() { return $this->beforefilters; }
+	function  get_after_filters() { return $this->afterfilters; }
 
-	function  get_before_filter_exceptions() { return $this->_beforefilterexceptions; }
-	function  get_after_filter_exceptions() { return $this->_afterfilterexceptions; }
+	function  get_before_filter_exceptions() { return $this->before_filter_exceptions; }
+	function  get_after_filter_exceptions() { return $this->after_filter_exceptions; }
 }
 
 ?>
