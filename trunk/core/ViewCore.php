@@ -4,11 +4,11 @@
 class ViewCore
 {
 
-	var $template = false;
-	var $parsed		= false;
-	var $layout		= false;
-	var $props		= array();
-	var $header		= false;
+	protected $template = false;
+	protected $parsed		= false;
+	protected $layout		= false;
+	protected $props		= array();
+	protected $header		= false;
 
 
 	function ViewCore($template) {
@@ -22,6 +22,10 @@ class ViewCore
 	
 	function get_prop($k) {
 		return $this->props[$k];
+	}
+
+	function set_all_props($p) {
+		return $this->props = $p;
 	}
 	
 	// render the page
@@ -43,7 +47,6 @@ class ViewCore
 	}
 	
 	function parse_partial($var=false, $obj=false) {
-		# unpack the props
 		if ($var) {
 			$$var = $obj;
 		}
