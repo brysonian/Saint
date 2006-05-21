@@ -18,7 +18,8 @@ $SAINT_ERROR_MESSAGES[VALIDATION_NUMERIC] = ':property is not a number.';
 $SAINT_ERROR_MESSAGES[VALIDATION_DATE]		= ':property cannot be understood as a date.';
 $SAINT_ERROR_MESSAGES[VALIDATION_UNIQUE]	= ':property must be unique.';
 $SAINT_ERROR_MESSAGES[VALIDATION_FORMAT]	= ':property is invalid.';
-$SAINT_ERROR_MESSAGES[VALIDATION_EMAIL]		= ':property is not a valid email address.';
+$SAINT_ERROR_MESSAGES[VALIDATION_EMAIL]		= ':property must be a valid email address.';
+$SAINT_ERROR_MESSAGES[VALIDATION_URL]			= ':property must be a a valid web address.';
 $SAINT_ERROR_MESSAGES[VALIDATION_CURSE]		= ':property cannot contain curse words.';
 
 
