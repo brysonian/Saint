@@ -311,7 +311,7 @@ class DBRecord implements Iterator, Serviceable
 
 	protected function test_date_of($prop, $msg) {
 		if (!array_key_exists($prop, $this->data)) return true;
-
+		if (empty($this->data[$prop])) return true;
 		$d = strtotime($this->data[$prop]);
 		if ($d === false || $d == -1) {
 			$this->add_error($prop, VALIDATION_DATE, $msg);
@@ -493,7 +493,7 @@ class DBRecord implements Iterator, Serviceable
 		$sibs = new DBRecordIterator($m, $m->get_query(), $m->db);
 		return $sibs;
 	}
-	
+		
 	// find an item by id
 	static function find_id($id, $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
@@ -643,7 +643,7 @@ class DBRecord implements Iterator, Serviceable
 		if (!empty($this->to_many)) {
 			# loop through to_many's
 			foreach ($this->to_many as $v) {
-				$sql .= " LEFT JOIN $v ON `$v.".$this->get_table()."_uid` = `".$this->get_table()."`.uid ";
+				$sql .= " LEFT JOIN $v ON `$v`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
 			}
 		}
 		
@@ -671,51 +671,74 @@ class DBRecord implements Iterator, Serviceable
 		# set props (loop columns)
 		foreach ($row as $k=>$v) {
 			if ($k == $skipme) continue;
-			# split the k at the last _ and see if we need to make a DBRecord object
-			# using the names of our to_many and to_one's
+			
+			# currently it's all eager loading,
+			# figure out if a particular result belongs to a to-one or to-many
+			# the key will have to have a _ in it for this to be the case, so
+			# skip keys without one straight out
+			$to = false;
+			$tm = false;
 
-			$pos = strrpos($k, '_');
-			$split = ($pos!==false)?substr($k, 0, $pos):$k;
+			# see if there is a t-o or t-m
+			if (strpos($k, '_') !== false) {
 
+				# check to-one
+				if (is_array($this->to_one)) {
+					foreach($this->to_one as $tname) {
+						if (strpos($k, $tname) !== false) $to = $tname;
+					}
+				}
+
+				# check to-many
+				if (!$to && is_array($this->to_many)) {
+					foreach($this->to_many as $tname) {
+						if (strpos($k, $tname) !== false) $tm = $tname;
+					}
+				}
+			}
+			
 			# to_one
-			if (!empty($this->to_one) && in_array($split, $this->to_one)) {
+			if ($to !== false) {
 				# remove the prefix from the prop names
-				$prop = str_replace($split.'_', '', $k);
+				$prop = str_replace($to.'_', '', $k);
 				if ($prop == 'id') {
-					if (!empty($v)) $this->to_one_obj[$split]->set_id($v);
+					if (!empty($v)) $this->to_one_obj[$to]->set_id($v);
 				} else if ($prop == 'uid') {
-					if (!empty($v)) $this->to_one_obj[$split]->set_uid($v);
+					if (!empty($v)) $this->to_one_obj[$to]->set_uid($v);
 				} else {
-					$this->to_one_obj[$split]->$prop = stripslashes($v);
+					$this->to_one_obj[$to]->$prop = stripslashes($v);
 				}
 	
 	
 			# to_many
-			} else if (!empty($this->to_many) && in_array($split, $this->to_many)) {
+			} else if ($tm !== false) {
 				# skip ones without an id
-				if (empty($row[$split.'_id'])) continue;
-				
+				if (empty($row[$tm.'_id'])) continue;
+
 				# if the obj doesn't exist yet, make it
 				# objs are in the to_many_obj[name] array indexed by id
-				if (!isset($this->to_many_obj[$split][$row[$split.'_id']])) {
-					$cname = $this->to_many_class[$split];
-					$this->to_many_obj[$split][$row[$split.'_id']] = new $cname;
+				if (!isset($this->to_many_obj[$tm][$row[$tm.'_id']])) {
+					$cname = $this->to_many_class[$tm];
+					$this->to_many_obj[$tm][$row[$tm.'_id']] = new $cname;
 				}
 				
 				# remove the prefix from the prop names
-				$prop = str_replace($split.'_', '', $k);
+				$prop = str_replace($tm.'_', '', $k);
+
 				if ($prop == 'id') {
-					$this->to_many_obj[$split][$row[$split.'_id']]->set_id($v);
+					$this->to_many_obj[$tm][$row[$tm.'_id']]->set_id($v);
 				} else if ($prop == 'uid') {
-					$this->to_many_obj[$split][$row[$split.'_id']]->set_uid($v);
+					$this->to_many_obj[$tm][$row[$tm.'_id']]->set_uid($v);
 				} else {
-					$this->to_many_obj[$split][$row[$split.'_id']]->$prop = stripslashes($v);
+					$this->to_many_obj[$tm][$row[$tm.'_id']]->$prop = stripslashes($v);
 				}
 			# normal
 			} else {
 				$this->$k = stripslashes($v);
 			}
 		}
+		
+		# save all the fields for this model
 		$this->fields = array_keys($this->data);
 		if (is_array($this->to_one_obj)) $this->fields = array_merge($this->fields, array_keys($this->to_one_obj));
 		if (is_array($this->to_many_obj)) $this->fields = array_merge($this->fields, array_keys($this->to_many_obj));
