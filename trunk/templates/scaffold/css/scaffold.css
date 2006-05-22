@@ -59,7 +59,7 @@ h1
 	width: 300px;
 }
 
-.tip a:link
+.tip a:link,
 .tip a:visited,
 .tip a:hover,
 .tip a:active
