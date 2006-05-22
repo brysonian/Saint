@@ -160,7 +160,7 @@
 					echo str_replace(
 						array(':field', ':Field', ':object'), 
 						array($field, str_replace('_uid','',ucfirst($field)), strtolower($name)),
-						file_get_contents(SAINT_ROOT."/templates/scaffold/views/__".strtolower($type).".phtml"));
+						file_get_contents(SAINT_ROOT."/templates/scaffold/views/__toone.phtml"));
 					break;
 				
 				case (strpos($type, 'varchar')!==false):
