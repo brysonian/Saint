@@ -152,6 +152,20 @@ function time_field($obj, $name, $prop) {
 	return $out;
 }
 
+
+function button_to($name, $args=false, $confirm=false) {
+	if (!is_array($args)) {
+		$args = func_get_args();
+		array_shift($args);
+	}
+	
+	ob_start();
+	echo "<input type='button' onclick='document.location.href=\"".url_for($args)."\"' value='";
+	echo $name;
+	echo "'>";
+	return ob_get_clean();
+}
+
 ?>
 
 
