@@ -490,7 +490,7 @@ class DBRecord implements Iterator, Serviceable
 // - FIND
 // ===========================================================
 	// return an a single item by uid
-	static function find($uid, $class=false) {
+	static function find($uid, $options=array(), $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_uid($uid);
@@ -499,24 +499,26 @@ class DBRecord implements Iterator, Serviceable
 	}
 
 	// return an array of all objects of this type
-	static function find_all($class=false) {
+	static function find_all($options=array(), $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
+		if (array_key_exists('order', $options)) $m->set_order($options['order']);
 		$sibs = new DBRecordIterator($m, $m->get_query(), $m->db);
 		return $sibs;
 	}
 	
 	// return an array of all objects using this where clause
-	static function find_where($where, $class=false) {
+	static function find_where($where, $options=array(), $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
+		if (array_key_exists('order', $options)) $m->set_order($options['order']);
 		$m->set_where($where);
 		$sibs = new DBRecordIterator($m, $m->get_query(), $m->db);
 		return $sibs;
 	}
 		
 	// find an item by id
-	static function find_id($id, $class=false) {
+	static function find_id($id, $options=array(), $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_id($id);
@@ -655,7 +657,7 @@ class DBRecord implements Iterator, Serviceable
 		# join to_one
 		if (!empty($this->to_one)) {
 			foreach ($this->to_one as $v) {
-				$sql .= " LEFT JOIN {$v} ON {$v}.uid = `".$this->get_table()."`.{$v}_uid ";
+				$sql .= " LEFT JOIN `{$v}` ON {$v}.uid = `".$this->get_table()."`.{$v}_uid ";
 				
 			}
 		}
@@ -664,7 +666,7 @@ class DBRecord implements Iterator, Serviceable
 		if (!empty($this->to_many)) {
 			# loop through to_many's
 			foreach ($this->to_many as $v) {
-				$sql .= " LEFT JOIN $v ON `$v`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
+				$sql .= " LEFT JOIN `$v` ON `$v`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
 			}
 		}
 		
