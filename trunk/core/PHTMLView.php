@@ -131,6 +131,21 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 	return $html;
 }
 
+function file_select($obj, $name, $prop, $dir, $options=array(), $abs=false) {
+	if (!$abs) $dir = $_SERVER['DOCUMENT_ROOT'].$dir;
+	$dir = new DirectoryIterator($dir);
+	$out = array();
+	foreach($dir as $file) {
+		if (!$file->isDir()) {
+			$pn = (!$abs)?str_replace($_SERVER['DOCUMENT_ROOT'], '', $file->getPathname()):$file->getPathname();
+			$out[] = array('pathname' => $pn, 'path' => $file->getPath(), 'filename' => $file->getFilename());
+		}
+	}
+	return select($obj, $name, $prop, $out, 'pathname', 'filename', $options);
+}
+
+
+
 function date_field($obj, $name, $prop) {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
 	if ($v == -1 || $v === false) $v = Format::prettyDate();
