@@ -336,6 +336,7 @@ class DBRecord implements Iterator, Serviceable
 			$this->add_error($prop, VALIDATION_DATE, $msg);
 			return false;
 		}
+		$this->data[$prop] = Format::mysqlDateTime($this->data[$prop]);
 		return true;
 	}
 
@@ -350,7 +351,7 @@ class DBRecord implements Iterator, Serviceable
 		if (!array_key_exists($prop, $this->data)) return true;
 
 		$c = get_class($this);
-		$where = "$prop = '".$this->data[$prop]."'";
+		$where = "$prop = '".$this->escape_string($this->data[$prop])."'";
 		if ($this->get_id()) $where .= " AND ".$this->get_table().".id <> ".$this->get_id();
 		
 		$r = self::find_where($where, $c);
