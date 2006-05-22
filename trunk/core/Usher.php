@@ -168,10 +168,9 @@ function url_for($args=false) {
 	} else if (!is_array($args)) {
 		# if the args is not an array, grab them all
 		$args = func_get_args();
+		# if only one arg is passed, treat it as the action on the current controller
+		if (count($args) == 1) array_unshift($args, params('controller'));
 	}
-	
-	# if only one arg is passed, treat it as the action on the current controller
-	if (count($args) == 1) array_unshift($args, params('controller'));
 	
 	# reinterpret using order
 	if (array_key_exists(0, $args)) {
