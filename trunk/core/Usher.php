@@ -93,7 +93,11 @@ class Usher
 	*/
 	static function get_param($p=false) {
 		if ($p === false) return self::$params;
-		return self::$params[$p];
+		if (array_key_exists($p, self::$params)) {
+			return self::$params[$p];
+		} else {
+			return false;
+		}
 	}
 	
 	/**
