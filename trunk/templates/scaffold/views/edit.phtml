@@ -13,7 +13,8 @@
 			<?php render_partial(false, 'form', $:object); ?>
 			
 			<div id="footer">
-				<input type="submit" name="submit" value="Edit" id="submit" />
+				<?php echo submit_to('Edit');?>
+				<?php echo button_to('Cancel', array('action'=>'show', 'uid'=>$:object->uid));?>
 			</div>
 		</form>
 

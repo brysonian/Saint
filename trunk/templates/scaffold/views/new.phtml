@@ -13,7 +13,8 @@
 			<?php render_partial(false, 'form', $:object); ?>
 
 			<div id="footer">
-				<input type="submit" name="submit" value="Create" id="submit" />
+				<?php echo submit_to('Create');?>
+				<?php echo button_to('Cancel', false);?> | 
 			</div>
 		</form>
 	</body>
