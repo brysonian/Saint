@@ -102,18 +102,21 @@ class DBRecord implements Iterator, Serviceable
 		if (isset($this->data[$prop])) return $this->data[$prop];
 		
 		# then the to_one's
-		if (isset($this->to_one_obj[$prop])) return $this->to_one_obj[$prop];
+		if (isset($this->to_one_obj[$prop])) {
+			if ($this->to_one_obj[$prop]->does_have_one() || $this->to_one_obj[$prop]->does_have_many()) $this->to_one_obj[$prop]->load();
+			return $this->to_one_obj[$prop];
+		}
 
 		# then try the to_manys
 		$tm = $this->get_to_many_objects($prop);
-		
-		# if they're are some, return each as an array
+
+		# if they're are some, see if they have to_many and to_one's of their own
+		# and if so load them up
 		if ($tm) {
-			$out = array();
 			foreach ($tm as $obj) {
-				$out[] = $obj->to_array();
+				if ($obj->does_have_one() || $obj->does_have_many()) $obj->load();
 			}
-			return $out;			
+			return $tm;
 		}
 		
 		return false;
@@ -133,9 +136,22 @@ class DBRecord implements Iterator, Serviceable
 	function get_to_many_objects($prop) {
 		# check if it's there
 		if (isset($this->to_many_obj[$prop])) {
-			#$ao = new ArrayObject($this->to_many_obj[$prop]);
-			#return $ao->getIterator();
 			return $this->to_many_obj[$prop];
+		}
+		return false;
+	}
+
+	// see if this object has to many or to one associations
+	function does_have_many() {
+		if (is_array($this->to_many) && !empty($this->to_many)) {
+			return true;
+		}
+		return false;
+	}
+
+	function does_have_one() {
+		if (is_array($this->to_one) && !empty($this->to_one)) {
+			return true;
 		}
 		return false;
 	}
