@@ -12,16 +12,16 @@ class Format {
 	function Format() {}
 		
 	# format a date string into something like: April 1, 1976 11:05am
-	public static function prettyDatetime($value) {
-		if (empty($value)) return $value;
+	public static function prettyDatetime($value=false) {
+		$value = empty($value)?time():strtotime($value);
 		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 		return date('F j, Y h:i A', $value);
 	}
 
 	# format a date string into something like: 11:05am
-	public static function prettyTime($value) {
-		if (empty($value)) return $value;
+	public static function prettyTime($value=false) {
+		$value = empty($value)?time():strtotime($value);
 		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
@@ -29,32 +29,31 @@ class Format {
 	}
 
 	# format a date string into something like: April 1, 1976
-	public static function prettyDate($value) {
-		if (empty($value)) return $value;
-		$value = strtotime($value);
+	public static function prettyDate($value=false) {
+		$value = empty($value)?time():strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
 		return date('F j, Y', $value);
 	}
 
-	public static function mysqlDate($value) {
-		if (empty($value)) return $value;
+	public static function mysqlDate($value=false) {
+		$value = empty($value)?time():strtotime($value);
 		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
 		return date('Y-m-d', $value);
 	}
 
-	public static function mysqlDateTime($value) {
-		if (empty($value)) return $value;
+	public static function mysqlDateTime($value=false) {
+		$value = empty($value)?time():strtotime($value);
 		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
 		return date('Y-m-d h:i:s', $value);
 	}
 
-	public static function mysqlTime($value) {
-		if (empty($value)) return $value;
+	public static function mysqlTime($value=false) {
+		$value = empty($value)?time():strtotime($value);
 		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
@@ -62,24 +61,24 @@ class Format {
 	}
 
 	# format a date string into something like: Apr 1, 1976
-	public static function prettyShortDate($value) {
-		if (empty($value)) return $value;
+	public static function prettyShortDate($value=false) {
+		$value = empty($value)?time():strtotime($value);
 		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
 		return date('M j, Y', $value);
 	}
 
-	public static function prettyShortDateTime($value) {
-		if (empty($value)) return $value;
+	public static function prettyShortDateTime($value=false) {
+		$value = empty($value)?time():strtotime($value);
 		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
 		return date('M j, Y h:i A', $value);
 	}
 	
-	public static function simpleShortDate($value) {
-		if (empty($value)) return $value;
+	public static function simpleShortDate($value=false) {
+		$value = empty($value)?time():strtotime($value);
 		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
@@ -89,8 +88,8 @@ class Format {
 	# formats a string as a date
 	# see http://us4.php.net/manual/en/function.date.php
 	# for format options
-	public static function dateAs($value, $format) {
-		if (empty($value)) return $value;
+	public static function dateAs($value=false, $format) {
+		$value = empty($value)?time():strtotime($value);
 		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
@@ -115,19 +114,19 @@ class Format {
 
 }
 	
-function dt($value) {
+function dt($value=false) {
 	return Format::prettyDatetime($value);
 }
 
-function d($value) {
+function d($value=false) {
 	return Format::prettyDate($value);
 }
 
-function t($value) {
+function t($value=false) {
 	return Format::prettyTime($value);
 }
 
-function dateAs($value, $format) {
+function dateAs($value=false, $format) {
 	return Format::dateAs($value, $format);
 }
 
