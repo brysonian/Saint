@@ -31,7 +31,7 @@ class ValidationException extends SaintException
 
 			$msg .= '<li>'.ucfirst(trim(str_replace(':property', $err[0], $err[2]))).'</li>';
 		}
-		$msg .= '<ul>';
+		$msg .= '</ul>';
 		return $msg;
 	}
 	
