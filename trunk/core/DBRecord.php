@@ -112,7 +112,7 @@ class DBRecord implements Iterator, Serviceable
 		# then try the to_manys
 		$tm = $this->get_to_many_objects($prop);
 
-		# if they're are some, see if they have to_many and to_one's of their own
+		# if their are some, see if they have to_many and to_one's of their own
 		# and if so load them up
 		if ($tm) {
 			foreach ($tm as $obj) {
@@ -232,7 +232,6 @@ class DBRecord implements Iterator, Serviceable
 			$db = debug_backtrace();
 			throw new ValidationException($this->errors, get_class($this), VALIDATION_ERROR, $db[1]['file'], $db[1]['line']);
 		}
-
 
 		$sql = "UPDATE `".$this->get_table()."` SET ";
 		$props = array();
@@ -387,6 +386,7 @@ class DBRecord implements Iterator, Serviceable
 
 	protected function test_format_of($prop, $args) {
 		if (!array_key_exists($prop, $this->data)) return true;
+		if (empty($this->data[$prop])) return true;
 		if (preg_match($args[0], $this->data[$prop]) == 0) {
 			$this->add_error($prop, VALIDATION_FORMAT, $args[1]);
 			return false;
