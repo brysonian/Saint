@@ -152,6 +152,16 @@ function time_field($obj, $name, $prop) {
 	return $out;
 }
 
+function submit_to($name, $confirm=false) {
+	ob_start();
+	echo "<input type='submit'";
+	if ($confirm) echo " onclick='return confirm(\"Are You Sure?\");' ";
+	echo " value='";
+	echo $name;
+	echo "'>";
+	return ob_get_clean();
+}
+
 
 function button_to($name, $args=false, $confirm=false) {
 	if (!is_array($args)) {
@@ -160,7 +170,9 @@ function button_to($name, $args=false, $confirm=false) {
 	}
 	
 	ob_start();
-	echo "<input type='button' onclick='document.location.href=\"".url_for($args)."\"' value='";
+	echo "<input type='button' onclick='";
+	if ($confirm) echo 'if(confirm("Are You Sure?")) ';
+	echo "document.location.href=\"".url_for($args)."\"' value='";
 	echo $name;
 	echo "'>";
 	return ob_get_clean();
