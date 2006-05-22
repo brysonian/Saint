@@ -103,7 +103,9 @@ class DBRecord implements Iterator, Serviceable
 		
 		# then the to_one's
 		if (isset($this->to_one_obj[$prop])) {
-			if ($this->to_one_obj[$prop]->does_have_one() || $this->to_one_obj[$prop]->does_have_many()) $this->to_one_obj[$prop]->load();
+			if ($this->to_one_obj[$prop]->does_have_one() || $this->to_one_obj[$prop]->does_have_many()) {
+				if ($this->to_one_obj[$prop]->get_uid()) $this->to_one_obj[$prop]->load();
+			}
 			return $this->to_one_obj[$prop];
 		}
 
@@ -114,7 +116,9 @@ class DBRecord implements Iterator, Serviceable
 		# and if so load them up
 		if ($tm) {
 			foreach ($tm as $obj) {
-				if ($obj->does_have_one() || $obj->does_have_many()) $obj->load();
+				if ($obj->does_have_one() || $obj->does_have_many()) {
+					if ($obj->get_uid()) $obj->load();
+				}
 			}
 			return $tm;
 		}
