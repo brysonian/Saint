@@ -36,17 +36,17 @@
 
 class Sparkup
 {
-	var $usertags 		=	array();		# array of user tags and functions see add_tag() method;
-	var $skiptags 		=	'';				# string of tags to skip
-	var $parselinks	=	true;			# if false, fully qualified url's won't be parsed into links
-	var $linkformat		=	"<a href='{url}'>{name}</a>";	# format for href replacements
-	var $lineheads	= false;
-	var $tagpattern 	=	'/(.)\[(.*)\]\1/U';
+	protected $usertags 		=	array();		# array of user tags and functions see add_tag() method;
+	protected $skiptags 		=	'';				# string of tags to skip
+	protected $parselinks	=	true;			# if false, fully qualified url's won't be parsed into links
+	protected $linkformat		=	"<a href='{url}'>{name}</a>";	# format for href replacements
+	protected $lineheads	= false;
+	protected $tagpattern 	=	'/(.)\[(.*)\]\1/U';
 	
-	var $tags;
-	var $head_pats;
-	var $headers_regex;
-	var $linenum;
+	protected $tags;
+	protected $head_pats;
+	protected $headers_regex;
+	protected $linenum;
 	
 	/**
 	* constructor, sets the base header
@@ -483,6 +483,7 @@ class Sparkup
 // ===========================================================
 	// text to html
 	function h($text) {
+		if (is_object($text)) $text = $text->__toString();
 		return Sparkup::textToHTML($text);
 	}
 	
