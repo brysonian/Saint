@@ -14,7 +14,6 @@ class Format {
 	# format a date string into something like: April 1, 1976 11:05am
 	public static function prettyDatetime($value=false) {
 		$value = empty($value)?time():strtotime($value);
-		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 		return date('F j, Y h:i A', $value);
 	}
@@ -22,7 +21,6 @@ class Format {
 	# format a date string into something like: 11:05am
 	public static function prettyTime($value=false) {
 		$value = empty($value)?time():strtotime($value);
-		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
 		return date('h:i A', $value);
@@ -38,7 +36,6 @@ class Format {
 
 	public static function mysqlDate($value=false) {
 		$value = empty($value)?time():strtotime($value);
-		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
 		return date('Y-m-d', $value);
@@ -46,7 +43,6 @@ class Format {
 
 	public static function mysqlDateTime($value=false) {
 		$value = empty($value)?time():strtotime($value);
-		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
 		return date('Y-m-d h:i:s', $value);
@@ -54,7 +50,6 @@ class Format {
 
 	public static function mysqlTime($value=false) {
 		$value = empty($value)?time():strtotime($value);
-		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
 		return date('h:i:s', $value);
@@ -63,7 +58,6 @@ class Format {
 	# format a date string into something like: Apr 1, 1976
 	public static function prettyShortDate($value=false) {
 		$value = empty($value)?time():strtotime($value);
-		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
 		return date('M j, Y', $value);
@@ -71,7 +65,6 @@ class Format {
 
 	public static function prettyShortDateTime($value=false) {
 		$value = empty($value)?time():strtotime($value);
-		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
 		return date('M j, Y h:i A', $value);
@@ -79,7 +72,6 @@ class Format {
 	
 	public static function simpleShortDate($value=false) {
 		$value = empty($value)?time():strtotime($value);
-		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
 		return date('m/d/Y', $value);
@@ -90,7 +82,6 @@ class Format {
 	# for format options
 	public static function dateAs($value=false, $format) {
 		$value = empty($value)?time():strtotime($value);
-		$value = strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
 
 		return date($format, $value);
