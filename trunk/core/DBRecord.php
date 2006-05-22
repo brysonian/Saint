@@ -37,8 +37,11 @@ class DBRecord implements Iterator, Serviceable
 // - CONSTRUCTOR
 // ===========================================================
 	function DBRecord($props=false) {
-		# set table name if none was given
-		$table = strtolower(get_class($this));
+		# set table name
+		$table = get_class($this);
+		
+		# turn camelback into underscore and lowercase
+		$table = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $table));
 		$this->set_table($table);
 		
 		# get a ref to the dbconnection
