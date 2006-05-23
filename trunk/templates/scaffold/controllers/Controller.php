@@ -19,6 +19,7 @@ class :ObjectController extends AppController
 	}
 
 	function _create() {
+		if (!params(':object')) redirect_to('new');
 		$this->:object = new :Object(params(':object'));
 
 		try {
