@@ -118,12 +118,14 @@ class DBRecord implements Iterator, Serviceable
 		# if their are some, see if they have to_many and to_one's of their own
 		# and if so load them up
 		if ($tm) {
+			$out = array();
 			foreach ($tm as $obj) {
 				if ($obj->does_have_one() || $obj->does_have_many()) {
 					if ($obj->get_uid()) $obj->load();
 				}
+				$out[] = $obj;
 			}
-			return $tm;
+			return $out;
 		}
 		
 		return false;
