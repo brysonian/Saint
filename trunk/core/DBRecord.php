@@ -519,6 +519,16 @@ class DBRecord implements Iterator, Serviceable
 		$sibs = new DBRecordIterator($m, $m->get_query(), $m->db);
 		return $sibs;
 	}
+	
+	// handy shortcut to find_where for use on a specific field
+	static function find_by($field, $value, $options=array(), $class=false) {
+		$class = $class?$class:self::get_class_from_backtrace();
+		$m = new $class;
+		if (array_key_exists('order', $options)) $m->set_order($options['order']);
+		$m->set_where("`$field` = '".$this->escape_string($value)."'");
+		$sibs = new DBRecordIterator($m, $m->get_query(), $m->db);
+		return $sibs;
+	}
 		
 	// find an item by id
 	static function find_id($id, $options=array(), $class=false) {
