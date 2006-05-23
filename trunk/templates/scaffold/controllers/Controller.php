@@ -34,6 +34,7 @@ class :ObjectController extends AppController
 	}
 	
 	function _update() {
+		if (!params(':object')) redirect_to(array('controller' => params('controller'), 'action' => 'edit', 'uid' => params('uid')));
 		$this->:object = :Object::find(params('uid'));
 
 		try {
