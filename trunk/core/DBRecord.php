@@ -663,15 +663,14 @@ class DBRecord implements Iterator, Serviceable
 				}
 			}
 		}
-		
+
 		# add from
 		$sql .= " FROM `".$this->get_table()."` ";
 
 		# join to_one
 		if (!empty($this->to_one)) {
 			foreach ($this->to_one as $v) {
-				$sql .= " LEFT JOIN `{$v}` ON {$v}.uid = `".$this->get_table()."`.{$v}_uid ";
-				
+				$sql .= " LEFT JOIN `{$v}` ON {$v}.uid = `".$this->get_table()."`.{$v}_uid ";				
 			}
 		}
 
@@ -679,10 +678,16 @@ class DBRecord implements Iterator, Serviceable
 		if (!empty($this->to_many)) {
 			# loop through to_many's
 			foreach ($this->to_many as $v) {
-				$sql .= " LEFT JOIN `$v` ON `$v`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
+				# see if this is actually a habtm, then add the extra join
+				if (is_array($this->habtm) && array_key_exists($v, $this->habtm)){
+					$sql .= " LEFT JOIN `".$this->habtm[$v]."` ON `".$this->habtm[$v]."`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
+					$sql .= " LEFT JOIN `$v` ON `".$this->habtm[$v]."`.".$v."_uid = `$v`.uid ";
+				} else {
+					$sql .= " LEFT JOIN `$v` ON `$v`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
+				}
 			}
 		}
-		
+
 		# add WHERE clause
 		if ($this->get_where()) $sql .= " WHERE ".$this->get_where();
 		
@@ -728,7 +733,10 @@ class DBRecord implements Iterator, Serviceable
 				# check to-many
 				if (!$to && is_array($this->to_many)) {
 					foreach($this->to_many as $tname) {
-						if (strpos($k, $tname) !== false) $tm = $tname;
+						if (strpos($k, $tname) !== false) {
+							$tm = $tname;
+							break;
+						}						
 					}
 				}
 			}
@@ -745,21 +753,9 @@ class DBRecord implements Iterator, Serviceable
 					$this->to_one_obj[$to]->$prop = stripslashes($v);
 				}
 	
-	
 			# to_many
 			} else if ($tm !== false) {
-				# check habtm
-				if (is_array($this->habtm)) {
-					foreach($this->habtm as $habtm_name => $hatbm_class) {
-						if (strpos($tm, $habtm_name) !== false) {
-							$tm_index = $tm.'_'.strtolower($hatbm_class).'_uid';
-							$this->to_many_obj[strtolower($hatbm_class)][$row[$tm_index]] = new $hatbm_class;
-							$this->to_many_obj[strtolower($hatbm_class)][$row[$tm_index]]->set_uid($row[$tm_index]);
-							continue;
-						}
-					}
-				}
-				
+
 				# skip ones without a uid
 				if (empty($row[$tm.'_uid'])) continue;
 				$tm_index = $row[$tm.'_uid'];
@@ -786,7 +782,6 @@ class DBRecord implements Iterator, Serviceable
 				$this->$k = stripslashes($v);
 			}
 		}
-
 		# save all the fields for this model
 		$this->fields = array_keys($this->data);
 		if (is_array($this->to_one_obj)) $this->fields = array_merge($this->fields, array_keys($this->to_one_obj));
@@ -838,14 +833,11 @@ class DBRecord implements Iterator, Serviceable
 				$this->get_table()
 			);
 			sort($tables);
-			
-			$table = $tables[0].'_'.$tables[1];
 		}
 
-		# if habtm are empty make an array
 		if (empty($this->habtm)) $this->habtm = array();
-		$this->habtm[$table] = $this->get_table_from_classname($class);
-		$this->has_many($class, $table);
+		$this->habtm[$this->get_table_from_classname($class)] = $tables[0].'_'.$tables[1];
+		$this->has_many($class);		
 	}
 
 
@@ -1006,8 +998,6 @@ class DBRecord implements Iterator, Serviceable
 
 	// get array rep of this object
 	function to_array($deep=false) {
-		if (empty($this->fields)) return array();
-
 		$out = array();
 
 		# add id and uid
