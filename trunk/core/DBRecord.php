@@ -10,11 +10,14 @@ class DBRecord implements Iterator, Serviceable
 	
 	protected $table;
 	protected $db;
-	protected $to_many;
+
 	protected $to_one;
-	protected $to_many_obj;
 	protected $to_one_obj;
+	protected $to_many;
+	protected $to_many_obj;
 	protected $to_many_class;
+	protected $habtm;
+
 	protected $order;
 	protected $where;
 	protected $group;
@@ -41,7 +44,7 @@ class DBRecord implements Iterator, Serviceable
 		$table = get_class($this);
 		
 		# turn camelback into underscore and lowercase
-		$table = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $table));
+		$table = $this->get_table_from_classname($table);
 		$this->set_table($table);
 		
 		# get a ref to the dbconnection
@@ -735,32 +738,45 @@ class DBRecord implements Iterator, Serviceable
 	
 			# to_many
 			} else if ($tm !== false) {
-				# skip ones without an id
-				if (empty($row[$tm.'_id'])) continue;
+				# check habtm
+				if (is_array($this->habtm)) {
+					foreach($this->habtm as $habtm_name => $hatbm_class) {
+						if (strpos($tm, $habtm_name) !== false) {
+							$tm_index = $tm.'_'.strtolower($hatbm_class).'_uid';
+							$this->to_many_obj[strtolower($hatbm_class)][$row[$tm_index]] = new $hatbm_class;
+							$this->to_many_obj[strtolower($hatbm_class)][$row[$tm_index]]->set_uid($row[$tm_index]);
+							continue;
+						}
+					}
+				}
+				
+				# skip ones without a uid
+				if (empty($row[$tm.'_uid'])) continue;
+				$tm_index = $row[$tm.'_uid'];
 
 				# if the obj doesn't exist yet, make it
-				# objs are in the to_many_obj[name] array indexed by id
-				if (!isset($this->to_many_obj[$tm][$row[$tm.'_id']])) {
+				# objs are in the to_many_obj[name] array indexed by uid
+				if (!isset($this->to_many_obj[$tm][$tm_index])) {
 					$cname = $this->to_many_class[$tm];
-					$this->to_many_obj[$tm][$row[$tm.'_id']] = new $cname;
+					$this->to_many_obj[$tm][$tm_index] = new $cname;
 				}
 				
 				# remove the prefix from the prop names
 				$prop = str_replace($tm.'_', '', $k);
 
 				if ($prop == 'id') {
-					$this->to_many_obj[$tm][$row[$tm.'_id']]->set_id($v);
+					$this->to_many_obj[$tm][$tm_index]->set_id($v);
 				} else if ($prop == 'uid') {
-					$this->to_many_obj[$tm][$row[$tm.'_id']]->set_uid($v);
+					$this->to_many_obj[$tm][$tm_index]->set_uid($v);
 				} else {
-					$this->to_many_obj[$tm][$row[$tm.'_id']]->$prop = stripslashes($v);
+					$this->to_many_obj[$tm][$tm_index]->$prop = stripslashes($v);
 				}
 			# normal
 			} else {
 				$this->$k = stripslashes($v);
 			}
 		}
-		
+
 		# save all the fields for this model
 		$this->fields = array_keys($this->data);
 		if (is_array($this->to_one_obj)) $this->fields = array_merge($this->fields, array_keys($this->to_one_obj));
@@ -771,8 +787,10 @@ class DBRecord implements Iterator, Serviceable
 // ===========================================================
 // - ADD TO-MANY AND TO-ONE RELATIONSHIPS
 // ===========================================================
-	function has_one($table) {
-		$table = strtolower($table);
+	function has_one($class, $table=false) {
+		# if no table, try to get the tablename
+		if ($table == false) $table = $this->get_table_from_classname($class);
+
 		# if to_ones are empty make an array
 		if (empty($this->to_one)) {
 			$this->to_one = array();
@@ -787,10 +805,7 @@ class DBRecord implements Iterator, Serviceable
 
 	function has_many($class, $table=false) {
 		# if no table, try to get the tablename
-		if ($table == false) {
-			$table = $this->get_table_from_classname($class);
-		}
-
+		if ($table == false) $table = $this->get_table_from_classname($class);
 
 		# if to_many are empty make an array
 		if (empty($this->to_many)) {
@@ -802,10 +817,25 @@ class DBRecord implements Iterator, Serviceable
 
 		# create the obj
 		$this->to_many_obj[$table] = array();
-		$this->to_many_class[$table] = $class;
-		
-		# include the classes
-		#__autoload($class);
+		$this->to_many_class[$table] = $class;		
+	}
+
+	function has_and_belongs_to_many($class, $table=false) {
+		# if no table, try to get the tablename
+		if ($table == false) {
+			$tables = array(
+				$this->get_table_from_classname($class),
+				$this->get_table()
+			);
+			sort($tables);
+			
+			$table = $tables[0].'_'.$tables[1];
+		}
+
+		# if habtm are empty make an array
+		if (empty($this->habtm)) $this->habtm = array();
+		$this->habtm[$table] = $this->get_table_from_classname($class);
+		$this->has_many($class, $table);
 	}
 
 
@@ -965,43 +995,60 @@ class DBRecord implements Iterator, Serviceable
 
 
 	// get array rep of this object
-	function to_array() {
+	function to_array($deep=false) {
+		if (empty($this->fields)) return array();
+
 		$out = array();
-		
+
 		# add id and uid
 		$out['id'] = $this->get_id();
 		$out['uid'] = $this->get_uid();
 		
-		# add each prop
-		foreach ($this->data as $k=>$v) {
-			$out[$k] = $v;
-		}
+		if ($deep) {
+			foreach ($this as $k=>$v) {
+				if (is_array($v) && $deep) {
+					$out[$k] = array();
+					foreach ($v as $k2=>$v2) {
+						$out[$k][$k2] = $v2->to_array(false);
+					}
+				} else if (is_object($v) && $deep) {
+					$out[$k] = $v->to_array(true);
+				} else {
+					$out[$k] = $v;
+				}
+			}
 
-		# add each to_one
-		if (!empty($this->to_one_obj)) {
-			foreach ($this->to_one_obj as $k=>$v) {
-				# get the array rep and loop through it, adding each prop
-				# and prepending the table name
-				$a = $v->to_array();
-				foreach ($a as $a_k => $a_v) {
-					$out[$k."_$a_k"] = $a_v;
+		} else {
+			# add each prop
+			foreach ($this->data as $k=>$v) {
+				$out[$k] = $v;
+			}
+
+			# add each to_one
+			if (!empty($this->to_one_obj)) {
+				foreach ($this->to_one_obj as $k=>$v) {
+					# get the array rep and loop through it, adding each prop
+					# and prepending the table name
+					$a = $v->to_array(true);
+					foreach ($a as $a_k => $a_v) {
+						$out[$k."_$a_k"] = $a_v;
+					}
+				}
+			}
+
+			# add each to_many
+			if (!empty($this->to_many_obj)) {
+				foreach ($this->to_many_obj as $k=>$v) {
+					# add array for chirren
+					$out[$k] = array();
+
+					# add items				
+					foreach ($this->get_to_many_objects($k) as $obj) {
+						$out[$k][] = $obj->to_array(false);
+					}
 				}
 			}
 		}
-
-		# add each to_many
-		if (!empty($this->to_many_obj)) {
-			foreach ($this->to_many_obj as $k=>$v) {
-				# add array for chirren
-				$out[$k] = array();
-
-				# add items				
-				foreach ($this->get_to_many_objects($k) as $obj) {
-					$out[$k][] = $obj->to_array();
-				}
-			}
-		}
-
 		
 		return $out;
 	}
