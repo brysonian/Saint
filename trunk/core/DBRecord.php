@@ -1068,16 +1068,7 @@ class DBRecord implements Iterator, Serviceable
 		# otherwise return something somewhat useful
 		return str_replace('Object id ', '', 'Instance '.$this.' of class '.get_class($this));
 	}
-	
-	function link_to($controller=false) {
-		return link_to($this->__toString(),
-			array(
-				'controller' => $controller?$controller:strtolower(get_class($this)),
-				'action' => 'show',
-				'uid' => $this->get_uid()
-			)
-		);
-	}
+
 }
 
 ?>
