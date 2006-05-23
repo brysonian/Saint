@@ -147,6 +147,15 @@ function link_to($name, $args=false, $confirm=false) {
 		array_shift($args);
 	}
 	
+	# if there is only one arg, and it's an object, make a link to it
+	if (is_object($name) && func_num_args() == 1) {
+	$args = array(
+			'controller' => strtolower(get_class($name)),
+			'action' => 'show',
+			'uid' => $name->get_uid()
+		);
+	}
+	
 	ob_start();
 	echo "<a href='".url_for($args)."'";
 	if ($confirm) echo ' onclick="return confirm(\'Are You Sure?\');"';
