@@ -18,20 +18,21 @@ class ValidationException extends SaintException
 		if ($file !== false) $this->file = $file;
 		if ($line !== false) $this->line = $line;
 		$this->errors = $errors;
-		$this->message = $this->get_message_from_errors();
+		$this->message = $this->get_message_from_errors(false);
 	}
 
 // ===========================================================
 // - MAKE THE ERROR MESSAGE FROM THE ERRORS ARRAY
 // ===========================================================
-	public function get_message_from_errors() {
-		$msg = '<ul>';
+	public function get_message_from_errors($html=true) {
+		$msg = ($html)?'<ul>':'';
 		foreach($this->errors as $err) {
 			if (strpos($err[2], ':property') === false) $err[2] = ":property ".$err[2];
-
-			$msg .= '<li>'.ucfirst(trim(str_replace(':property', $err[0], $err[2]))).'</li>';
+			if ($html) $msg .= '<li>';
+			$msg .= ucfirst(trim(str_replace(':property', $err[0], $err[2])));
+			$msg .= ($html)?'</li>':"\n";
 		}
-		$msg .= '</ul>';
+		if ($html) $msg .= '</ul>';
 		return $msg;
 	}
 	
