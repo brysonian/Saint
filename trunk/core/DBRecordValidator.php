@@ -201,7 +201,7 @@ class DBRecordValidator {
 	
 	# does the actual validation
 	public function validate(&$data) {
-		$this->data = $data;
+		$this->data =& $data;
 		
 		# check all the validation lists and make sure each one is ok
 		$noErr = true;
