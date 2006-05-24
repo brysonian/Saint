@@ -61,7 +61,9 @@ class Usher
 
 		# add request to params and make sure magic quotes are dealt with
 		foreach($_REQUEST as $k => $v) {
-			$params[$k] = (get_magic_quotes_gpc() == 1)?stripslashes($v):$v;
+			if (!array_key_exists($k, $params)) {
+				$params[$k] = (get_magic_quotes_gpc() == 1)?stripslashes($v):$v;
+			}
 		}
 		
 		# save the params
@@ -215,6 +217,7 @@ function url_for($args=false) {
 
 	# for each param, try to find the map that fits the best
 	$score = 999;
+	$best_args = array();
 	foreach($u->maps as $k => $v) {
 		$theargs = $args;
 		# get the map
@@ -242,19 +245,22 @@ function url_for($args=false) {
 		if ($s < $score) {
 			$score = $s;
 			$url = $temp;
+			$best_args = $theargs;
 		}
 	}
-		
+
 	# if there are any left over make them into a query string
-	if (!empty($theargs)) {
+	if (!empty($best_args)) {
 		$urlparams = array();
-		foreach($theargs as $k => $v) {
-			$urlparams[] = "$k=$v";
+		foreach($best_args as $k => $v) {
+			if ($k != 'controller' && $k != 'action') {
+				$urlparams[] = "$k=$v";
+			}
 		}
 		# trim trailing /
 		if ($url{strlen($url)-1} == '/') 
 			$url = substr($url, 0, strlen($url)-1);
-		$url .= "?".join("&amp;", $urlparams);
+		if (!empty($urlparams)) $url .= "?".join("&amp;", $urlparams);
 	}
 
 	return $url;
