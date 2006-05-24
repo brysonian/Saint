@@ -65,24 +65,12 @@ class SaintException extends Exception
 // - ERROR HTML
 // ===========================================================
 	function get_html($msg) {
-		$out = "<html><head><title>Exception caught</title><style>";
-		$out .= "    * { font-family: Trebuchet MS, arial, helvetica, sans-serif; color: #282220;}";
-		$out .= " body { background-color: #fff; margin: 0px; }";
-		$out .= "	h1 { background-color: #fdfdfd; color: #1EB136; margin-top: 0px; margin-bottom: 0px; padding: 10px; border-top: 10px solid #282220; border-bottom: 1px solid #282220; height: 70px; }";
-		$out .= "    p { background-color: #eee; margin-top: 0px; padding: 10px; font-size: 11px; }";
-		$out .= "  </style></head><body><h1>Error</h1>";
-		$out .= "<p>".$msg."</p>";
+		$trace = "<li>".str_replace("\n", "</li>\n<li>", $this->get_trace_as_string())."</li>\n</ul>";
 
-		/*
-		$out .= "<p>Maybe Toggle Debug here.</p>";		
-		$out .= "<p id='db'>";
 		ob_start();
-		var_export(debug_backtrace());
-		$out .= ob_get_clean();
-		$out .= "</p>";
-		*/
-		$out .= "</body></html>";
-		return $out;
+		include SAINT_ROOT.'/templates/exception.phtml';
+		
+		return ob_get_clean();
 	}
 
 }
