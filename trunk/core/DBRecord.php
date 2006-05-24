@@ -906,6 +906,14 @@ class DBRecord implements Iterator, Serviceable
 		return str_replace('Object id ', '', 'Instance '.$this.' of class '.get_class($this));
 	}
 
+	function to_url() {
+		return url_for(array(
+			'controller' => strtolower(get_class($this)),
+			'action' => 'show',
+			'uid' => $this->get_uid()
+		));
+	}
+
 }
 
 ?>
