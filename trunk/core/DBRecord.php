@@ -202,9 +202,6 @@ class DBRecord implements Iterator, Serviceable
 		$values['id'] = 'NULL';
 		$values['uid'] = $this->gen_uid();
 				
-		# clear the errors
-		$this->errors = array();
-		
 		# add each key/val to the sql
 		foreach ($this->data as $k=>$v) {
 			$values[$k] = $this->escape_string($v);
@@ -238,6 +235,7 @@ class DBRecord implements Iterator, Serviceable
 			$db = debug_backtrace();
 			throw new ValidationException($this->validator->errors()->errors, get_class($this), VALIDATION_ERROR, $db[1]['file'], $db[1]['line']);
 		}
+
 		$sql = "UPDATE `".$this->get_table()."` SET ";
 		$props = array();
 		foreach ($this->data as $k=>$v) {
