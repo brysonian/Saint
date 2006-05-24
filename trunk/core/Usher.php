@@ -173,13 +173,6 @@ function url_for($args=false) {
 	if (is_object($args)) {
 		if (method_exists($args, 'to_url')) {
 			return $args->to_url();
-		} else if ($args instanceof DBRecord) {
-			$args = array(
-				'controller' => strtolower(get_class($args)),
-				'action' => 'show',
-				'uid' => $args->get_uid()
-			);
-			return url_for($args);
 		}
 	}
 	
