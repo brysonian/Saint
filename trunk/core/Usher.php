@@ -238,7 +238,7 @@ function url_for($args=false) {
 
 		
 		# score based on number of : left
-		$s = substr_count(':', $temp);
+		$s = substr_count($temp, ':');
 		if ($s < $score) {
 			$score = $s;
 			$url = $temp;
