@@ -144,22 +144,21 @@ function get_root() {
 }
 
 function link_to($name, $args=false, $confirm=false) {
-	if (!is_array($args)) {
-		$args = func_get_args();
-		array_shift($args);
-	}
-	
 	# if there is only one arg, and it's an object, make a link to it
 	if (is_object($name) && func_num_args() == 1) {
-	$args = array(
-			'controller' => strtolower(get_class($name)),
-			'action' => 'show',
-			'uid' => $name->get_uid()
-		);
+		$url = url_for($name);
+	} else {
+		if (!is_object($args) && !is_array($args)) {
+			$args = func_get_args();
+			array_shift($args);		
+		}
+		$url = url_for($args);
 	}
-	
+		
+		
+
 	ob_start();
-	echo "<a href='".url_for($args)."'";
+	echo "<a href='$url'";
 	if ($confirm) echo ' onclick="return confirm(\'Are You Sure?\');"';
 	echo ">";
 	echo $name;
@@ -171,6 +170,19 @@ function link_to($name, $args=false, $confirm=false) {
 # call using either an array, or in this order:
 # controller, action, uid, params
 function url_for($args=false) {
+	if (is_object($args)) {
+		if (method_exists($args, 'to_url')) {
+			return $args->to_url();
+		} else if ($args instanceof DBRecord) {
+			$args = array(
+				'controller' => strtolower(get_class($args)),
+				'action' => 'show',
+				'uid' => $args->get_uid()
+			);
+			return url_for($args);
+		}
+	}
+	
 	$u = Usher::get_instance();
 
 	# build URL
