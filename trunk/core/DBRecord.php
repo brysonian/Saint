@@ -284,7 +284,7 @@ class DBRecord implements Iterator, Serviceable
 // - EXECUTE THE VALIDATION
 // ===========================================================
 	public function errors() {
-		if ($this->validator) $this->validator->errors();
+		if ($this->validator) return $this->validator->errors();
 		return false;
 	}
 
