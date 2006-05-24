@@ -315,8 +315,10 @@ class DBRecord implements Iterator, Serviceable
 		$line = $db[$i]['line']-1;
 		
 		# if the args are on multiple lines, we need to account for that
-		foreach($db[$i]['args'] as $k => $v) {
-			$line -= substr_count($v, "\n");
+		if (array_key_exists('args', $db[$i]) && is_array($db[$i]['args'])) {
+			foreach($db[$i]['args'] as $k => $v) {
+				$line -= substr_count($v, "\n");
+			}
 		}
 		
 		$c = array();
