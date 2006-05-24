@@ -59,7 +59,9 @@ class PHTMLView extends ViewCore
 // ===========================================================
 function text_field($obj, $name, $prop) {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
-	return "<input type='text' name='{$name}[{$prop}]' value='$v' id='{$name}_$prop' size='40' maxlength='100' />\n";
+	# try to determine if the value should be in ' or " since escaping doesn't seem to work.
+	$v = (substr_count($v, "'") > substr_count($v, '"'))?'"'.$v.'"':"'".$v."'";
+	return "<input type='text' name='{$name}[{$prop}]' value=$v id='{$name}_$prop' size='40' maxlength='100' />\n";
 }
 
 function text_area($obj, $name, $prop, $size=2000) {
@@ -105,6 +107,7 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 		foreach($options['before'] as $item) {
 			$v = is_object($item)?((!$value)?$item->__toString():$item->$value):$item[$value];
 			$k = is_object($item)?$item->$key:$item[$key];
+			$k = (substr_count($k, "'") > substr_count($k, '"'))?'"'.$k.'"':"'".$k."'";
 			$sel = ($default !== false && $k == $default)?" selected='true'":'';
 			$html .= "<option$sel value='$k'>$v</option>\n";
 		}
@@ -113,6 +116,7 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 	foreach($collection as $item) {
 		$v = is_object($item)?((!$value)?$item->__toString():$item->$value):$item[$value];
 		$k = is_object($item)?$item->$key:$item[$key];
+		$k = (substr_count($k, "'") > substr_count($k, '"'))?'"'.$k.'"':"'".$k."'";
 		$sel = ($default !== false && $k == $default)?" selected='true'":'';
 		$html .= "<option$sel value='$k'>$v</option>\n";
 	}
@@ -122,6 +126,7 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 		foreach($options['after'] as $item) {
 			$v = is_object($item)?((!$value)?$item->__toString():$item->$value):$item[$value];
 			$k = is_object($item)?$item->$key:$item[$key];
+			$k = (substr_count($k, "'") > substr_count($k, '"'))?'"'.$k.'"':"'".$k."'";
 			$sel = ($default !== false && $k == $default)?" selected='true'":'';
 			$html .= "<option$sel value='$k'>$v</option>\n";
 		}
