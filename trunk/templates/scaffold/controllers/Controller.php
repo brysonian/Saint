@@ -11,6 +11,7 @@ class :ObjectController extends AppController
 	}
 
 	function _show() {
+		if (!params('uid')) redirect_to();
 		$this->:object = :Object::find(params('uid'));
 	}
 
@@ -31,11 +32,13 @@ class :ObjectController extends AppController
 	}
 
 	function _edit() {
+		if (!params('uid')) redirect_to();
 		$this->:object = :Object::find(params('uid'));
 	}
 	
 	function _update() {
 		if (!params(':object')) redirect_to(array('controller' => params('controller'), 'action' => 'edit', 'uid' => params('uid')));
+		if (!params('uid')) redirect_to();
 		$this->:object = :Object::find(params('uid'));
 
 		try {
@@ -47,6 +50,7 @@ class :ObjectController extends AppController
 	}
 	
 	function _delete() {
+		if (!params('uid')) redirect_to();
 		$:object = :Object::find(params('uid'));
 		$:object->delete();
 		redirect_to();
