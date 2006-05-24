@@ -109,7 +109,7 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 			$k = is_object($item)?$item->$key:$item[$key];
 			$sel = ($default !== false && $k == $default)?" selected='true'":'';
 			$k = (substr_count($k, "'") > substr_count($k, '"'))?'"'.$k.'"':"'".$k."'";
-			$html .= "<option$sel value='$k'>$v</option>\n";
+			$html .= "<option$sel value=$k>$v</option>\n";
 		}
 	}
 	
@@ -118,7 +118,7 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 		$k = is_object($item)?$item->$key:$item[$key];
 		$sel = ($default !== false && $k == $default)?" selected='true'":'';
 		$k = (substr_count($k, "'") > substr_count($k, '"'))?'"'.$k.'"':"'".$k."'";
-		$html .= "<option$sel value='$k'>$v</option>\n";
+		$html .= "<option$sel value=$k>$v</option>\n";
 	}
 
 	# add after items
@@ -128,7 +128,7 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 			$k = is_object($item)?$item->$key:$item[$key];
 			$sel = ($default !== false && $k == $default)?" selected='true'":'';
 			$k = (substr_count($k, "'") > substr_count($k, '"'))?'"'.$k.'"':"'".$k."'";
-			$html .= "<option$sel value='$k'>$v</option>\n";
+			$html .= "<option$sel value=$k>$v</option>\n";
 		}
 	}
 
