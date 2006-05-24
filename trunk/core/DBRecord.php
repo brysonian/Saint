@@ -189,9 +189,9 @@ class DBRecord implements Iterator, Serviceable
 		# validate the data
 		$this->validate_builtins();
 		$this->validate();
-		if ($this->validator->errors()) {
+		if ($this->errors()) {
 			$db = debug_backtrace();
-			throw new ValidationException($this->validator->errors()->errors, get_class($this), VALIDATION_ERROR, $db[1]['file'], $db[1]['line']);
+			throw new ValidationException($this->errors()->errors, get_class($this), VALIDATION_ERROR, $db[1]['file'], $db[1]['line']);
 		}
 
 
@@ -231,9 +231,9 @@ class DBRecord implements Iterator, Serviceable
 		# validate the data
 		$this->validate_builtins();
 		$this->validate();
-		if ($this->validator->errors()) {
+		if ($this->errors()) {
 			$db = debug_backtrace();
-			throw new ValidationException($this->validator->errors()->errors, get_class($this), VALIDATION_ERROR, $db[1]['file'], $db[1]['line']);
+			throw new ValidationException($this->errors()->errors, get_class($this), VALIDATION_ERROR, $db[1]['file'], $db[1]['line']);
 		}
 
 		$sql = "UPDATE `".$this->get_table()."` SET ";
@@ -284,7 +284,8 @@ class DBRecord implements Iterator, Serviceable
 // - EXECUTE THE VALIDATION
 // ===========================================================
 	public function errors() {
-		return $this->validator->errors();
+		if ($this->validator) $this->validator->errors();
+		return false;
 	}
 
 	protected function add_error($name, $code, $message) {
@@ -293,7 +294,8 @@ class DBRecord implements Iterator, Serviceable
 	
 	# does the actual validation
 	protected function validate_builtins() {
-		return $this->validator->validate($this->data);
+		if ($this->validator) $this->validator->validate($this->data);
+		return true;
 	}
 	
 	protected function validate() {
