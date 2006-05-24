@@ -346,10 +346,6 @@ class DBRecord implements Iterator, Serviceable
 		if (array_key_exists('order', $options)) $m->set_order($options['order']);
 		$m->set_where($where);
 		$sibs = new DBRecordIterator($m, $m->get_query(), $m->db);
-		if ($sibs->num_rows() == 1) {
-			$sibs = $sibs->to_array();
-			return $sibs[0];
-		}
 		return $sibs;
 	}
 	
@@ -360,10 +356,6 @@ class DBRecord implements Iterator, Serviceable
 		if (array_key_exists('order', $options)) $m->set_order($options['order']);
 		$m->set_where("`$field` = '".$m->escape_string($value)."'");
 		$sibs = new DBRecordIterator($m, $m->get_query(), $m->db);
-		if ($sibs->num_rows() == 1) {
-			$sibs = $sibs->to_array();
-			return $sibs[0];
-		}
 		return $sibs;
 	}
 		
@@ -381,10 +373,6 @@ class DBRecord implements Iterator, Serviceable
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
 		$sibs = new DBRecordIterator($m, $sql, $m->db);
-		if ($sibs->num_rows() == 1) {
-			$sibs = $sibs->to_array();
-			return $sibs[0];
-		}
 		return $sibs;
 	}
 
