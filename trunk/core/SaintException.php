@@ -65,6 +65,7 @@ class SaintException extends Exception
 // - ERROR HTML
 // ===========================================================
 	function get_html($msg) {
+		$msg = nl2br($msg);
 		$trace = "<li>".str_replace("\n", "</li>\n<li>", $this->get_trace_as_string())."</li>\n</ul>";
 
 		ob_start();
