@@ -312,8 +312,18 @@ class DBRecord implements Iterator, Serviceable
 		$db = debug_backtrace();
 		$i = 1;
 		$file = file($db[$i]['file']);
+		$line = $db[$i]['line']-1;
+		
+		# if the args are on multiple lines, we need to account for that
+		foreach($db[$i]['args'] as $k => $v) {
+			$line -= substr_count($v, "\n");
+		}
+		
 		$c = array();
-		preg_match('|([a-zA-Z0-9_]+)'.$db[$i]['type'].$db[$i]['function'].'.*|', $file[($db[$i]['line']-1)], $c);
+		preg_match('|([a-zA-Z0-9_]+)'.$db[$i]['type'].$db[$i]['function'].'.*|', $file[$line], $c);
+		if (empty($c)) {
+			throw new SaintException("DBRecord couldn't figure out the correct class for this static call.\nTry specifying it as a string for the last argument of the method.", 0);
+		}
 		return $c[1];
 	}
 
