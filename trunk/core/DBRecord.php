@@ -265,8 +265,12 @@ class DBRecord implements Iterator, Serviceable
 		$sql = "UPDATE `".$this->get_table()."` SET ";
 		$props = array();
 		foreach ($this->data as $k=>$v) {
-			if ((strpos($k, '_uid') !== false) && empty($v)) continue;
-			$props[] = "$k='".$this->escape_string($v)."'";
+			# check of a foreign key, which needs to be NULL not ''
+			if ((strpos($k, '_uid') !== false) && empty($v)) {
+				$props[] = "$k=NULL";
+			} else {
+				$props[] = "$k='".$this->escape_string($v)."'";
+			}
 		}	
 		
 		$sql .= join(',',$props)." WHERE id=".$this->escape_string($this->get_id());		
@@ -952,7 +956,6 @@ class DBRecord implements Iterator, Serviceable
 			'uid' => $this->get_uid()
 		));
 	}
-
 }
 
 ?>
