@@ -41,7 +41,10 @@ class DBRecord implements Iterator, Serviceable
 		# turn camelback into underscore and lowercase
 		$table = $this->get_table_from_classname($table);
 		$this->set_table($table);
-	
+		
+		# get a ref to the dbconnection
+		$this->db = DBService::get_connection();
+
 		if (method_exists($this, 'init')) $this->init();
 		
 		# if props, add them all
@@ -89,12 +92,6 @@ class DBRecord implements Iterator, Serviceable
 	         
 	function get_limit()		{ return $this->limit; }
 	function set_limit($t)	{ $this->limit = $t; }
-	
-	function get_db() {
-		# get a ref to the dbconnection
-		if (!$this->get_db()) $this->db = DBService::get_connection();
-		return $this->db;
-	}
 	
 	// get
 	function get($prop) { return $this->__get($prop); }	
@@ -239,14 +236,14 @@ class DBRecord implements Iterator, Serviceable
 		$keys = array_keys($values);
 		$sql .= "(`".join("`,`", $keys)."`) VALUES ('".join("','", $values)."')";
 
-		$result = $this->get_db()->query($sql);
+		$result = $this->db->query($sql);
 		if ($result) {
-			$this->set_id($this->get_db()->insert_id());
+			$this->set_id($this->db->insert_id());
 		} else {
-			if ($this->get_db()->errno() == DUPLICATE_ENTRY) {
-				throw(new DBDuplicateException($this->get_db()->error(), $this->get_db()->errno(), $sql));
+			if ($this->db->errno() == DUPLICATE_ENTRY) {
+				throw(new DBDuplicateException($this->db->error(), $this->db->errno(), $sql));
 			} else {
-				throw(new DBException("Database error while attempting to create record.\n".$this->get_db()->error(), $this->get_db()->errno(), $sql));
+				throw(new DBException("Database error while attempting to create record.\n".$this->db->error(), $this->db->errno(), $sql));
 			}
 		}
 	}
@@ -274,9 +271,9 @@ class DBRecord implements Iterator, Serviceable
 		
 		$sql .= join(',',$props)." WHERE id=".$this->escape_string($this->get_id());		
 
-		$result = $this->get_db()->query($sql);
+		$result = $this->db->query($sql);
 		if (!$result) {
-			throw(new DBException("Database error while attempting to update record.\n".$this->get_db()->error(), $this->get_db()->errno(), $sql));
+			throw(new DBException("Database error while attempting to update record.\n".$this->db->error(), $this->db->errno(), $sql));
 		}
 	}
 
@@ -290,9 +287,9 @@ class DBRecord implements Iterator, Serviceable
 		$sql = "DELETE FROM `".$this->get_table()."` WHERE ";
 		$sql .= $this->get_id()?"id=".$this->get_id():"uid = '".$this->get_uid()."'";
 		
-		$result = $this->get_db()->query($sql);
+		$result = $this->db->query($sql);
 		if (!$result) {
-			throw(new DBException("Error deleting ".__CLASS__.".\n".$this->get_db()->error(), $this->get_db()->errno(), $sql));
+			throw(new DBException("Error deleting ".__CLASS__.".\n".$this->db->error(), $this->db->errno(), $sql));
 		}
 		
 	}
@@ -450,11 +447,11 @@ class DBRecord implements Iterator, Serviceable
 		$sql .= $where;
 		
 		# run the query
-		$result = $this->get_db()->query($sql);
+		$result = $this->db->query($sql);
 
 		# process results
 		if (!$result) {
-			throw(new DBException("Error loading ".__CLASS__.".\n".$this->get_db()->error(), 0, $sql));
+			throw(new DBException("Error loading ".__CLASS__.".\n".$this->db->error(), 0, $sql));
 		} else {
 			if ($row = $result->fetch_assoc()) {				
 				do {
@@ -491,11 +488,11 @@ class DBRecord implements Iterator, Serviceable
 	// run arbitrary sql without processing
 	function exec($sql) {
 		# run the query
-		$result = $this->get_db()->query($sql);
+		$result = $this->db->query($sql);
 
 		# process results
 		if (!$result) {
-			throw(new DBException("Query Failed .\n".$this->get_db()->error(), $this->get_db()->errno(), $sql));
+			throw(new DBException("Query Failed .\n".$this->db->error(), $this->db->errno(), $sql));
 		} else if ($result !== true) {
 			$result->free();
 		}
@@ -503,7 +500,7 @@ class DBRecord implements Iterator, Serviceable
 	}
 	
 	function table_info() {
-		return $this->get_db()->table_info($this->get_table(), true);
+		return $this->db->table_info($this->get_table(), true);
 	}
 
 	// get the query for this obj
@@ -515,7 +512,7 @@ class DBRecord implements Iterator, Serviceable
 		if (!empty($this->to_one)) {
 			# loop through to_one's
 			foreach ($this->to_one as $v) {
-				$info = $this->get_db()->table_info($v);
+				$info = $this->db->table_info($v);
 				foreach ($info['order'] as $col => $order) {
 					# skip columns that have the table name in them
 					if (strpos($col, $this->get_table().'_') !== false) continue;
@@ -527,7 +524,7 @@ class DBRecord implements Iterator, Serviceable
 		if (!empty($this->to_many)) {
 			# loop through to_many's
 			foreach ($this->to_many as $v) {
-				$info = $this->get_db()->table_info($v);
+				$info = $this->db->table_info($v);
 				foreach ($info['order'] as $col => $order) {
 					# skip columns that have the table name in them
 					if (strpos($col, $this->get_table().'_') !== false) continue;
@@ -733,7 +730,7 @@ class DBRecord implements Iterator, Serviceable
 		do {
 			$uid = md5(uniqid(rand(), true));
 			$sql = "SELECT uid from `".$this->get_table()."` WHERE uid='$uid'";
-			$result = $this->get_db()->query($sql);
+			$result = $this->db->query($sql);
 
 			# if nothing is found, break the loop
 			if ($result->num_rows() == 0) break;
@@ -796,7 +793,7 @@ class DBRecord implements Iterator, Serviceable
 // - ESCAPE FOR DB
 // ===========================================================
 	function escape_string($v) {
-		return $this->get_db()->escape_string($this->utf8_to_entities($v));
+		return $this->db->escape_string($this->utf8_to_entities($v));
 	}
 
 	function utf8_to_entities($str) {
