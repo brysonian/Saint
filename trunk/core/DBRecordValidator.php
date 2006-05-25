@@ -111,6 +111,7 @@ class DBRecordValidator {
 	protected function test_date_of($prop, $msg) {
 		if (!array_key_exists($prop, $this->data)) return true;
 		if (empty($this->data[$prop])) return true;
+		if ($this->data[$prop] == '0000-00-00') return true;
 		$d = strtotime($this->data[$prop]);
 		if ($d === false || $d == -1) {
 			$this->add_error($prop, VALIDATION_DATE, $msg);
