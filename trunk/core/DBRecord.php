@@ -93,6 +93,12 @@ class DBRecord implements Iterator, Serviceable
 	function get_limit()		{ return $this->limit; }
 	function set_limit($t)	{ $this->limit = $t; }
 	
+	function is_empty() {
+		# see if there is anything in data
+		$v = join('', $this->data);
+		return (empty($v) && !$this->get_uid() && !$this->get_id());
+	}
+	
 	// get
 	function get($prop) { return $this->__get($prop); }	
 	function __get($prop) {
@@ -104,7 +110,13 @@ class DBRecord implements Iterator, Serviceable
 		if (!empty($this->to_one) && array_key_exists($prop, $this->to_one)) {
 			# if the obj exists return it
 			$prop = $this->to_one[$prop];
-			if (isset($this->to_one_obj[$prop])) return $this->to_one_obj[$prop];
+			if (isset($this->to_one_obj[$prop])) {
+				if (!$this->to_one_obj[$prop]->is_empty()) {
+					return $this->to_one_obj[$prop];
+				} else {
+					return false;
+				}
+			}
 			
 			# no object exists for this, so if we have a uid for one, load it up
 			if (!array_key_exists($prop.'_uid', $this->data)) {
