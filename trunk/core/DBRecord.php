@@ -117,14 +117,14 @@ class DBRecord implements Iterator, Serviceable
 
 		# then try the to_manys
 		# if the connection exists
-		if (!empty($this->to_many) && in_array($prop, $this->to_many)) {
- 			$tm = $this->get_to_many_objects($prop);
+		if (!empty($this->to_many) && array_key_exists($prop, $this->to_many)) {
+ 			$tm = $this->get_to_many_objects($this->to_many[$prop]);
 				
 			# if there are some, see if they have to_many and to_one's of their own
 			# and if so load them up
 			if (!$tm && !$this->loaded) {
 				$this->load();
-				$tm = $this->get_to_many_objects($prop);
+				$tm = $this->get_to_many_objects($this->to_many[$prop]);
 			}
 			
 			# TODO: Maybe this can be replaced by the to_many collection class
@@ -670,13 +670,9 @@ class DBRecord implements Iterator, Serviceable
 			$this->to_one_obj = array();
 		}
 		$this->to_one[] = $table;
-		
-		# create the obj
-#		$cname = ucfirst($table);
-#		$this->to_one_obj[$table] = new $cname;
 	}
 
-	function has_many($class, $table=false) {
+	function has_many($class, $propname=false, $table=false) {
 		# if no table, try to get the tablename
 		if ($table == false) $table = $this->get_table_from_classname($class);
 
@@ -686,7 +682,11 @@ class DBRecord implements Iterator, Serviceable
 			$this->to_many_obj	= array();
 			$this->to_many_class	= array();
 		}
-		$this->to_many[] = $table;
+		if ($propname === false) {
+			$this->to_many[$table] = $table;
+		} else {
+			$this->to_many[$propname] = $table;
+		}
 
 		# create the obj
 		$this->to_many_obj[$table] = array();
