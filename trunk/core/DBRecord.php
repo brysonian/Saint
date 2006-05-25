@@ -27,14 +27,8 @@ class DBRecord implements Iterator, Serviceable
 	protected $current;
 	protected $fields;
 
-	# protected $validate_presence_of			= array();
-	# protected $validate_numericality_of	= array();
-	# protected $validate_date_of					= array();
-	# protected $validate_uniqueness_of		= array();
-	# protected $validate_format_of				= array();
-	# protected $validate_politeness_of		= array();
-	
-	#protected $errors = array();
+	protected $loaded = false;
+
 	protected $validator = array();
 
 // ===========================================================
@@ -106,27 +100,41 @@ class DBRecord implements Iterator, Serviceable
 		if (isset($this->data[$prop])) return $this->data[$prop];
 		
 		# then the to_one's
-		if (isset($this->to_one_obj[$prop])) {
-			if ($this->to_one_obj[$prop]->does_have_one() || $this->to_one_obj[$prop]->does_have_many()) {
-				if ($this->to_one_obj[$prop]->get_uid()) $this->to_one_obj[$prop]->load();
+		# if the connection exists
+		if (!empty($this->to_one) && in_array($prop, $this->to_one)) {
+			# if the obj exists return it
+			if (isset($this->to_one_obj[$prop])) return $this->to_one_obj[$prop];
+			
+			# no object exists for this, so if we have a uid for one, load it up
+			if ($this->data[$prop.'_uid']) {
+				$cname = $this->get_classname_from_table($prop);
+				$this->to_one_obj[$prop] = new $cname;
+				$this->to_one_obj[$prop]->set_uid($this->data[$prop.'_uid']);
+				$this->to_one_obj[$prop]->load();
+				return $this->to_one_obj[$prop];
 			}
-			return $this->to_one_obj[$prop];
 		}
 
 		# then try the to_manys
-		$tm = $this->get_to_many_objects($prop);
-
-		# if their are some, see if they have to_many and to_one's of their own
-		# and if so load them up
-		if ($tm) {
-			$out = array();
-			foreach ($tm as $obj) {
-				if ($obj->does_have_one() || $obj->does_have_many()) {
-					if ($obj->get_uid()) $obj->load();
-				}
-				$out[] = $obj;
+		# if the connection exists
+		if (!empty($this->to_many) && in_array($prop, $this->to_many)) {
+ 			$tm = $this->get_to_many_objects($prop);
+				
+			# if there are some, see if they have to_many and to_one's of their own
+			# and if so load them up
+			if (!$tm && !$this->loaded) {
+				$this->load();
+				$tm = $this->get_to_many_objects($prop);
 			}
-			return $out;
+			
+			# TODO: Maybe this can be replaced by the to_many collection class
+			if ($tm) {
+				$out = array();
+				foreach ($tm as $obj) {
+					$out[] = $obj;
+				}
+				return $out;
+			}
 		}
 		
 		return false;
@@ -140,6 +148,9 @@ class DBRecord implements Iterator, Serviceable
 		} else {
 			$this->data[$prop] = $val;
 		}
+		
+		# reset loaded because things have changed
+		$this->loaded = false;
 	}
 
 	// get a list of to_many object
@@ -152,16 +163,25 @@ class DBRecord implements Iterator, Serviceable
 	}
 
 	// see if this object has to many or to one associations
-	function does_have_many() {
+	// exclude the passed class
+	function does_have_many($not_class=false) {
 		if (is_array($this->to_many) && !empty($this->to_many)) {
-			return true;
+			$c = 0;
+			foreach($this->to_many as $k => $v) {
+				if ($v != $not_class) $c++;
+			}
+			if ($c > 0)	return true;
 		}
 		return false;
 	}
 
-	function does_have_one() {
+	function does_have_one($not_class=false) {
 		if (is_array($this->to_one) && !empty($this->to_one)) {
-			return true;
+			$c = 0;
+			foreach($this->to_one as $k => $v) {
+				if (strtolower($v) != strtolower($not_class)) $c++;
+			}
+			if ($c > 0)	return true;
 		}
 		return false;
 	}
@@ -398,6 +418,7 @@ class DBRecord implements Iterator, Serviceable
 // ===========================================================
 	// load item from the db using id
 	function load() {
+		if ($this->loaded) return;
 		
 		# start where clause if there isn't one
 		$where = $this->get_where()?' AND ':' WHERE ';
@@ -414,7 +435,7 @@ class DBRecord implements Iterator, Serviceable
 		
 		# get the query
 		$sql = $this->get_query();
-
+		
 		
 		# add the where clause
 		$sql .= $where;
@@ -435,6 +456,7 @@ class DBRecord implements Iterator, Serviceable
 				throw(new SaintException("Nothing found with id: ".$this->get_id()." or uid: ".$this->get_uid().".\n", 0));
 			}
 		}
+		$this->loaded = true;
 	}
 	
 	// ===========================================================
@@ -586,6 +608,11 @@ class DBRecord implements Iterator, Serviceable
 			if ($to !== false) {
 				# remove the prefix from the prop names
 				$prop = str_replace($to.'_', '', $k);
+				# if the object doesn't exist, make it
+				if (!array_key_exists($to, $this->to_one_obj)) {
+					$cname = $this->get_classname_from_table($to);
+					$this->to_one_obj[$to] = new $cname;
+				}
 				if ($prop == 'id') {
 					if (!empty($v)) $this->to_one_obj[$to]->set_id($v);
 				} else if ($prop == 'uid') {
@@ -645,8 +672,8 @@ class DBRecord implements Iterator, Serviceable
 		$this->to_one[] = $table;
 		
 		# create the obj
-		$cname = ucfirst($table);
-		$this->to_one_obj[$table] = new $cname;
+#		$cname = ucfirst($table);
+#		$this->to_one_obj[$table] = new $cname;
 	}
 
 	function has_many($class, $table=false) {
