@@ -101,13 +101,17 @@ class DBRecord implements Iterator, Serviceable
 		
 		# then the to_one's
 		# if the connection exists
-#		if (!empty($this->to_one) && in_array($prop, $this->to_one)) {
 		if (!empty($this->to_one) && array_key_exists($prop, $this->to_one)) {
 			# if the obj exists return it
 			$prop = $this->to_one[$prop];
 			if (isset($this->to_one_obj[$prop])) return $this->to_one_obj[$prop];
 			
 			# no object exists for this, so if we have a uid for one, load it up
+			if (!array_key_exists($prop.'_uid', $this->data)) {
+				$this->load();
+				return $this->to_one_obj[$prop];
+			}
+
 			if ($this->data[$prop.'_uid']) {
 				$cname = $this->get_classname_from_table($prop);
 				$this->to_one_obj[$prop] = new $cname;
@@ -871,6 +875,7 @@ class DBRecord implements Iterator, Serviceable
 
 
 	// get array rep of this object
+	// TODO: to_array seems to reverse the order
 	function to_array($deep=false) {
 		$out = array();
 
