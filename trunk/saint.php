@@ -112,7 +112,8 @@
 // ===========================================================
 	function saint_error_handler($errno, $errstr, $errfile, $errline) {
 		global $redirect_on_error;
-		
+		$l = ob_get_level();
+		while($l--) ob_end_clean();
 		$e = new SaintException($errstr, $errno, $errfile, $errline);
 		if ($redirect_on_error === false) {
 			die($e->log());
