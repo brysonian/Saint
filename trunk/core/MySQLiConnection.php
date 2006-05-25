@@ -4,12 +4,14 @@
 class MySQLiConnection
 {
 
-	var $db;
-	var $host;
-	var $user;
-	var $pass;
-	var $dbname;
-	var $last_query;
+	protected $db;
+	protected $host;
+	protected $user;
+	protected $pass;
+	protected $dbname;
+	protected $last_query;
+
+	protected static $query_count = 0;
 
 	// ===========================================================
 	// - CONSTRUCTOR
@@ -46,6 +48,8 @@ class MySQLiConnection
 	}
 	
 	function  query($sql) {
+		MySQLiConnection::$query_count++;
+		
 		# open db connection if there isn't open
 		if(!$this->db) $this->open();
 		
@@ -99,6 +103,11 @@ class MySQLiConnection
 	
 	function close() {
 		if ($this->db) $this->db->close();
+	}
+	
+	function __destruct() {
+		if(defined('DEBUG') && DEBUG == 1) error_log('MySQLiConnection made '.MySQLiConnection::$query_count.' queries.');
+		$this->close();
 	}
 }
 
