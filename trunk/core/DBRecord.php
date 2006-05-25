@@ -230,7 +230,11 @@ class DBRecord implements Iterator, Serviceable
 				
 		# add each key/val to the sql
 		foreach ($this->data as $k=>$v) {
-			$values[$k] = $this->escape_string($v);
+			if (is_null($v)) {
+				$props[] = "$k=NULL";
+			} else {
+				$values[$k] = $this->escape_string($v);
+			}
 		}
 		
 		$keys = array_keys($values);
@@ -265,8 +269,11 @@ class DBRecord implements Iterator, Serviceable
 		$sql = "UPDATE `".$this->get_table()."` SET ";
 		$props = array();
 		foreach ($this->data as $k=>$v) {
+			# if the value is NULL then use that not empty string
+			if (is_null($v)) {
+				$props[] = "$k=NULL";
 			# check of a foreign key, which needs to be NULL not ''
-			if ((strpos($k, '_uid') !== false) && empty($v)) {
+			} else if ((strpos($k, '_uid') !== false) && empty($v)) {
 				$props[] = "$k=NULL";
 			} else {
 				$props[] = "$k='".$this->escape_string($v)."'";
