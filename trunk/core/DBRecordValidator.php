@@ -109,7 +109,7 @@ class DBRecordValidator {
 	}
 
 	protected function test_date_of($prop, $msg) {
-		if (!array_key_exists($prop, $this->data) || empty($this->data[$prop]) || $this->data[$prop] == '0000-00-00') {
+		if (!array_key_exists($prop, $this->data) || empty($this->data[$prop]) || ($this->data[$prop] == '0000-00-00')) {
 			$this->data[$prop] = NULL;
 			return true;
 		}
