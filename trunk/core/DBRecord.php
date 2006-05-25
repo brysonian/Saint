@@ -450,7 +450,8 @@ class DBRecord implements Iterator, Serviceable
 		if ($this->loaded) return;
 		
 		# start where clause if there isn't one
-		$where = $this->get_where()?' AND ':' WHERE ';
+		$where = $this->get_where();
+		$where .= $this->get_where()?' AND ':' ';
 		
 		# if ID, use that in where, otherwise try UID
 		# if neither one, error
@@ -461,14 +462,13 @@ class DBRecord implements Iterator, Serviceable
 		} else {
 			throw(new SaintException("You must define a ID or UID to load an object.", 0));
 		}
-		
+
+		# set the where clause
+		$this->set_where($where);
+
 		# get the query
 		$sql = $this->get_query();
-		
-		
-		# add the where clause
-		$sql .= $where;
-		
+				
 		# run the query
 		$result = $this->db->query($sql);
 
