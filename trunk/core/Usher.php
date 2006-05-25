@@ -236,8 +236,9 @@ function url_for($args=false) {
 			}
 		}
 		
-		# replace defaults
+		# replace not-null defaults
 		foreach($v->defaults as $k2 => $v2) {
+			if (is_null($v2)) continue;
 			$temp = str_replace(":$k2", '', $temp);
 		}
 		
@@ -245,14 +246,20 @@ function url_for($args=false) {
 		$temp = str_replace("//", '', $temp);
 
 		
-		# score based on number of : left
-		$s = substr_count($temp, ':');
+		# score based on number of : left and the number of args left
+		$s = substr_count($temp, ':') + count($theargs);
 		if ($s < $score) {
 			$score = $s;
 			$url = $temp;
 			$best_args = $theargs;
 		}
 	}
+
+	# replace defaults including NULL
+	foreach($v->defaults as $k => $v) {
+		$url = str_replace(":$k", '', $url);
+	}
+
 
 	# if there are any left over make them into a query string
 	if (!empty($best_args)) {
