@@ -101,8 +101,10 @@ class DBRecord implements Iterator, Serviceable
 		
 		# then the to_one's
 		# if the connection exists
-		if (!empty($this->to_one) && in_array($prop, $this->to_one)) {
+#		if (!empty($this->to_one) && in_array($prop, $this->to_one)) {
+		if (!empty($this->to_one) && array_key_exists($prop, $this->to_one)) {
 			# if the obj exists return it
+			$prop = $this->to_one[$prop];
 			if (isset($this->to_one_obj[$prop])) return $this->to_one_obj[$prop];
 			
 			# no object exists for this, so if we have a uid for one, load it up
@@ -660,7 +662,7 @@ class DBRecord implements Iterator, Serviceable
 // ===========================================================
 // - ADD TO-MANY AND TO-ONE RELATIONSHIPS
 // ===========================================================
-	function has_one($class, $table=false) {
+	function has_one($class, $propname=false, $table=false) {
 		# if no table, try to get the tablename
 		if ($table == false) $table = $this->get_table_from_classname($class);
 
@@ -669,7 +671,11 @@ class DBRecord implements Iterator, Serviceable
 			$this->to_one = array();
 			$this->to_one_obj = array();
 		}
-		$this->to_one[] = $table;
+		if ($propname === false) {
+			$this->to_one[$table] = $table;
+		} else {
+			$this->to_one[$propname] = $table;
+		}
 	}
 
 	function has_many($class, $propname=false, $table=false) {
