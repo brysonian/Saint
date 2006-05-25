@@ -61,8 +61,8 @@ class DBRecordIterator implements Iterator
 	
 	function  current() {
 		# reset the model
-		$themodel = $this->get_model();
-		$themodel->reset();
+		$themodel = clone $this->get_model();
+#		$themodel->reset();
 		do {
 			$themodel->process_row($this->row);
 			if ($this->nextRow && ($this->nextRow['id'] == $this->row['id'])) {
@@ -73,7 +73,8 @@ class DBRecordIterator implements Iterator
 			}
 		} while(true);
 		
-		return $this->get_model();
+#		return $this->get_model();
+		return $themodel;
 	}
 	
 	function next() {
