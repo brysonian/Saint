@@ -73,6 +73,8 @@ class MySQLiConnection
 	}
 	
 	function table_info($table, $full=false) {
+		MySQLiConnection::$query_count++;
+		
 		$sql = "SHOW COLUMNS FROM `$table`";
 		$result = new MySQLiResult($this->db->query($sql));
 		$output = array();
@@ -106,7 +108,7 @@ class MySQLiConnection
 	}
 	
 	function __destruct() {
-		if(defined('DEBUG') && DEBUG == 1) error_log('MySQLiConnection made '.MySQLiConnection::$query_count.' queries.');
+		if(defined('DEBUG') && DEBUG == 1 && MySQLiConnection::$query_count > 0) error_log('MySQLiConnection made '.MySQLiConnection::$query_count.' queries.');
 		$this->close();
 	}
 }
