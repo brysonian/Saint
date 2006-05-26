@@ -140,7 +140,7 @@
 		$mname = ucfirst($name);
 		
 		$obj = new $mname;
-		$info = $obj->table_info();
+		$info = $obj->table_info(false, true);
 
 		# get the html for each element
 		ob_start();
