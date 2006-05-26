@@ -270,7 +270,7 @@ class DBRecord implements Iterator, Serviceable
 	}
 	
 	
-	function update($args) {
+	function update($args=array()) {
 		foreach($args as $k => $v) {
 			$this->$k = $v;
 		}
@@ -548,13 +548,14 @@ class DBRecord implements Iterator, Serviceable
 	function get_query() {
 		# make query
 		$sql = "SELECT `".$this->get_table()."`.*";
+		$order = '';
 
 		# add to_one
 		if (!empty($this->to_one)) {
 			# loop through to_one's
 			foreach ($this->to_one as $v) {
 				$info = $this->table_info($v);
-				foreach ($info['order'] as $col => $order) {
+				foreach ($info['order'] as $col => $colorder) {
 					# skip columns that have the table name in them
 					if (strpos($col, $this->get_table().'_') !== false) continue;
 					$sql .= ','.$v.'.'.$col. ' as '.$v.'_'.$col;					
@@ -566,7 +567,7 @@ class DBRecord implements Iterator, Serviceable
 			# loop through to_many's
 			foreach ($this->to_many as $v) {
 				$info = $this->table_info($v);
-				foreach ($info['order'] as $col => $order) {
+				foreach ($info['order'] as $col => $colorder) {
 					# skip columns that have the table name in them
 					if (strpos($col, $this->get_table().'_') !== false) continue;
 					$sql .= ','.$v.'.'.$col. ' as '.$v.'_'.$col;					
@@ -581,6 +582,12 @@ class DBRecord implements Iterator, Serviceable
 		if (!empty($this->to_one)) {
 			foreach ($this->to_one as $v) {
 				$sql .= " LEFT JOIN `{$v}` ON {$v}.uid = `".$this->get_table()."`.{$v}_uid ";				
+
+				# add any order by stuff
+				$cname = $this->get_classname_from_table($v);
+				$temp = new $cname;
+				$order .= $temp->get_order()?$temp->get_order():'';
+				
 			}
 		}
 
@@ -594,7 +601,12 @@ class DBRecord implements Iterator, Serviceable
 					$sql .= " LEFT JOIN `$v` ON `".$this->habtm[$v]."`.".$v."_uid = `$v`.uid ";
 				} else {
 					$sql .= " LEFT JOIN `$v` ON `$v`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
-				}
+				}				
+
+				# add any order by stuff
+				$cname = $this->get_classname_from_table($v);
+				$temp = new $cname;
+				$order .= $temp->get_order()?$temp->get_order():'';
 			}
 		}
 
@@ -605,7 +617,7 @@ class DBRecord implements Iterator, Serviceable
 		if ($this->get_group()) $sql .= " GROUP BY ".$this->get_group();
 
 		# add order by if there is one
-		if ($this->get_order()) $sql .= " ORDER BY ".$this->get_order();
+		if ($this->get_order() || $order) $sql .= " ORDER BY ".$this->get_order().' '.$order;
 
 		# add order by if there is one
 		if ($this->get_limit()) $sql .= " LIMIT ".$this->get_limit();
@@ -928,9 +940,11 @@ class DBRecord implements Iterator, Serviceable
 				if (is_array($v) && $deep) {
 					$out[$k] = array();
 					foreach ($v as $k2=>$v2) {
+						$v2->load();
 						$out[$k][$k2] = $v2->to_array(false);
 					}
 				} else if (is_object($v) && $deep) {
+					$v->load();
 					$out[$k] = $v->to_array(true);
 				} else {
 					$out[$k] = $v;
