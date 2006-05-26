@@ -30,6 +30,8 @@ class DBRecord implements Iterator, Serviceable
 	protected $loaded = false;
 
 	protected $validator = array();
+	
+	protected static $table_info = array();
 
 // ===========================================================
 // - CONSTRUCTOR
@@ -525,8 +527,21 @@ class DBRecord implements Iterator, Serviceable
 		return true;
 	}
 	
-	function table_info() {
-		return $this->db->table_info($this->get_table(), true);
+	function table_info($table=false, $full=false) {
+		if ($table === false) $table = $this->get_table();
+
+		#$tieval = '$ti = '.get_class($this).'::$table_info';
+		#eval("$tieval;");
+		if ($full) return $this->db->table_info($table, true);
+		
+		#if (!array_key_exists($table, $ti)) {
+		if (!array_key_exists($table, DBRecord::$table_info)) {
+			#$ti[$table] = $this->db->table_info($table, false);
+			#eval("$tieval = \$ti;");
+			DBRecord::$table_info[$table] = $this->db->table_info($table, false);
+		}
+		return DBRecord::$table_info[$table];
+		#return $ti[$table];
 	}
 
 	// get the query for this obj
@@ -538,7 +553,7 @@ class DBRecord implements Iterator, Serviceable
 		if (!empty($this->to_one)) {
 			# loop through to_one's
 			foreach ($this->to_one as $v) {
-				$info = $this->db->table_info($v);
+				$info = $this->table_info($v);
 				foreach ($info['order'] as $col => $order) {
 					# skip columns that have the table name in them
 					if (strpos($col, $this->get_table().'_') !== false) continue;
@@ -550,7 +565,7 @@ class DBRecord implements Iterator, Serviceable
 		if (!empty($this->to_many)) {
 			# loop through to_many's
 			foreach ($this->to_many as $v) {
-				$info = $this->db->table_info($v);
+				$info = $this->table_info($v);
 				foreach ($info['order'] as $col => $order) {
 					# skip columns that have the table name in them
 					if (strpos($col, $this->get_table().'_') !== false) continue;
