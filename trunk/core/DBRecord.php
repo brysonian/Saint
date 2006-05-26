@@ -243,7 +243,9 @@ class DBRecord implements Iterator, Serviceable
 		# add each key/val to the sql
 		foreach ($this->data as $k=>$v) {
 			if (is_null($v)) {
-				$props[] = "$k=NULL";
+				$values[$k] = "NULL";
+			} else if ((strpos($k, '_uid') !== false) && empty($v)) {
+				$values[$k] = "NULL";
 			} else {
 				$values[$k] = $this->escape_string($v);
 			}
@@ -251,6 +253,7 @@ class DBRecord implements Iterator, Serviceable
 		
 		$keys = array_keys($values);
 		$sql .= "(`".join("`,`", $keys)."`) VALUES ('".join("','", $values)."')";
+		$sql = str_replace("'NULL'", "NULL", $sql);
 
 		$result = $this->db->query($sql);
 		if ($result) {
