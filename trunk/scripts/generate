@@ -20,7 +20,40 @@
 
 	# see how many args there are
 	if (count($argv) == 0) {
-		error("Please specify the name of what you would like to generate. Or a name and object type.");
+		error("Please specify the name of what you would like to generate. Or a name and object type.", true);
+	}
+
+	# get the tag type
+	if(array_key_exists('PHP_TAG', $_SERVER)) {
+		$open_tag_setting = $_SERVER['PHP_TAG'];
+	} else {
+		if (((int) ini_get('asp_tags'))) {
+			$open_tag_setting = 'asp';
+		} else if (((int) ini_get('short_open_tag'))) {
+			$open_tag_setting = 'short';
+		} else {
+			$open_tag_setting = 'full';
+		}
+	}
+	
+	switch($open_tag_setting) {
+		case 'short':
+			define('OPEN_TAG',		'<'.'?');
+			define('CLOSE_TAG',		'?'.'>');
+			define('OPEN_ECHO_TAG',	'<'.'?=');
+			break;
+
+		case 'asp':
+			define('OPEN_TAG',		'<%');
+			define('CLOSE_TAG',		'%>');
+			define('OPEN_ECHO_TAG',	'<%=');
+			break;
+
+		default:
+			define('OPEN_TAG',		'<'.'?php');
+			define('CLOSE_TAG',		'?'.'>');
+			define('OPEN_ECHO_TAG',	'<'.'?php echo ');
+			break;
 	}
 
 	# if there's only one, generate the model
@@ -131,8 +164,12 @@
 	}
 	
 	function write_scaffold_template($template, $name, $path) {	
-		$t = str_replace(':object', strtolower($name), file_get_contents(SAINT_ROOT."/templates/scaffold/views/$template.phtml"));
-		write_file("$path/$template.phtml", $t);
+		$src = str_replace(':object', strtolower($name), file_get_contents(SAINT_ROOT."/templates/scaffold/views/$template.phtml"));
+		$src = str_replace(':php_open',	OPEN_TAG, $src);
+		$src = str_replace(':php_echo',	OPEN_ECHO_TAG, $src);
+		$src = str_replace(':php_close',	CLOSE_TAG, $src);
+
+		write_file("$path/$template.phtml", $src);
 	}
 
 
@@ -188,8 +225,11 @@
 			}
 		}
 		echo "\n</ul>";
-
-		return ob_get_clean();
+		$src = ob_get_clean();
+		$src = str_replace(':php_open',	OPEN_TAG, $src);
+		$src = str_replace(':php_echo',	OPEN_ECHO_TAG, $src);
+		$src = str_replace(':php_close',	CLOSE_TAG, $src);
+		return $src;
 	}
 		
 ?>
