@@ -248,6 +248,9 @@ function url_for($args=false) {
 		
 		# score based on number of : left and the number of args left
 		$s = substr_count($temp, ':') + count($theargs);
+		
+		# * items cost a lot
+		$s += (substr_count($temp, '*') * 2);
 		if ($s < $score) {
 			$score = $s;
 			$url = $temp;
