@@ -55,8 +55,12 @@ class PHTMLView extends ViewCore
 
 
 // ===========================================================
-// - FORM HELPERS
+// - HTML HELPERS
 // ===========================================================
+function xml_declaration() {
+	return '<'.'?'.'xml version="1.0" encoding="utf-8"?'.'>';
+}
+
 function text_field($obj, $name, $prop) {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
 	# try to determine if the value should be in ' or " since escaping doesn't seem to work.
