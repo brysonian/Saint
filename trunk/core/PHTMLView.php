@@ -145,12 +145,31 @@ function file_select($obj, $name, $prop, $dir, $options=array(), $abs=false) {
 	$dir = new DirectoryIterator($dir);
 	$out = array();
 	foreach($dir as $file) {
-		if (!$file->isDir()) {
+		$fname = $file->getFilename();
+		if (!$file->isDir() && $fname{0} != '.') {
 			$pn = (!$abs)?str_replace($_SERVER['DOCUMENT_ROOT'], '', $file->getPathname()):$file->getPathname();
 			$out[] = array('pathname' => $pn, 'path' => $file->getPath(), 'filename' => $file->getFilename());
 		}
 	}
-	return select($obj, $name, $prop, $out, 'pathname', 'filename', $options);
+	if (array_key_exists('upload',$options)) {
+		$upload = $options['upload'];
+		unset($options['upload']);
+	} else {
+		false;
+	}
+	$out = select($obj, $name, $prop, $out, 'pathname', 'filename', $options);
+	
+	# if upload add the input
+	if ($upload) {
+		$out .= " <input type='file' name='{$name}[{$prop}]' id='{$name}_{$prop}' /><input type='hidden' name='MAX_FILE_SIZE' value='300000000' />\n";
+	}	
+	return $out;
+}
+
+function file_upload($obj, $name, $prop, $preview=false) {
+	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
+	$v = ($preview)?"<div>$v</div>":''; 
+	return "$v <div>Choose new File: <input type='file' name='{$name}[{$prop}]' id='{$name}_{$prop}' /><input type='hidden' name='MAX_FILE_SIZE' value='300000000' /></div>\n";
 }
 
 
