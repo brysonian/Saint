@@ -1,20 +1,20 @@
-<?xml version="1.0" encoding="utf-8"?>
+:php_echo xml_declaration(); :php_close
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" 
 	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 	<head>
-		<title>Edit <?php echo ucfirst(params("controller"));?>: <?php echo $:object;?></title>
+		<title>Edit :php_echo ucfirst(params("controller"));:php_close: :php_echo $:object;:php_close</title>
   	<link href="/_css/scaffold.css" media="screen" rel="Stylesheet" type="text/css" />
 	</head>
 
 	<body>
-		<h1>Edit <?php echo ucfirst(params("controller"));?>: <?php echo $:object;?></h1>
-		<form action="<?php echo url_for(array('action'=>'update', 'uid'=>params("uid")));?>" method="post">
-			<?php render_partial(false, 'form', $:object); ?>
+		<h1>Edit :php_echo ucfirst(params("controller"));:php_close: :php_echo $:object;:php_close</h1>
+		<form action=":php_echo url_for(array('action'=>'update', 'uid'=>params("uid")));:php_close" method="post">
+			:php_open render_partial(false, 'form', $:object); :php_close
 			
 			<div id="footer">
-				<?php echo submit_to('Edit');?>
-				<?php echo button_to('Cancel', array('action'=>'show', 'uid'=>$:object->uid));?>
+				:php_echo submit_to('Edit');:php_close
+				:php_echo button_to('Cancel', array('action'=>'show', 'uid'=>$:object->uid));:php_close
 			</div>
 		</form>
 

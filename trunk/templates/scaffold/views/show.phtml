@@ -1,24 +1,24 @@
-<?xml version="1.0" encoding="utf-8"?>
+:php_echo xml_declaration(); :php_close
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" 
 	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 	<head>
-		<title>Show <?php echo ucfirst(params('controller')); ?>: <?php echo $:object; ?></title>
+		<title>Show :php_echo ucfirst(params('controller')); :php_close: :php_echo $:object; :php_close</title>
   	<link href="/_css/scaffold.css" media="screen" rel="Stylesheet" type="text/css" />
 	</head>
 
 	<body>
-		<h1>Show <?php echo ucfirst(params('controller')); ?>: <?php echo $:object; ?></h1>
+		<h1>Show :php_echo ucfirst(params('controller')); :php_close: :php_echo $:object; :php_close</h1>
 		<dl>
-			<?php foreach ($:object as $k=>$v): ?>
-				<dt><strong><?php echo str_replace('_', ' ', ucfirst($k)); ?></strong>:</dt>
-				<dd><?php echo $v; ?></dd>
-			<?php endforeach ?>
+			:php_open foreach ($:object as $k=>$v): :php_close
+				<dt><strong>:php_echo str_replace('_', ' ', ucfirst($k)); :php_close</strong>:</dt>
+				<dd>:php_echo $v; :php_close</dd>
+			:php_open endforeach :php_close
 		</dl>
 		
 		<div id="footer">
-			<?php echo link_to('Back', false);?> | 
-			<?php echo link_to('Edit', array('action'=>'edit', 'uid'=>$:object->uid));?>
+			:php_echo link_to('Back', false);:php_close | 
+			:php_echo link_to('Edit', array('action'=>'edit', 'uid'=>$:object->uid));:php_close
 		</div>
 	</body>
 </html>
