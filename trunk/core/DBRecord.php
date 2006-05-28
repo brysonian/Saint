@@ -36,7 +36,7 @@ class DBRecord implements Iterator, Serviceable
 // ===========================================================
 // - CONSTRUCTOR
 // ===========================================================
-	function DBRecord($props=false) {
+	function __construct($props=false) {
 		# set table name
 		$table = get_class($this);
 		
