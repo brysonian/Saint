@@ -6,7 +6,10 @@
 // ===========================================================
 define('NOMAP', 1);
 define('NOCLASS', 2);
-
+define('INVALID_UPLOADED_FILE', 3);
+define('FILE_DOESNT_EXIST',			4);
+define('PATH_DOESNT_EXIST',			5);
+define('PATH_NOT_WRITABLE',			6);
 
 // ===========================================================
 // - DBRECORD
