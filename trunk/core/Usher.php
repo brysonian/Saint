@@ -60,10 +60,17 @@ class Usher
 		if (!$params) throw(new SaintException("No mapping was found for &quot;$url&quot;.", NOMAP));
 
 		# add request to params and make sure magic quotes are dealt with
+		unset($_REQUEST['MAX_FILE_SIZE']);
 		foreach($_REQUEST as $k => $v) {
 			if (!array_key_exists($k, $params)) {
 				$params[$k] = (get_magic_quotes_gpc() == 1)?stripslashes($v):$v;
 			}
+		}
+
+		# add files to params and make sure magic quotes are dealt with		
+		foreach($_FILES as $k => $v) {
+			if (!array_key_exists($k, $params)) $params[$k] = array();
+			$params[$k] = array_merge($params[$k], UploadedFile::create($v));
 		}
 		
 		# save the params
