@@ -204,7 +204,7 @@ function submit_to($name, $confirm=false) {
 	if ($confirm) echo " onclick='return confirm(\"Are You Sure?\");' ";
 	echo " value='";
 	echo $name;
-	echo "'>";
+	echo "' />";
 	return ob_get_clean();
 }
 
@@ -220,7 +220,7 @@ function button_to($name, $args=false, $confirm=false) {
 	if ($confirm) echo 'if(confirm("Are You Sure?")) ';
 	echo "document.location.href=\"".url_for($args)."\"' value='";
 	echo $name;
-	echo "'>";
+	echo "' />";
 	return ob_get_clean();
 }
 
