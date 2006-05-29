@@ -343,6 +343,7 @@ class DBRecord implements Iterator, Serviceable
 	}
 
 	protected function add_error($name, $code, $message) {
+		if (!$this->validator) $this->validator = new DBRecordValidator($this);
 		return $this->validator->add_error($name, $code, $message);
 	}
 	
