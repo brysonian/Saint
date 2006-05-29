@@ -150,13 +150,12 @@ class UploadedFile
 	*	@param $path: the path to save the file to
 	*	@param $newname: if set, the new name for the file
 	*/
-	function move_to($path, $newname=false) {
+	function move_to($path, $newname=false, $force=false) {
 		# first see if the dir exists
 		if (!file_exists($path)) throw new SaintException("The path ".$path." does not seem to exist.", PATH_DOESNT_EXIST);
 
 		# now see if i can write to it
 		if (!is_writable($path)) throw new SaintException("Cannot write to the directory ".$path.".", PATH_NOT_WRITABLE);
-
 
 		# if no newname is specified, set newname to the original name
 		if ($newname == false) $newname = $this->get_filename();
@@ -166,6 +165,11 @@ class UploadedFile
 		
 		# check for trailing slash
 		if (substr($path, -1) != '/') $path .= '/';
+		
+		# if we aren't forcing, check that it doesn't exist first
+		if (!$force) {
+			if (file_exists($path.$newname)) return false;
+		}
 		
 		# copy it to the directory
 		$status = move_uploaded_file($this->get_path(), $path.$newname);
@@ -177,6 +181,7 @@ class UploadedFile
 		} else {
 			throw new SaintException("There was a problem moving the file ".$this->get_name()." to the directory $path.", 0);
 		}
+		return true;
 	}
 	
 	
