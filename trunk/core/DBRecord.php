@@ -142,7 +142,7 @@ class DBRecord implements Iterator, Serviceable
 				
 			# if there are some, see if they have to_many and to_one's of their own
 			# and if so load them up
-			if (!$tm && !$this->loaded) {
+			if (!$tm && !$this->loaded && $this->get_uid()) {
 				$this->load();
 				$tm = $this->get_to_many_objects($this->to_many[$prop]);
 			}
