@@ -150,7 +150,7 @@ function get_root() {
 	return $u->get_base();
 }
 
-function link_to($name, $args=false, $confirm=false) {
+function link_to($name, $args=false, $confirm=false, $options=array()) {
 	# if there is only one arg, and it's an object, make a link to it
 	if (is_object($name) && func_num_args() == 1) {
 		$url = url_for($name);
@@ -162,11 +162,20 @@ function link_to($name, $args=false, $confirm=false) {
 		$url = url_for($args);
 	}
 		
-		
 
 	ob_start();
 	echo "<a href='$url'";
-	if ($confirm) echo ' onclick="return confirm(\'Are You Sure?\');"';
+	if ($confirm) {
+		if (array_key_exists("onclick", $options)) {
+			echo ' onclick="if (confirm(\'Are You Sure?\')) {'.$options['onclick'].'} else {return false;}"';
+			unset($options['onclick']);			
+		} else {
+			echo ' onclick="return confirm(\'Are You Sure?\');"';
+		}
+	}
+	foreach($options as $k => $v) {
+		echo " $k=\"$v\"";
+	}
 	echo ">";
 	echo $name;
 	echo "</a>";
