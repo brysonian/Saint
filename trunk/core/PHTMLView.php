@@ -217,18 +217,17 @@ function button_to($name, $args=false, $confirm=false, $options=array()) {
 	
 	ob_start();
 	echo "<input type='button' onclick='";
-	if ($confirm) {
-		if (array_key_exists("onclick", $options)) {
-			echo ' onclick="if (confirm(\'Are You Sure?\')) {'.$options['onclick'].'} else {return false;}"';
-			unset($options['onclick']);			
-		} else {
-			echo ' onclick="return confirm(\'Are You Sure?\');"';
-		}
+	if ($confirm && array_key_exists("onclick", $options)) {
+		echo ' if (confirm(\'Are You Sure?\')) {'.$options['onclick'].'} else {return false;}"';
+		unset($options['onclick']);			
+	} else {
+		echo ' if (confirm(\'Are You Sure?\')) ;"';
+		echo "document.location.href=\"".url_for($args)."\"' ";
 	}
 	foreach($options as $k => $v) {
 		echo " $k=\"$v\"";
 	}
-	echo "document.location.href=\"".url_for($args)."\"' value='";
+	echo " value='";
 	echo $name;
 	echo "' />";
 	return ob_get_clean();
