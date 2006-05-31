@@ -63,7 +63,15 @@ class Usher
 		unset($_REQUEST['MAX_FILE_SIZE']);
 		foreach($_REQUEST as $k => $v) {
 			if (!array_key_exists($k, $params)) {
-				$params[$k] = (get_magic_quotes_gpc() == 1)?stripslashes($v):$v;
+				$gpc = (get_magic_quotes_gpc() == 1);
+				if (is_array($v)) {
+					$params[$k] = array();
+					foreach($v as $k2 => $v2) {
+						$params[$k][$k2] = ($gpc)?stripslashes($v2):$v2;
+					}
+				} else {
+					$params[$k] = ($gpc)?stripslashes($v):$v;
+				}
 			}
 		}
 
