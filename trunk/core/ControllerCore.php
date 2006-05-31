@@ -30,15 +30,15 @@ class ControllerCore
 	function ControllerCore() {		
 		# set the template base
 		$this->set_template_base(str_replace('controller', '', strtolower(get_class($this))));
-		
+
+		$this->data = array();
+
 		# call if there is an init() method in the App class
 		$m = get_class_methods('AppController');
 		if (in_array('init', $m)) AppController::init();
 		
 		# if there is an init method, call it		
-		if (method_exists($this, 'init')) $this->init();
-		
-		$this->data = array();
+		if (method_exists($this, 'init')) $this->init();		
 	}
 	
 
