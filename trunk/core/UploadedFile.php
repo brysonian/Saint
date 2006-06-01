@@ -253,6 +253,10 @@ class UploadedFile
 		}
 		return $this->resize($w, $h, $path, $output_type);
 	}
+	
+	function __toString() {
+		return $this->path;
+	}
 }
 
 ?>
