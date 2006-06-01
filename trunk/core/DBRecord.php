@@ -279,8 +279,15 @@ class DBRecord implements Iterator, Serviceable
 		$this->validate_builtins();
 		$this->validate();
 		if ($this->errors()) {
+			$file = false;
+			$line = false;
+			
 			$db = debug_backtrace();
-			throw new ValidationException($this->errors()->errors, get_class($this), VALIDATION_ERROR, $db[1]['file'], $db[1]['line']);
+			if (array_key_exists(1, $db)) {
+				if (array_key_exists("file", $db[1])) $file = $db[1]['file'];
+				if (array_key_exists("line", $db[1])) $line = $db[1]['line'];
+			}
+			throw new ValidationException($this->errors()->errors, get_class($this), VALIDATION_ERROR, $file, $line);
 		}
 
 		$sql = "UPDATE `".$this->get_table()."` SET ";
