@@ -187,9 +187,9 @@ class DBRecordValidator {
 
 	protected function test_uniqueness_of($prop, $msg) {
 		if (!array_key_exists($prop, $this->data)) return true;
-
+		$testval = is_object($this->data[$prop])?$this->data[$prop]->__toString():$this->data[$prop];
 		
-		$where = "$prop = '".$this->parent->escape_string($this->data[$prop])."'";
+		$where = "$prop = '".$this->parent->escape_string($testval)."'";
 		if ($this->parent->get_id()) $where .= " AND ".$this->parent->get_table().".id <> ".$this->parent->get_id();
 		
 		$r = DBRecord::find_where($where, array(), $this->parent_class);
