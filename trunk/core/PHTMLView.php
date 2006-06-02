@@ -82,7 +82,12 @@ function text_area($obj, $name, $prop, $size=2000) {
 }
 
 function select($obj, $name, $prop, $collection, $key, $value, $options=array()) {
-	$html = "<select name='{$name}[{$prop}]' id='{$name}_$prop'>\n";
+	$html = "<select ";
+	foreach($options['attributes'] as $k => $v) {
+		$html .= " $k=\"$v\"";
+	}
+
+	$html .= "name='{$name}[{$prop}]' id='{$name}_$prop'>\n";
 		
 	# get selected value
 	$default = false;
