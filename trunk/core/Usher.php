@@ -445,10 +445,6 @@ class UsherMap
 							if (!preg_match($this->requirements[$name], $out[$name])) return false;
 						}
 					} 
-					#else {
-					#	$c = @__autoload($out[$name].'Controller');
-					#	if (!$c) return false;
-					#}
 				} else {
 					# if there is a requirement for this, 
 					# and it isn't NULL
