@@ -458,9 +458,9 @@ class Sparkup
 		@param  text the text to parse
 		@return text
 	*/
-	static function textToHTML($text) {
+	static function textToHTML($text, $ptags=true) {
 		$st = new Sparkup(1);
-		$output = $st->parse($text);
+		$output = $st->parse($text, $ptags);
 		return trim($output);
 	}
 
@@ -482,9 +482,9 @@ class Sparkup
 // - ADD SOME NORMAL FUNCTIONS SO THESE ARE MORE ACCESSIBLE
 // ===========================================================
 	// text to html
-	function h($text) {
+	function h($text, $ptags=true) {
 		if (is_object($text)) $text = $text->__toString();
-		return Sparkup::textToHTML($text);
+		return Sparkup::textToHTML($text, $ptags);
 	}
 	
 	// tag text
