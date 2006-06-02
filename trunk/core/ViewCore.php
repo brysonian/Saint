@@ -111,14 +111,14 @@ class ViewCore
 		# if it's a collection, call it for each item in the obj
 		if ($collect === true) {
 			foreach($obj as $k => $v) {
-				if (!$me) {
+				if ($me) {
 					# add the obj to the controller if there is one
 					if ($obj !== false) $theController->$action = $v;
 				
 					# tell the controller to execute the action
 					$theController->execute($theMethod);
 				} else {
-					echo $view->parse_partial($controller, $obj);
+					echo $view->parse_partial($controller, $v);
 				}
 			}
 
