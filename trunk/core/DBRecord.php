@@ -45,7 +45,7 @@ class DBRecord implements Iterator, Serviceable
 		$this->set_table($table);
 		
 		# get a ref to the dbconnection
-		$this->db = DBService::get_connection();
+		$this->db = DBService::get_connection(self::get_service_id());
 
 		if (method_exists($this, 'init')) $this->init();
 		
@@ -551,19 +551,12 @@ class DBRecord implements Iterator, Serviceable
 	
 	function table_info($table=false, $full=false) {
 		if ($table === false) $table = $this->get_table();
-
-		#$tieval = '$ti = '.get_class($this).'::$table_info';
-		#eval("$tieval;");
 		if ($full) return $this->db->table_info($table, true);
 		
-		#if (!array_key_exists($table, $ti)) {
 		if (!array_key_exists($table, DBRecord::$table_info)) {
-			#$ti[$table] = $this->db->table_info($table, false);
-			#eval("$tieval = \$ti;");
 			DBRecord::$table_info[$table] = $this->db->table_info($table, false);
 		}
 		return DBRecord::$table_info[$table];
-		#return $ti[$table];
 	}
 
 	// get the query for this obj
