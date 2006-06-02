@@ -20,10 +20,10 @@ class DBService
 		return self::$instance;
 	}
 	
-	static function get_connection() {
-		$class = debug_backtrace();
-		$class = '$serviceid='.$class[1]['class'].'::get_service_id();';
-		eval($class);
+	static function get_connection($serviceid) {
+#		$class = debug_backtrace();
+#		$class = '$serviceid='.$class[1]['class'].'::get_service_id();';
+#		eval($class);
 		
 		# first see if the connection exists, then return it
 		if (isset(self::$connections[$serviceid])) return self::$connections[$serviceid];
