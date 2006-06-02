@@ -111,12 +111,16 @@ class DBRecordCollection implements Iterator
 // - HELPER
 // ===========================================================
 	// load all entries from the DB
-	function load() {
-		$this->result = $this->db->query($this->query);
+	function load($force=false) {
+		if ($this->result && !$force) {
+			$this->result->data_seek(0);
+		} else {
+			$this->result = $this->db->query($this->query);
 
-		# check result
-		if ($this->result === false) {
-			throw(new DBException("Error loading ".__CLASS__.".\n".$this->db->error(), 0, $this->query));
+			# check result
+			if ($this->result === false) {
+				throw(new DBException("Error loading ".__CLASS__.".\n".$this->db->error(), 0, $this->query));
+			}
 		}
 	}
 
