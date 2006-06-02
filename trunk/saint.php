@@ -32,7 +32,7 @@
 	require_once (SAINT_ROOT.'/core/SaintException.php');
 	require_once (SAINT_ROOT.'/core/DBException.php');
 	require_once (SAINT_ROOT.'/core/DBDuplicateException.php');
-	require_once (SAINT_ROOT.'/core/DBRecordIterator.php');
+	require_once (SAINT_ROOT.'/core/DBRecordCollection.php');
 
 	# db classes
 	require_once (SAINT_ROOT.'/core/MySQLiConnection.php');
