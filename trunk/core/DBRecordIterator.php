@@ -1,7 +1,7 @@
 <?php
 
 
-class DBRecordIterator implements Iterator
+class DBRecordCollection implements Iterator
 {
 
 	var $result;
@@ -14,7 +14,7 @@ class DBRecordIterator implements Iterator
 // ===========================================================
 // - CONSTRUCTOR
 // ===========================================================
-	function DBRecordIterator($model, $query, $db) {
+	function __construct($model, $query, $db) {
 		$this->key = 0;
 		$this->model = $model;
 		$this->query = $query;
@@ -54,15 +54,10 @@ class DBRecordIterator implements Iterator
 		}
 		return $this->valid;
 	}
-
-	function key() {
-		return $this->key;
-	}
 	
 	function  current() {
 		# reset the model
 		$themodel = clone $this->get_model();
-#		$themodel->reset();
 		do {
 			$themodel->process_row($this->row);
 			if ($this->nextRow && ($this->nextRow['id'] == $this->row['id'])) {
@@ -73,13 +68,42 @@ class DBRecordIterator implements Iterator
 			}
 		} while(true);
 		
-#		return $this->get_model();
 		return $themodel;
+	}
+
+	function key() {
+		return $this->key;
 	}
 	
 	function next() {
 		$this->key++;
 		$this->row = $this->nextRow;
+	}
+
+
+
+// ===========================================================
+// - COLLECTION ACCESS
+// ===========================================================
+	function first() {
+		$this->rewind();
+		if ($this->result->num_rows() === false) return false;
+		$this->valid();
+		return $this->current();
+	}
+	
+	function item($num) {
+		$c = 0;
+		foreach($this as $k => $v) {
+			if ($c == $num) return $v;
+			$c++;
+		}
+		return false;
+	}
+
+	function last() {
+		foreach($this as $k => $v) {}
+		return $v;
 	}
 
 

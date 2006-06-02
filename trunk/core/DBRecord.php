@@ -423,7 +423,7 @@ class DBRecord implements Iterator, Serviceable
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
 		if (array_key_exists('order', $options)) $m->set_order($options['order']);
-		$sibs = new DBRecordIterator($m, $m->get_query(), $m->db);
+		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
 		return $sibs;
 	}
 	
@@ -433,7 +433,7 @@ class DBRecord implements Iterator, Serviceable
 		$m = new $class;
 		if (array_key_exists('order', $options)) $m->set_order($options['order']);
 		$m->set_where($where);
-		$sibs = new DBRecordIterator($m, $m->get_query(), $m->db);
+		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
 		return $sibs;
 	}
 	
@@ -443,7 +443,7 @@ class DBRecord implements Iterator, Serviceable
 		$m = new $class;
 		if (array_key_exists('order', $options)) $m->set_order($options['order']);
 		$m->set_where("`$field` = '".$m->escape_string($value)."'");
-		$sibs = new DBRecordIterator($m, $m->get_query(), $m->db);
+		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
 		return $sibs;
 	}
 		
@@ -460,7 +460,7 @@ class DBRecord implements Iterator, Serviceable
 	static function find_sql($sql, $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
-		$sibs = new DBRecordIterator($m, $sql, $m->db);
+		$sibs = new DBRecordCollection($m, $sql, $m->db);
 		return $sibs;
 	}
 
