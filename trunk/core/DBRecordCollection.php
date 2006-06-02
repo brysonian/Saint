@@ -4,12 +4,15 @@
 class DBRecordCollection implements Iterator
 {
 
-	var $result;
-	var $key;
-	var $valid;
-	var $row;
-	var $nextRow;
-	var $query;
+	protected $result;
+	protected $key;
+	protected $valid;
+	protected $row;
+	protected $nextRow;
+	public $query;
+	
+	protected $first;
+	protected $last;
 	
 // ===========================================================
 // - CONSTRUCTOR
@@ -86,10 +89,13 @@ class DBRecordCollection implements Iterator
 // - COLLECTION ACCESS
 // ===========================================================
 	function first() {
-		$this->rewind();
-		if ($this->result->num_rows() === false) return false;
-		$this->valid();
-		return $this->current();
+		if (!$this->first) {
+			$this->rewind();
+			if ($this->result->num_rows() === false) return false;
+			$this->valid();
+			$this->first = $this->current();
+		}
+		return $this->first;
 	}
 	
 	function item($num) {
@@ -102,8 +108,11 @@ class DBRecordCollection implements Iterator
 	}
 
 	function last() {
-		foreach($this as $k => $v) {}
-		return $v;
+		if (!$this->last) {
+			foreach($this as $k => $v) {}
+			$this->last = $v;
+		}
+		return $this->last;
 	}
 
 
