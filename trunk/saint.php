@@ -140,7 +140,7 @@
 // - SET THE TIMEZONE
 // ===========================================================
 if(!defined('TIME_ZONE')) {
-	date_default_timezone_set(date_default_timezone_get());
+	date_default_timezone_set('America/New_York');
 } else {
 	date_default_timezone_set(TIME_ZONE);
 }
