@@ -139,12 +139,13 @@
 // ===========================================================
 // - SET THE TIMEZONE
 // ===========================================================
-if(!defined('TIME_ZONE')) {
-	date_default_timezone_set('America/New_York');
-} else {
-	date_default_timezone_set(TIME_ZONE);
+if (function_exists('date_default_timezone_set')) {
+	if(!defined('TIME_ZONE')) {
+		date_default_timezone_set('America/New_York');
+	} else {
+		date_default_timezone_set(TIME_ZONE);
+	}
 }
-
 
 // ===========================================================
 // - AUTOLOAD
