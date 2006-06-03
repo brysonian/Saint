@@ -55,11 +55,11 @@ class Sparkup
 		$this->baseHeaderNumber = $n;		# define a default for the base header level
 		$this->tags = array();
 		$this->lineheads = array(
-			'0' => array('type' => 'line', 	'func' => array($this, 'format_plain')),
-			'+' => array('type' => 'block', 	'func' => array($this, 'format_ul')),
-			'#' => array('type' => 'block', 	'func' => array($this, 'format_ol')),
-			';' => array('type' => 'line', 	'func' => array($this, 'format_code')),
-			'|' => array('type' => 'line', 	'func' => array($this, 'format_blockquote')),
+			'0' => array('type' => 'line', 	'func' => array(&$this, 'format_plain')),
+			'+' => array('type' => 'block', 	'func' => array(&$this, 'format_ul')),
+			'#' => array('type' => 'block', 	'func' => array(&$this, 'format_ol')),
+			';' => array('type' => 'line', 	'func' => array(&$this, 'format_code')),
+			'|' => array('type' => 'line', 	'func' => array(&$this, 'format_blockquote')),
 		);
 	}
 
@@ -68,14 +68,14 @@ class Sparkup
 	* add custom line headers
 	*/
 	function add_line_header($type, $pattern, $callback) {
-		$this->lineheads[$pattern] = array('type' => $type, 'func' => $callback);
+		$this->lineheads[$pattern] = array('type' => $type, 'func' => &$callback);
 	}
 	
 	/**
 	* add custom tags
 	*/
-	function add_tag($pattern, $callback) {
-		$this->tags[$pattern] = $callback;
+	function add_tag($pattern, &$callback) {
+		$this->tags[$pattern] = &$callback;
 	}
 	
 
@@ -320,7 +320,7 @@ class Sparkup
 	/**
 	* handle a line header
 	*/
-	function handle_line_header($blocktype, $matches, $buffer, $blockbuffer, $line) {
+	function handle_line_header($blocktype, $matches, &$buffer, &$blockbuffer, $line) {
 		if (isset($this->lineheads[$blocktype])) {
 			$buffer .= $this->format_line_head($blockbuffer, $blocktype);
 		}
