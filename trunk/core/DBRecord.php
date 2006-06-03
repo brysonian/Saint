@@ -356,9 +356,9 @@ class DBRecord implements Iterator, Serviceable
 		return false;
 	}
 
-	protected function add_error($name, $code, $message) {
+	protected function add_error($name, $message, $code=0) {
 		if (!$this->validator) $this->validator = new DBRecordValidator($this);
-		return $this->validator->add_error($name, $code, $message);
+		return $this->validator->add_error($name, $message, $code);
 	}
 	
 	# does the actual validation
@@ -422,7 +422,7 @@ class DBRecord implements Iterator, Serviceable
 	static function find_all($options=array(), $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
-		if (array_key_exists('order', $options)) $m->set_order($options['order']);
+		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
 		return $sibs;
 	}
@@ -431,7 +431,7 @@ class DBRecord implements Iterator, Serviceable
 	static function find_where($where, $options=array(), $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
-		if (array_key_exists('order', $options)) $m->set_order($options['order']);
+		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
 		$m->set_where($where);
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
 		return $sibs;
@@ -441,7 +441,7 @@ class DBRecord implements Iterator, Serviceable
 	static function find_by($field, $value, $options=array(), $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
-		if (array_key_exists('order', $options)) $m->set_order($options['order']);
+		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
 		$m->set_where("`$field` = '".$m->escape_string($value)."'");
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
 		return $sibs;
