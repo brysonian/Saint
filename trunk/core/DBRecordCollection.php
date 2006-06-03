@@ -92,8 +92,11 @@ class DBRecordCollection implements Iterator
 		if (!$this->first) {
 			$this->rewind();
 			if ($this->result->num_rows() === false) return false;
-			$this->valid();
-			$this->first = $this->current();
+			if ($this->valid()) {
+				$this->first = $this->current();
+			} else {
+				return false;
+			}
 		}
 		return $this->first;
 	}
