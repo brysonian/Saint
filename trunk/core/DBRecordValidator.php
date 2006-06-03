@@ -41,7 +41,7 @@ class DBRecordValidator {
 		return false;
 	}
 
-	public function add_error($name, $code, $message) {
+	public function add_error($name, $message, $code=0) {
 		$this->errors[] = array($name, $code, $message);
 	}
 
@@ -127,7 +127,7 @@ class DBRecordValidator {
 		if (array_key_exists($prop, $this->data) && !empty($this->data[$prop]))
 			return true;
 
-		$this->add_error($prop, VALIDATION_EMPTY, $msg);
+		$this->add_error($prop, $msg, VALIDATION_EMPTY);
 		return false;
 	}
 	
@@ -147,7 +147,7 @@ class DBRecordValidator {
 		if (is_numeric($this->data[$prop]))
 			return true;
 
-		$this->add_error($prop, VALIDATION_NUMERIC, $msg);
+		$this->add_error($prop, $msg, VALIDATION_NUMERIC);
 		return false;
 	}
 	
@@ -168,7 +168,7 @@ class DBRecordValidator {
 		}
 		$d = strtotime($this->data[$prop]);
 		if ($d === false || $d == -1) {
-			$this->add_error($prop, VALIDATION_DATE, $msg);
+			$this->add_error($prop, $msg, VALIDATION_DATE);
 			return false;
 		}
 		$this->data[$prop] = Format::mysqlDateTime($this->data[$prop]);
@@ -194,7 +194,7 @@ class DBRecordValidator {
 		
 		$r = DBRecord::find_where($where, array(), $this->parent_class);
 		if ($r->num_rows() > 0) {
-			$this->add_error($prop, VALIDATION_UNIQUE, $msg);
+			$this->add_error($prop, $msg, VALIDATION_UNIQUE);
 			return false;
 		}
 		return true;
@@ -230,7 +230,7 @@ class DBRecordValidator {
 		if (!array_key_exists($prop, $this->data)) return true;
 		if (empty($this->data[$prop])) return true;
 		if (preg_match($args[0], $this->data[$prop]) == 0) {
-			$this->add_error($prop, VALIDATION_FORMAT, $args[1]);
+			$this->add_error($prop, $args[1], VALIDATION_FORMAT);
 			return false;
 		}
 		return true;
@@ -250,7 +250,7 @@ class DBRecordValidator {
 		$badwords = array("pis","piss","breasts","bastard","bastard","b*stard","f*cking","phuck","kike","fuck","f*ck","fuc","fu*k","fuc*","f**k","f_ck","f__k","f@ck","fu??","fa??","f*??","f'cking","fuckin'","shit","sh|t","sh!t","sh*t","shit's","shitty","nigger","n*gger","n-gger","n_gger","darky","darkies","asshole","cunt","c*nt","c_nt","c/nt,","c-nt","pussy","p*ssy","fucker","slut","sl*t","dickhead","d*ck","f*cker","n*gg*r","clit","prick","faggot","f*gg*t","b*tch","wh*re","f@ggot","tw@t","goddamn","godamn","d@mn","gnikcuf","motherfucker","dickhead","blowjob","cocksucker","c*ck","c*sucker","c*cks*cker","asswipe","assmunch","fucking","fucked","feck","whatafucking","fags","fag","fag","fag","fags","fags","shitting","shits","chink","buttsex","shithole","bunghole","butthole","bullshit","bullshitter","bullshiter","bullshiters","assman","shit","bullshit","assfucker","tit","tits","cuntrag","bitch","bitchie","bitchy","whore","motherfucker","vagina");
 		foreach ($badwords as $word) {
 			if (stripos(strtolower($this->data[$prop]), $word) !== false) {
-				$this->add_error($prop, VALIDATION_CURSE, $msg);
+				$this->add_error($prop, $msg, VALIDATION_CURSE);
 				return false;
 			}
 		}
