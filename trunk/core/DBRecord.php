@@ -121,17 +121,19 @@ class DBRecord implements Iterator, Serviceable
 			}
 			
 			# no object exists for this, so if we have a uid for one, load it up
-			if (!array_key_exists($prop.'_uid', $this->data)) {
+			if (!array_key_exists($prop.'_uid', $this->data) && $this->get_uid()) {
 				$this->load();
 				return $this->to_one_obj[$prop];
 			}
 
-			if ($this->data[$prop.'_uid']) {
+			if (array_key_exists($prop.'_uid', $this->data) && $this->data[$prop.'_uid']) {
 				$cname = $this->get_classname_from_table($prop);
 				$this->to_one_obj[$prop] = new $cname;
 				$this->to_one_obj[$prop]->set_uid($this->data[$prop.'_uid']);
 				$this->to_one_obj[$prop]->load();
 				return $this->to_one_obj[$prop];
+			} else {
+				return false;
 			}
 		}
 
