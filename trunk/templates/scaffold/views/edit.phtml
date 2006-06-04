@@ -9,7 +9,7 @@
 
 	<body>
 		<h1>Edit :php_echo ucfirst(params("controller"));:php_close: :php_echo $:object;:php_close</h1>
-		<form action=":php_echo url_for(array('action'=>'update', 'uid'=>params("uid")));:php_close" method="post">
+		<form enctype="multipart/form-data" action=":php_echo url_for(array('action'=>'update', 'uid'=>params("uid")));:php_close" method="post">
 			:php_open render_partial(false, 'form', $:object); :php_close
 			
 			<div id="footer">
