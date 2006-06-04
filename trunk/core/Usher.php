@@ -361,11 +361,11 @@ class UsherMap
 		$this->defaults['action'] = NULL;
 		
 		# create the regex
-		$this->regex = '|'.preg_replace_callback(
+		$this->regex = '|^'.preg_replace_callback(
 			'/\/([:|\*])?([a-zA-Z0-9_]*)/',
 			array($this, 'map_to_regex'),
 			$map
-		).'/?$|';
+		).'/?|';
 
 		# add the default action back
 		$this->defaults['action'] = $def;
