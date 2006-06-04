@@ -43,11 +43,11 @@ class DBRecordCollection implements Iterator
 	function  get_model()		{ return $this->model; }
 	function  set_limit($min, $max=false) {
 		$this->loaded = false;
+		$this->max = $max;
 		if ($min === false) {
 			$this->limit = '';
 		} else {
 			if ($max) {
-				$this->max = $max;
 				$this->limit = " LIMIT $min".($max?', '.($max*2):'');
 			}
 		}
