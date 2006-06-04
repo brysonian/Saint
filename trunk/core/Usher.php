@@ -85,11 +85,8 @@ class Usher
 		self::$params = $params;
 
 		# get the controller name
-		$cname = ucfirst($params['controller']).'Controller';
-
-		# include the right classes
-		# this can be killed in PHP5
-		#__autoload($cname);
+		$cname = preg_replace('/(?:^|_)([a-zA-Z])/e', "strtoupper('\\1')", $params['controller']);
+		$cname = ucfirst($cname.'Controller');
 
 		# make an instance of the controller class
 		$controller = &new $cname;

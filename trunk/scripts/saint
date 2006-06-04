@@ -4,7 +4,7 @@
 	define ('SAINT_ROOT', realpath(dirname(__FILE__).'/..'));
 	
 	# define some locations
-	define ('SAINT_APP_TEMPLATE', SAINT_ROOT.'/application');
+	define ('SAINT_APP_TEMPLATE', SAINT_ROOT.'/templates/application');
 	
 	#get some useful shell funcs
 	require_once (SAINT_ROOT."/scripts/shell_lib");
