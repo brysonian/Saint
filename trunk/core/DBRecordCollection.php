@@ -47,12 +47,10 @@ class DBRecordCollection implements Iterator
 			$this->limit = '';
 		} else {
 			if ($max) {
-				$max = $max?', '.($max*2):'';
-				$this->limit = " LIMIT $min$max";
+				$this->max = $max;
+				$this->limit = " LIMIT $min".($max?', '.($max*2):'');
 			}
 		}
-		
-		$this->max = $max;
 	}
 	
 	function paginate($per_page=10) {
@@ -87,8 +85,10 @@ class DBRecordCollection implements Iterator
 		}
 		
 		# check for limits
-		if ($this->max && ($this->current > $this->max+1)) $this->valid = false;
-		$this->current++;
+		if ($this->max) {
+			if ($this->current >= $this->max) $this->valid = false;
+			$this->current++;
+		}
 		return $this->valid;
 	}
 	
