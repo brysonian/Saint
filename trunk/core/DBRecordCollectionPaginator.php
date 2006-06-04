@@ -23,7 +23,6 @@ class DBRecordCollectionPaginator implements Iterator
 	public function __construct($iterator, $per_page=10) {
 		$this->iterator = $iterator;		
 		$this->per_page = $per_page;		
-		$this->iterator->set_limit(params($this->page_param), $this->per_page);
 	}
 
 // ===========================================================
@@ -41,7 +40,6 @@ class DBRecordCollectionPaginator implements Iterator
 		
 		# still might be, so default to zero
 		$num = $num?(($num-1)*$this->per_page):0;
-		
 		$this->iterator->set_limit($num, $this->per_page);
 		return $this->iterator;
 	}
