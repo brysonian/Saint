@@ -97,11 +97,12 @@
 	# DB SERVICE
 	$d = DBService::get_instance();
 	$d->add_connection_for_classes(
-		array('DBRecord'), 'mysqli', $db_name, $user, $pass, $host);
+		array('DBRecord'), 'mysqli', $db_name, $user, $pass, $host, $db_options?$db_options:array());
 
 
 	# clear DB setup vars
 	unset($db_name, $user, $pass, $host);
+	if (isset($db_options)) unset($db_options);
 
 
 

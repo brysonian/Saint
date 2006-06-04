@@ -10,31 +10,31 @@ class MySQLiConnection
 	protected $pass;
 	protected $dbname;
 	protected $last_query;
+	protected $options;
 
 	protected static $query_count = 0;
 
 	// ===========================================================
 	// - CONSTRUCTOR
 	// ===========================================================
-	function MySQLiConnection($host, $user, $pass, $dbname) {
+	function MySQLiConnection($host, $user, $pass, $dbname, $options=array()) {
 		$this->db			= false;
 		$this->host			= $host;
 		$this->user			= $user;
 		$this->pass			= $pass;
 		$this->dbname		= $dbname;
+		$this->options	= $options;
+	}
 		
-		$this->open();
-	}
-	
-	function set_autorelease($val) {
-		$this->autorelease = $val;
-	}
-	
 	function open() {
-		$this->db = new mysqli($this->host, $this->user, $this->pass, $this->dbname);
-		
+		$this->db = mysqli_init();
+		foreach($this->options as $k => $v) {
+			$this->db->options(constant($k), $v);
+		}
+		$this->db->real_connect($this->host, $this->user, $this->pass, $this->dbname);
+
 		# make sure we conneted
-		if (!$this->db)
+		if (mysqli_connect_errno())
 			throw new DBException("Failed to connect to mysql.\n".$this->db->error, $this->db->errno, '');		
 		
 	}
@@ -44,6 +44,8 @@ class MySQLiConnection
 	// - INTERFACE
 	// ===========================================================	
 	function escape_string($str) {
+		# open db connection if there isn't open
+		if(!$this->db) $this->open();
 		return $this->db->real_escape_string($str);
 	}
 	

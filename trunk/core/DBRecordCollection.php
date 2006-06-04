@@ -10,6 +10,7 @@ class DBRecordCollection implements Iterator
 	protected $row;
 	protected $nextRow;
 	public $query;
+	public $limit;
 	
 	protected $first;
 	protected $last;
@@ -20,8 +21,9 @@ class DBRecordCollection implements Iterator
 	function __construct($model, $query, $db) {
 		$this->key = 0;
 		$this->model = $model;
-		$this->query = $query;
-
+		$this->query = $query;		
+		$this->limit = '';
+		
 		# clear props
 		$this->row = false;
 		
@@ -33,6 +35,9 @@ class DBRecordCollection implements Iterator
 // - ACCESSORS
 // ===========================================================
 	function  get_model()		{ return $this->model; }
+	function  set_limit($min, $max=false)		{ 
+		$this->limit = $max?"LIMIT $min, $max":"LIMIT $min";
+	}
 
 
 // ===========================================================
@@ -127,11 +132,11 @@ class DBRecordCollection implements Iterator
 		if ($this->result && !$force) {
 			$this->result->data_seek(0);
 		} else {
-			$this->result = $this->db->query($this->query);
+			$this->result = $this->db->query($this->query.$this->limit);
 
 			# check result
 			if ($this->result === false) {
-				throw(new DBException("Error loading ".__CLASS__.".\n".$this->db->error(), 0, $this->query));
+				throw(new DBException("Error loading ".__CLASS__.".\n".$this->db->error(), 0, $this->query.$this->limit));
 			}
 		}
 	}

@@ -55,7 +55,8 @@ class DBService
 					$called['host'],
 					$called['user'],
 					$called['pass'],
-					$called['dbname']
+					$called['dbname'],
+					$called['options']
 				);
 				break;
 				
@@ -91,14 +92,15 @@ class DBService
 		}
 	}
 
-	public function add_connection_for_class($class, $type, $dbname, $user=false, $pass=false, $host='localhost') {
+	public function add_connection_for_class($class, $type, $dbname, $user=false, $pass=false, $host='localhost', $options=array()) {
 		self::$map[$class] = array(
 			'type'		=> $type,
 			'host'		=> $host,
 			'user'		=> $user,
 			'pass'		=> $pass,
 			'dbname'		=> $dbname,
-			'set'			=> false
+			'set'			=> false,
+			'options'	=> $options
 		);
 	}
 
