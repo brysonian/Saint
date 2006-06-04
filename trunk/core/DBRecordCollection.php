@@ -4,16 +4,19 @@
 class DBRecordCollection implements Iterator
 {
 
+	protected $loaded = false;
+	public $query;
+	public $limit;
 	protected $result;
+
 	protected $key;
 	protected $valid;
 	protected $row;
 	protected $nextRow;
-	public $query;
-	public $limit;
 	
 	protected $first;
 	protected $last;
+		
 	
 // ===========================================================
 // - CONSTRUCTOR
@@ -35,9 +38,18 @@ class DBRecordCollection implements Iterator
 // - ACCESSORS
 // ===========================================================
 	function  get_model()		{ return $this->model; }
-	function  set_limit($min, $max=false)		{ 
-		$this->limit = $max?"LIMIT $min, $max":"LIMIT $min";
+	function  set_limit($min, $max=false) {
+		$this->loaded = false;
+		$this->limit = ($min===false)?'':'LIMIT '.($max?"$min, $max":"$min");
 	}
+	
+	function paginate($per_page=10) {
+		$c = clone $this;
+		$p = new DBRecordCollectionPaginator($c, $per_page);
+		return array($p, $p->get_page());
+	}
+
+
 
 
 // ===========================================================
@@ -125,11 +137,11 @@ class DBRecordCollection implements Iterator
 
 
 // ===========================================================
-// - HELPER
+// - DB RELATED
 // ===========================================================
 	// load all entries from the DB
 	function load($force=false) {
-		if ($this->result && !$force) {
+		if ($this->loaded && !$force) {
 			$this->result->data_seek(0);
 		} else {
 			$this->result = $this->db->query($this->query.$this->limit);
@@ -138,6 +150,7 @@ class DBRecordCollection implements Iterator
 			if ($this->result === false) {
 				throw(new DBException("Error loading ".__CLASS__.".\n".$this->db->error(), 0, $this->query.$this->limit));
 			}
+			$this->loaded = true;
 		}
 	}
 
