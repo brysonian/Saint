@@ -30,7 +30,13 @@ class DBRecordCollectionPaginator implements Iterator
 // ===========================================================
 	function get_page($num=false) {
 		$this->current_page = $num;
+		
+		# if num is false, grab from the params
+		$num = ($num===false)?params('page'):$num;
+		
+		# still might be, so default to zero
 		$num = $num?(($num-1)*$this->per_page):0;
+		
 		$this->iterator->set_limit($num, $this->per_page);
 		return $this->iterator;
 	}
@@ -58,7 +64,7 @@ class DBRecordCollectionPaginator implements Iterator
 	}
 	
 	function valid() {
-		return ($this->current_page < $this->page_count);
+		return ($this->current_page <= $this->page_count);
 	}
 	
 	function  current() {
