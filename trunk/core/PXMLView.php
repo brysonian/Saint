@@ -10,7 +10,7 @@ class PXMLView extends PHTMLView
 		parent::PHTMLView($template);
 		
 		# set the header
-		$this->header = 'Content-Type: application/xml'
+		$this->header = 'Content-Type: application/xml';
 	}	
 }
 

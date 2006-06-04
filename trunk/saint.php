@@ -116,6 +116,10 @@
 		$l = ob_get_level();
 		while($l--) ob_end_clean();
 		$e = new SaintException($errstr, $errno, $errfile, $errline);
+		
+		# manually attempt to close all db connections
+		DBService::close();
+		
 		if ($redirect_on_error === false) {
 			die($e->log());
 		} else {

@@ -58,7 +58,7 @@ class PHTMLView extends ViewCore
 // - HTML HELPERS
 // ===========================================================
 function xml_declaration() {
-	return '<'.'?'.'xml version="1.0" encoding="utf-8"?'.'>';
+	return '<'.'?'.'xml version="1.0" encoding="utf-8"?'.">\n";
 }
 
 function text_field($obj, $name, $prop) {
