@@ -141,7 +141,7 @@ class DBRecordCollection implements Iterator
 // ===========================================================
 	// load all entries from the DB
 	function load($force=false) {
-		if ($this->loaded && !$force) {
+		if ($this->loaded && !$force && $this->result) {
 			$this->result->data_seek(0);
 		} else {
 			$this->result = $this->db->query($this->query.$this->limit);
