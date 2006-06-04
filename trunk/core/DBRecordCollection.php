@@ -9,6 +9,9 @@ class DBRecordCollection implements Iterator
 	public $limit;
 	protected $result;
 
+	protected $current;
+	protected $max;
+
 	protected $key;
 	protected $valid;
 	protected $row;
@@ -40,7 +43,16 @@ class DBRecordCollection implements Iterator
 	function  get_model()		{ return $this->model; }
 	function  set_limit($min, $max=false) {
 		$this->loaded = false;
-		$this->limit = ($min===false)?'':' LIMIT '.($max?"$min, $max":"$min");
+		if ($min === false) {
+			$this->limit = '';
+		} else {
+			if ($max) {
+				$max = $max?', '.($max*2):'';
+				$this->limit = " LIMIT $min$max";
+			}
+		}
+		
+		$this->max = $max;
 	}
 	
 	function paginate($per_page=10) {
@@ -62,6 +74,7 @@ class DBRecordCollection implements Iterator
 		$this->result = false;
 		$this->load();
 		$this->row = $this->result->fetch_assoc();
+		$this->current = 0;
 	}
 	
 	function valid() {
@@ -72,6 +85,10 @@ class DBRecordCollection implements Iterator
 		} else {
 			$this->valid = false;
 		}
+		
+		# check for limits
+		if ($this->max && ($this->current > $this->max+1)) $this->valid = false;
+		$this->current++;
 		return $this->valid;
 	}
 	
