@@ -75,6 +75,8 @@ class MySQLiConnection
 	}
 	
 	function table_info($table, $full=false) {
+		if(!$this->db) $this->open();
+
 		MySQLiConnection::$query_count++;
 		
 		$sql = "SHOW COLUMNS FROM `$table`";
