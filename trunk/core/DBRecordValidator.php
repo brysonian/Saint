@@ -110,7 +110,7 @@ class DBRecordValidator {
 		# add each prop as a key to the array
 		foreach($args as $k => $v) {
 			if (is_numeric($k)) {
-				$type[$v] = $args['message'];
+				$type[strtolower($v)] = $args['message'];
 			}
 		}
 	}
@@ -222,7 +222,7 @@ class DBRecordValidator {
 			# add the error message if there isn't one
 			$message = $message?$message:get_error_message(VALIDATION_FORMAT, $prop);
 
-			$this->validate_format_of[$prop] = array($format, $message);
+			$this->validate_format_of[strtolower($prop)] = array($format, $message);
 		}
 	}
 

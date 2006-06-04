@@ -116,8 +116,18 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 	# add before items
 	if (array_key_exists('before', $options)) {
 		foreach($options['before'] as $item) {
-			$v = is_object($item)?((!$value)?$item->__toString():$item->$value):$item[$value];
-			$k = is_object($item)?$item->$key:$item[$key];
+			if (is_object($item)) {
+				$v = ((!$value)?$item->__toString():$item->$value);
+			} else if (is_array($item)) {
+				$v = $item[$value];
+			} else {
+				$v = $item;
+			}
+			if ($key === false) {
+				$k = $v;
+			} else {
+				$k = is_object($item)?$item->$key:$item[$key];
+			}
 			$sel = ($default !== false && $k == $default)?" selected='true'":'';
 			$k = (substr_count($k, "'") > substr_count($k, '"'))?'"'.$k.'"':"'".$k."'";
 			$html .= "<option$sel value=$k>$v</option>\n";
@@ -125,8 +135,18 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 	}
 	
 	foreach($collection as $item) {
-		$v = is_object($item)?((!$value)?$item->__toString():$item->$value):$item[$value];
-		$k = is_object($item)?$item->$key:$item[$key];
+		if (is_object($item)) {
+			$v = ((!$value)?$item->__toString():$item->$value);
+		} else if (is_array($item)) {
+			$v = $item[$value];
+		} else {
+			$v = $item;
+		}
+		if ($key === false) {
+			$k = $v;
+		} else {
+			$k = is_object($item)?$item->$key:$item[$key];
+		}
 		$sel = ($default !== false && $k == $default)?" selected='true'":'';
 		$k = (substr_count($k, "'") > substr_count($k, '"'))?'"'.$k.'"':"'".$k."'";
 		$html .= "<option$sel value=$k>$v</option>\n";
@@ -135,8 +155,18 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 	# add after items
 	if (array_key_exists('after', $options)) {
 		foreach($options['after'] as $item) {
-			$v = is_object($item)?((!$value)?$item->__toString():$item->$value):$item[$value];
-			$k = is_object($item)?$item->$key:$item[$key];
+			if (is_object($item)) {
+				$v = ((!$value)?$item->__toString():$item->$value);
+			} else if (is_array($item)) {
+				$v = $item[$value];
+			} else {
+				$v = $item;
+			}
+			if ($key === false) {
+				$k = $v;
+			} else {
+				$k = is_object($item)?$item->$key:$item[$key];
+			}
 			$sel = ($default !== false && $k == $default)?" selected='true'":'';
 			$k = (substr_count($k, "'") > substr_count($k, '"'))?'"'.$k.'"':"'".$k."'";
 			$html .= "<option$sel value=$k>$v</option>\n";
