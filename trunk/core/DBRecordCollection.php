@@ -40,7 +40,7 @@ class DBRecordCollection implements Iterator
 	function  get_model()		{ return $this->model; }
 	function  set_limit($min, $max=false) {
 		$this->loaded = false;
-		$this->limit = ($min===false)?'':'LIMIT '.($max?"$min, $max":"$min");
+		$this->limit = ($min===false)?'':' LIMIT '.($max?"$min, $max":"$min");
 	}
 	
 	function paginate($per_page=10) {
