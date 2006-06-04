@@ -69,6 +69,16 @@ class DBService
 		# return it
 		return self::$connections[$serviceid];
 	}
+	
+	function __destruct() {
+		foreach(self::$connections as $connection) {
+			$connection->close();
+		}
+	}
+
+	static function close() {
+		DBService::get_instance()->__destruct();
+	}
 
 
 // ===========================================================
