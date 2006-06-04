@@ -35,7 +35,7 @@ class ViewCore
 		}
 		
 		# set the header if there is one
-		if ($this->header !== false) header($this->header);
+		#if ($this->header !== false) header($this->header);
 		
 		# echo the page
 		echo $this->parsed;
