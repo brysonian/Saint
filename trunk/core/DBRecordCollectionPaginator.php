@@ -13,6 +13,7 @@ class DBRecordCollectionPaginator implements Iterator
 	protected $per_page = 10;
 	protected $page_count = false;
 	protected $current_page = 1;
+	protected $page_param = 'page';
 	
 	protected $iterator;
 	
@@ -22,17 +23,21 @@ class DBRecordCollectionPaginator implements Iterator
 	public function __construct($iterator, $per_page=10) {
 		$this->iterator = $iterator;		
 		$this->per_page = $per_page;		
-		$this->iterator->set_limit(params('page'), $this->per_page);
+		$this->iterator->set_limit(params($this->page_param), $this->per_page);
 	}
 
 // ===========================================================
 // - ACCESSORS
 // ===========================================================
+	function set_page_param($val) {
+		$this->page_param = $val;
+	}
+
 	function get_page($num=false) {
 		$this->current_page = $num;
 		
 		# if num is false, grab from the params
-		$num = ($num===false)?params('page'):$num;
+		$num = ($num===false)?params($this->page_param):$num;
 		
 		# still might be, so default to zero
 		$num = $num?(($num-1)*$this->per_page):0;
