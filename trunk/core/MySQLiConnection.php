@@ -104,7 +104,10 @@ class MySQLiConnection
 	}
 	
 	function close() {
-		if ($this->db) $this->db->close();
+		if ($this->db) {
+			$this->db->close();
+			$this->db = false;
+		}
 	}
 	
 	function __destruct() {
