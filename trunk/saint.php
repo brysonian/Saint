@@ -58,7 +58,6 @@
 	// ===========================================================
 	// - GET USER CONFIG VALUES.
 	// ===========================================================
-	$redirect_on_error = false;
 	require_once (PROJECT_ROOT."/config/environment.php");
 
 
@@ -113,7 +112,7 @@
 // - ERRORS
 // ===========================================================
 	function saint_error_handler($errno, $errstr, $errfile, $errline) {
-		global $redirect_on_error;
+#		global $redirect_on_error;
 		$l = ob_get_level();
 		while($l--) ob_end_clean();
 		$e = new SaintException($errstr, $errno, $errfile, $errline);
@@ -121,13 +120,13 @@
 		# manually attempt to close all db connections
 		DBService::close();
 		
-		if ($redirect_on_error === false) {
+		if (!defined('REDIRECT_ON_ERROR')) {
 			die($e->log());
-		} if ($redirect_on_error == '404') {
+		} if (REDIRECT_ON_ERROR == '404') {
 			header("Status: 404 Not Found");
 			die();
 		} else {
-			redirect_to($redirect_on_error);
+			header('Location: '.REDIRECT_ON_ERROR);
 			die();
 		}
 	}
