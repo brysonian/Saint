@@ -425,6 +425,7 @@ class DBRecord implements Iterator, Serviceable
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
 		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
+		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
 		return $sibs;
 	}
@@ -434,6 +435,7 @@ class DBRecord implements Iterator, Serviceable
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
 		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
+		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
 		$m->set_where($where);
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
 		return $sibs;
@@ -444,6 +446,7 @@ class DBRecord implements Iterator, Serviceable
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
 		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
+		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
 		$m->set_where("`$field` = '".$m->escape_string($value)."'");
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
 		return $sibs;
