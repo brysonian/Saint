@@ -123,6 +123,9 @@
 		
 		if ($redirect_on_error === false) {
 			die($e->log());
+		} if ($redirect_on_error == '404') {
+			header("Status: 404 Not Found");
+			die();
 		} else {
 			redirect_to($redirect_on_error);
 			die();
