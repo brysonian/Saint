@@ -288,9 +288,9 @@ class ControllerCore
 	function add_filter($type, $filter, $methods='*', $except=false) {
 		# grab the filter array to use
 		if ($type = 'before') {
-			$farray = $this->get_before_filters();
+			$farray =& $this->get_before_filters();
 		} else {
-			$farray = $this->get_after_filters();
+			$farray =& $this->get_after_filters();
 		}			
 
 		# make sure the arry is set
@@ -336,8 +336,8 @@ class ControllerCore
 		
 	}
 
-	function  get_before_filters() { return $this->beforefilters; }
-	function  get_after_filters() { return $this->afterfilters; }
+	function  &get_before_filters() { return $this->beforefilters; }
+	function  &get_after_filters() { return $this->afterfilters; }
 
 	function  get_before_filter_exceptions() { return $this->before_filter_exceptions; }
 	function  get_after_filter_exceptions() { return $this->after_filter_exceptions; }
