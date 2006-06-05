@@ -373,8 +373,11 @@ class Sparkup
 
 		
 		# replace typography stuff
-		$output = preg_replace('/\'/', '&apos;', $output);
+		$output = preg_replace('/\'/', '&#39;', $output);
 		$output = preg_replace('/--/', '&emdash;', $output);
+		
+		# silly ie
+		$output = str_replace('&apos;', '&#39;', $str);
 
 		$matches =array();
 		preg_match_all('/"/', $output, $matches, PREG_OFFSET_CAPTURE);
