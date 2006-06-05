@@ -248,6 +248,7 @@ function url_for($args=false) {
 		$theargs = $args;
 		# get the map
 		$temp = $v->usermap;
+		$s = 0;
 		
 		# replace tokens with values
 		foreach($theargs as $k2 => $v2) {
@@ -261,15 +262,16 @@ function url_for($args=false) {
 		foreach($v->defaults as $k2 => $v2) {
 			if (is_null($v2)) continue;
 			$temp = str_replace(":$k2", '', $temp);
+			# get a point for each default that matches a value in the args
+			if ($v2 == $args[$k2]) $s--;
 		}
 		
 		# clear out //
 		$temp = str_replace("//", '', $temp);
 
-		
 		# score based on number of : left and the number of args left
-		$s = substr_count($temp, ':') + count($theargs);
-		
+		$s += substr_count($temp, ':') + count($theargs);
+
 		# * items cost a lot
 		$s += (substr_count($temp, '*') * 2);
 		if ($s < $score) {
@@ -278,7 +280,6 @@ function url_for($args=false) {
 			$best_args = $theargs;
 		}
 	}
-
 	# replace defaults including NULL
 	foreach($v->defaults as $k => $v) {
 		$url = str_replace(":$k", '', $url);
