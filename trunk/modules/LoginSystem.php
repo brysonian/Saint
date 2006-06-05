@@ -3,28 +3,24 @@
 # start session
 session_start();
 
-# if the user class didn't happen, tell them they need it
-if (!class_exists('User')) throw(new SaintException('Login system requires a user defined subclass of LoginUser'));
-
-# make an instance to start it off
-# this makes sure the associated classes are loaded.
-# in PHP5 this can go away
-new User;
-
-class LoginUser extends DBRecord
+class LoginSystem extends DBRecord
 {
+
+	static private	$instance = false;
+	static private	$user			= false;
+
 	
 // ===========================================================
 // - VERIFY FROM DB
 // ===========================================================
-	function authenticate($username, $password) {
+	static function authenticate($username, $password) {
 		# get a model to use
-		$user = new User('user');
-		$result = $user->find_where("password='".md5($password)."' AND username='".mysql_escape_string($username)."'");
+		$d = new DBRecord;
+		$result = User::find_where("password='".md5($password)."' AND username='".$d->escape_string($username)."'");
 
 		# process results
 		if ($result) {
-			User::startLogin($result[0]['uid']);
+			LoginSystem::start_login($result);
 			return true;
 		} else {
 			return false;
@@ -36,10 +32,17 @@ class LoginUser extends DBRecord
 // ===========================================================
 // - DOES THE ACTUAL LOGING IN
 // ===========================================================
-	function startLogin($uid) {
+	static function start_login($auser) {
 		session_regenerate_id();
-		$_SESSION['uid'] = $uid;
+		$_SESSION['uid'] = $auser->get_uid();
 		$_SESSION['time'] = time();
+		
+		LoginSystem::$user = $auser;
+		
+	}
+
+	static function get_user() {
+		return LoginSystem::$user;
 	}
 	
 	function expire($newtime) {
@@ -48,26 +51,27 @@ class LoginUser extends DBRecord
 
 // ===========================================================
 // - GET USER DATA FROM THE SESSION
-// ===========================================================
-	function &get_instance() {
-		static $u;
-		if (!isset($u)) {
-			$u = new User;
-			$u->setUID($_SESSION['uid']);
-			$u->load();
+// ===========================================================	
+	# singleton
+	static function get_instance() {
+		if(!self::$instance) {
+			self::$instance =  = new User;
+			self::$instance = ->set_uid($_SESSION['uid']);
+			self::$instance = ->load();
 		}
-		return $u;
+		return self::$instance;
 	}
+
 	
 	// sets the password
-	function setPassword($val) {
+	function set_password($val) {
 		$this->set('password', md5($val));
 	}
 
 // ===========================================================
 // - CHECKS IF USER IS LOGGED IN
 // ===========================================================
-	function isLoggedIn() {
+	function is_logged_in() {
 		if(!empty($_SESSION['uid']) && !empty($_SESSION['time'])) {
 			return true;
 		} else {

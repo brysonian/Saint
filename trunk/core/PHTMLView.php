@@ -271,5 +271,3 @@ function button_to($name, $args=false, $confirm=false, $options=array()) {
 }
 
 ?>
-
-
