@@ -263,7 +263,7 @@ function url_for($args=false) {
 			if (is_null($v2)) continue;
 			$temp = str_replace(":$k2", '', $temp);
 			# get a point for each default that matches a value in the args
-			if ($v2 == $args[$k2]) $s--;
+			if (array_key_exists($k2, $args) && ($v2 == $args[$k2])) $s--;
 		}
 		
 		# clear out //
