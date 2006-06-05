@@ -422,6 +422,7 @@ class UsherMap
 
 		foreach($parts as $k => $v) {			
 			# if it's a placeholder
+			if (empty($v)) continue;
 			if ($v{0} == ':' || $v{0} == '*') {
 				$name = substr($v,1);
 				
