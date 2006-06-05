@@ -266,25 +266,35 @@ function url_for($args=false) {
 			if (array_key_exists($k2, $args) && ($v2 == $args[$k2])) $s--;
 		}
 		
-		# clear out //
-		$temp = str_replace("//", '', $temp);
-
 		# score based on number of : left and the number of args left
 		$s += (substr_count($temp, ':') + count($theargs))*2;
 
 		# * items cost a lot
 		$s += (substr_count($temp, '*') * 3);
+
+		# dbugin
+		#echo "\n Score: $s\n map:".$v->usermap."\n url: $temp\nArgs:";
+		#var_export($args);
+
 		if ($s < $score) {
 			$score = $s;
 			$url = $temp;
 			$best_args = $theargs;
 		}
 	}
+	
 	# replace defaults including NULL
-	foreach($v->defaults as $k => $v) {
-		$url = str_replace(":$k", '', $url);
-	}
+	#foreach($v->defaults as $k => $v) {
+	#	$url = str_replace(":$k", '', $url);
+	#}
+	
+	#replace all :foo placeholders
+	$url = preg_replace('|:[a-zA-Z_0-9]*|', '', $url);
 
+
+	# clear out //
+	$url = str_replace("//", '', $url);
+	
 
 	# if there are any left over make them into a query string
 	if (!empty($best_args)) {
@@ -299,6 +309,8 @@ function url_for($args=false) {
 			$url = substr($url, 0, strlen($url)-1);
 		if (!empty($urlparams)) $url .= "?".join("&amp;", $urlparams);
 	}
+#		echo "Winner:$url\nArgs:";
+#		var_export($args);
 
 	return $url;
 }
