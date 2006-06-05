@@ -270,10 +270,10 @@ function url_for($args=false) {
 		$temp = str_replace("//", '', $temp);
 
 		# score based on number of : left and the number of args left
-		$s += substr_count($temp, ':') + count($theargs);
+		$s += (substr_count($temp, ':') + count($theargs))*2;
 
 		# * items cost a lot
-		$s += (substr_count($temp, '*') * 2);
+		$s += (substr_count($temp, '*') * 3);
 		if ($s < $score) {
 			$score = $s;
 			$url = $temp;
