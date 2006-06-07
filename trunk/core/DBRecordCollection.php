@@ -19,6 +19,8 @@ class DBRecordCollection implements Iterator
 	
 	protected $first;
 	protected $last;
+	
+	protected $num_objects = 0;
 		
 	
 // ===========================================================
@@ -41,6 +43,7 @@ class DBRecordCollection implements Iterator
 // - ACCESSORS
 // ===========================================================
 	function  get_model()		{ return $this->model; }
+	function  get_num_objects()		{ return $this->num_objects; }
 	function  set_limit($min, $max=false) {
 		$this->loaded = false;
 		$this->max = $max;
@@ -88,6 +91,7 @@ class DBRecordCollection implements Iterator
 		if ($this->max) {
 			if ($this->current >= $this->max) $this->valid = false;
 			$this->current++;
+			$this->num_objects = $this->current;
 		}
 		return $this->valid;
 	}
