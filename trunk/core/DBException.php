@@ -14,8 +14,9 @@ class DBException extends SaintException
 	/**
 	*	logs error.
 	*/
-	function log($format='html') {
+	function log($format=false) {
 		$out = '';
+		if ($format === false) $format = self::$log_format;
 		switch ($format) {
 			case 'txt':
 				$out .= $this->get_message();

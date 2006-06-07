@@ -23,7 +23,7 @@ class SaintException extends Exception
 // ===========================================================
 	function log($format=false) {
 		$out = '';
-		if ($format === false) $format = SaintException::$log_format;
+		if ($format === false) $format = self::$log_format;
 		switch ($format) {
 			case 'text':
 				$out .= $this->get_message()."\n\n";
@@ -58,7 +58,7 @@ class SaintException extends Exception
 	function get_trace_as_string()	{ return $this->getTraceAsString(); }
 
 
-	public static function set_log_format($v)		{ SaintException::$log_format = $v; }
+	public static function set_log_format($v)		{ self::$log_format = $v; }
 
 
 // ===========================================================
