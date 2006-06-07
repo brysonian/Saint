@@ -29,7 +29,7 @@ class MySQLiConnection
 	function open() {
 		$this->db = mysqli_init();
 		foreach($this->options as $k => $v) {
-			$this->db->options(constant($k), $v);
+			$this->db->options($k, $v);
 		}
 		$this->db->real_connect($this->host, $this->user, $this->pass, $this->dbname);
 
