@@ -85,14 +85,14 @@ class DBService
 // ===========================================================
 // - INIT
 // ===========================================================
-	public function add_connection_for_classes($classes, $type, $dbname, $user=false, $pass=false, $host='localhost') {
+	static public function add_connection_for_classes($classes, $type, $dbname, $user=false, $pass=false, $host='localhost') {
 		# loop through classes and add connection for each
 		foreach($classes as $class) {
-			$this->add_connection_for_class($class, $type, $dbname, $user, $pass, $host);
+			self::add_connection_for_class($class, $type, $dbname, $user, $pass, $host);
 		}
 	}
 
-	public function add_connection_for_class($class, $type, $dbname, $user=false, $pass=false, $host='localhost', $options=array()) {
+	static public function add_connection_for_class($class, $type, $dbname, $user=false, $pass=false, $host='localhost', $options=array()) {
 		self::$map[$class] = array(
 			'type'		=> $type,
 			'host'		=> $host,
