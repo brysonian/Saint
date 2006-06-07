@@ -94,8 +94,7 @@
 	require_once (PROJECT_ROOT."/config/database.php");
 	
 	# DB SERVICE
-	$d = DBService::get_instance();
-	$d->add_connection_for_classes(
+	DBService::add_connection_for_classes(
 		array('DBRecord'), 'mysqli', $db_name, $user, $pass, $host, isset($db_options)?$db_options:array());
 
 
