@@ -31,6 +31,7 @@ class DBRecordCollectionPaginator implements Iterator
 	function set_page_param($val) {
 		$this->page_param = $val;
 	}
+	function is_last_page() { return $this->iterator->get_num_objects() < $this->per_page; }
 
 	function get_page($num=false) {
 		$this->current_page = $num;
