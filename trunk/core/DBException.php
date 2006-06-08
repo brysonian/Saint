@@ -54,7 +54,7 @@ class DBException extends SaintException
 	function set_query($q) { $this->query = $q; }
 	
 	function get_message() {
-		return parent::get_message()."<code>".$this->get_query()."<code>"l
+		return parent::get_message()."<code>".$this->get_query()."<code>";
 	}
 }
 
