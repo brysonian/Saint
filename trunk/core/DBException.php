@@ -23,7 +23,7 @@ class DBException extends SaintException
 				break;
 			
 			case 'html':
-				$out = $this->get_html($this->get_message()."</p><p><code>".$this->get_query()."<code>");
+				$out = $this->get_html();
 				break;
 			
 			case 'xml':
@@ -52,7 +52,10 @@ class DBException extends SaintException
 	
 	// setters
 	function set_query($q) { $this->query = $q; }
-
+	
+	function get_message() {
+		return parent::get_message()."<code>".$this->get_query()."<code>"l
+	}
 }
 
 
