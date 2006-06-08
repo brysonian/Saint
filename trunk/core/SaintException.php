@@ -30,7 +30,8 @@ class SaintException extends Exception
 				break;
 			
 			case 'html':
-				$out = $this->get_html("<b>".$this->get_message()."</b><br />Occured in ".$this->get_file()." on line ".$this->get_line());
+				#$out = $this->get_html("<b>".$this->get_message()."</b><br />Occured in ".$this->get_file()." on line ".$this->get_line());
+				$out = $this->get_html();
 				break;
 			
 			case 'xml':
@@ -64,8 +65,10 @@ class SaintException extends Exception
 // ===========================================================
 // - ERROR HTML
 // ===========================================================
-	function get_html($msg) {
-		$msg = nl2br($msg);
+	function get_html() {
+		$msg = nl2br($this->get_message());
+		$file = $this->get_file();
+		$line = $this->get_line();
 		$trace = "<li>".str_replace("\n", "</li>\n<li>", $this->get_trace_as_string())."</li>\n</ul>";
 
 		ob_start();
