@@ -61,7 +61,21 @@ class Usher
 
 		# add request to params and make sure magic quotes are dealt with
 		unset($_REQUEST['MAX_FILE_SIZE']);
-		foreach($_REQUEST as $k => $v) {
+		foreach($_POST as $k => $v) {
+			if (!array_key_exists($k, $params)) {
+				$gpc = (get_magic_quotes_gpc() == 1);
+				if (is_array($v)) {
+					$params[$k] = array();
+					foreach($v as $k2 => $v2) {
+						$params[$k][$k2] = ($gpc)?stripslashes($v2):$v2;
+					}
+				} else {
+					$params[$k] = ($gpc)?stripslashes($v):$v;
+				}
+			}
+		}
+
+		foreach($_GET as $k => $v) {
 			if (!array_key_exists($k, $params)) {
 				$gpc = (get_magic_quotes_gpc() == 1);
 				if (is_array($v)) {
