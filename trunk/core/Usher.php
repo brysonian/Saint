@@ -170,6 +170,8 @@ function get_root() {
 }
 
 function link_to($name, $args=false, $confirm=false, $options=array()) {
+	if (!is_array($options)) $options = array();
+	
 	# if there is only one arg, and it's an object, make a link to it
 	if (is_object($name) && func_num_args() == 1) {
 		$url = url_for($name);
