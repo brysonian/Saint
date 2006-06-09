@@ -45,7 +45,7 @@ class DBRecord implements Iterator, Serviceable
 		$this->set_table($table);
 		
 		# get a ref to the dbconnection
-		$this->db = DBService::get_connection(self::get_service_id());
+		$this->db = DBService::get_connection($this->get_service_id());
 
 		if (method_exists($this, 'init')) $this->init();
 		
@@ -841,7 +841,7 @@ class DBRecord implements Iterator, Serviceable
 // ===========================================================
 // - REQUIRED FOR THE SERVICEABLE INTERFACE
 // ===========================================================
-	static public function get_service_id() {
+	public function get_service_id() {
 		return 'DBRecord';
 	}
 	

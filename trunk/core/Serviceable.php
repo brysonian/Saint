@@ -6,7 +6,7 @@
 // ===========================================================
 interface Serviceable
 {
-	static public function get_service_id();
+	public function get_service_id();
 }
 
 ?>

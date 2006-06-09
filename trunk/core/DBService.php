@@ -21,10 +21,6 @@ class DBService
 	}
 	
 	static function get_connection($serviceid) {
-#		$class = debug_backtrace();
-#		$class = '$serviceid='.$class[1]['class'].'::get_service_id();';
-#		eval($class);
-		
 		# first see if the connection exists, then return it
 		if (isset(self::$connections[$serviceid])) return self::$connections[$serviceid];
 		
@@ -86,15 +82,15 @@ class DBService
 // ===========================================================
 // - INIT
 // ===========================================================
-	static public function add_connection_for_classes($classes, $type, $dbname, $user=false, $pass=false, $host='localhost') {
+	static public function add_connections($names, $type, $dbname, $user=false, $pass=false, $host='localhost') {
 		# loop through classes and add connection for each
-		foreach($classes as $class) {
-			self::add_connection_for_class($class, $type, $dbname, $user, $pass, $host);
+		foreach($names as $name) {
+			self::add_connection($name, $type, $dbname, $user, $pass, $host);
 		}
 	}
 
-	static public function add_connection_for_class($class, $type, $dbname, $user=false, $pass=false, $host='localhost', $options=array()) {
-		self::$map[$class] = array(
+	static public function add_connection($name, $type, $dbname, $user=false, $pass=false, $host='localhost', $options=array()) {
+		self::$map[$name] = array(
 			'type'		=> $type,
 			'host'		=> $host,
 			'user'		=> $user,
@@ -105,11 +101,11 @@ class DBService
 		);
 	}
 
-	protected function set_connection($classname) {
+	protected function set_connection($name) {
 		$this->db->change_user(
-			$this->connections[$classname]['user'],
-			$this->connections[$classname]['pass'],
-			$this->connections[$classname]['dbname']
+			$this->connections[$name]['user'],
+			$this->connections[$name]['pass'],
+			$this->connections[$name]['dbname']
 		);
 	}
 }
