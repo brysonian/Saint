@@ -3,7 +3,7 @@
 class MySQLiResult
 {
 
-	var $result;
+	protected $result;
 	
 	function MySQLiResult($result) {
 		$this->result = $result;

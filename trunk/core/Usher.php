@@ -389,12 +389,12 @@ function redirect_to($args=false) {
 
 class UsherMap
 {
-	var $map				= array();
-	var $usermap		= false;
-	var $regex			= false;
-	var $hasAllCapture	= false;
-	var $defaults		= array();
-	var $requirements	= array();
+	public $map				= array();
+	public $usermap		= false;
+	public $regex			= false;
+	public $hasAllCapture	= false;
+	public $defaults		= array();
+	public $requirements	= array();
 	
  function UsherMap($map, $defaults=false, $requirements=false) {
 		$this->usermap			= $map;

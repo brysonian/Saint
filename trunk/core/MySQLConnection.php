@@ -3,13 +3,13 @@
 
 class MySQLConnection {
 
-	var $db;
-	var $host;
-	var $user;
-	var $pass;
-	var $dbname;
-	var $persistent;
-	var $last_query;
+	protected $db;
+	protected $host;
+	protected $user;
+	protected $pass;
+	protected $dbname;
+	protected $persistent;
+	public $last_query;
 
 	// ===========================================================
 	// - CONSTRUCTOR

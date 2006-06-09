@@ -2,8 +2,8 @@
 
 class MySQLResult {	
 
-	var $result;
-	var $parent;
+	protected $result;
+	protected $parent;
 	
 	function MySQLResult($result, $parent) {
 		$this->result = $result;

@@ -4,7 +4,7 @@
 class DBRecordError extends SaintException
 {
 	
-	var $query = false;
+	protected $query = false;
 
 	function __construct($message, $errorcode, $query) {
 		$this->set_query($query);
