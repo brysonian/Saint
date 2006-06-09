@@ -347,7 +347,19 @@ class ControllerCore
 	// - ERROR HANDLING
 	// ===========================================================
 	function rescue($e) {
-		echo $e->log();
+		if ($this->local_request()) {
+			echo $e->log();
+		} else {
+			$this->rescue_in_public($e);
+		}
+	}
+
+	function rescue_in_public($e) {
+		header('Location:http://'.$_SERVER['HTTP_HOST'].'/404.html');
+	}
+
+	function local_request() {
+		return ($_SERVER['REMOTE_ADDR'] == '127.0.0.1');
 	}
 }
 
