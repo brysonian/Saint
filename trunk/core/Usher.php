@@ -110,7 +110,12 @@ class Usher
 		# get the controller name
 		$cname = preg_replace('/(?:^|_)([a-zA-Z])/e', "strtoupper('\\1')", $params['controller']);
 		$cname = ucfirst($cname.'Controller');
-
+		
+		# make sure the name is a valid class name
+		if ((preg_match('|[^a-zA-Z_]|', $cname) > 0) || (preg_match('|^[^a-zA-Z_]|', $cname) > 0)) {
+			 throw new UnknownController("$cname is not a valid controller.");
+		}
+		
 		# make an instance of the controller class
 		self::$controller = new $cname;
 
