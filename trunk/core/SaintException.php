@@ -21,7 +21,7 @@ class SaintException extends Exception
 // ===========================================================
 // - logs error
 // ===========================================================
-	function log($format=false) {
+	function log($format=false, $address=false, $title='') {
 		$out = '';
 		if ($format === false) $format = self::$log_format;
 		switch ($format) {
@@ -29,8 +29,13 @@ class SaintException extends Exception
 				$out .= $this->get_message()."\n\n";
 				break;
 			
+			case 'email':
+			case 'mail':
+				$out .= $this->get_message()."\nIn ".$this->get_file()." on line ".$this->get_line()."\n\n";
+				mail($address, $title, $out);
+				break;
+
 			case 'html':
-				#$out = $this->get_html("<b>".$this->get_message()."</b><br />Occured in ".$this->get_file()." on line ".$this->get_line());
 				$out = $this->get_html();
 				break;
 			
