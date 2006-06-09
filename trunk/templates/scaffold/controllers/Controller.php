@@ -26,7 +26,7 @@ class :ObjectController extends AppController
 		try {
 			$this->:object->save();
 			redirect_to();
-		} catch (ValidationException $e) {
+		} catch (ValidationFailure $e) {
 			$this->render_view('new');
 		}
 	}
@@ -44,7 +44,7 @@ class :ObjectController extends AppController
 		try {
 			$this->:object->update(params(':object'));
 			redirect_to(array('action' => 'show', 'uid' => $this->:object->get_uid()));
-		} catch (ValidationException $e) {
+		} catch (ValidationFailure $e) {
 			$this->render_view('edit');
 		}
 	}

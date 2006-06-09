@@ -17,6 +17,7 @@
 	# user locations
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/models';
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/controllers';	
+	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/helpers';	
 	set_include_path($inc);
 
 
@@ -30,28 +31,17 @@
 	require_once (SAINT_ROOT.'/core/ControllerCore.php');
 	require_once (SAINT_ROOT.'/core/ViewFactory.php');
 	require_once (SAINT_ROOT.'/core/SaintException.php');
-	require_once (SAINT_ROOT.'/core/DBException.php');
-	require_once (SAINT_ROOT.'/core/DBDuplicateException.php');
-	require_once (SAINT_ROOT.'/core/DBRecordCollection.php');
 
 	# db classes
 	require_once (SAINT_ROOT.'/core/MySQLiConnection.php');
 	require_once (SAINT_ROOT.'/core/MySQLiResult.php');
-	
+		
 	# error codes and messages //TODO: Localize
 	require_once (SAINT_ROOT.'/error_codes.php');
 	require_once (SAINT_ROOT.'/error_messages.php');
 
-	# base application controller
+	# always need the AppController
 	require_once (PROJECT_ROOT.'/app/controllers/AppController.php');
-
-	# include all user helpers in app/helpers
-	$dirhandle=opendir(PROJECT_ROOT.'/app/helpers');
-	while (($file = readdir($dirhandle))!==false) {
-		if ($file{0} == '.') continue;
-		require_once (PROJECT_ROOT.'/app/helpers/'.$file);
-	}
-	closedir($dirhandle);
 
 
 
@@ -94,8 +84,8 @@
 	require_once (PROJECT_ROOT."/config/database.php");
 	
 	# DB SERVICE
-	DBService::add_connection_for_classes(
-		array('DBRecord'), 'mysqli', $db_name, $user, $pass, $host, isset($db_options)?$db_options:array());
+	DBService::add_connection(
+		'DBRecord', 'mysqli', $db_name, $user, $pass, $host, isset($db_options)?$db_options:array());
 
 
 	# clear DB setup vars
@@ -111,25 +101,27 @@
 // - ERRORS
 // ===========================================================
 	function saint_error_handler($errno, $errstr, $errfile, $errline) {
-#		global $redirect_on_error;
 		$l = ob_get_level();
 		while($l--) ob_end_clean();
-		$e = new SaintException($errstr, $errno, $errfile, $errline);
 		
 		# manually attempt to close all db connections
 		DBService::close();
-		
-		if (!defined('REDIRECT_ON_ERROR')) {
-			die($e->log());
-		} if (REDIRECT_ON_ERROR == '404') {
-			header("Status: 404 Not Found");
-			die();
-		} else {
-			header('Location: '.REDIRECT_ON_ERROR);
-			die();
-		}
+		$e = new InvalidStatement($errstr, $errno, $errfile, $errline);
+		Usher::handle_error($e);
+		exit;
 	}
 	set_error_handler('saint_error_handler');
+
+	function saint_exception_handler($e) {
+		$l = ob_get_level();
+		while($l--) ob_end_clean();
+		
+		# manually attempt to close all db connections
+		DBService::close();
+		Usher::handle_error($e);
+		exit;
+	}
+	set_exception_handler('saint_exception_handler');
 
 
 
@@ -160,14 +152,16 @@ if (function_exists('date_default_timezone_set')) {
 		$class_name = ucfirst($class_name);
 
 		# if it's a controller, make sure it exists
-		# this is handy if people ask for a non-existent controller
 		if (strpos($class_name, 'Controller') !== false) {
 			$ok = file_exists(PROJECT_ROOT."/app/controllers/$class_name.php");
-			if(!$ok) {			
-				trigger_error("No class with the name $class_name could be found.");
+			if(!$ok) {
+				# php is dumb so you can throw from inside autoload, to fix this we
+				# make a dummy class that throws the error in the constructor
+				# note this won't work for static methods
+				eval("class $class_name {function __construct() {throw new UnknownController('No controller with the name ".str_replace('Controller', '', $class_name)." could be found.');}}");
+				return;
 			}
-		}
-				
+		}				
 		require_once("$class_name.php");
 	}
 

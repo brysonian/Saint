@@ -1,5 +1,5 @@
 <?php
 	
-	# optional vars
+	define('DEBUG', 1);
 
 ?>

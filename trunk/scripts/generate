@@ -119,11 +119,7 @@
 	function create_controller($name, $scafolding=false) {
 		$mname = ucfirst($name);
 		$cname = $mname.'Controller';
-		if ($scafolding) {
-			$code = "<?php\n\nclass $cname extends AppController\n{\n\tfunction _index() {\n\t\t\$this->items = $mname::find_all();\n\t}\n\n\tfunction _show() {\n\t\t\$this->item = $mname::find(params('uid'));\n\t}\n\n\tfunction _new() {}\n\n\tfunction _create() {\n\t\t\$obj = new $mname();\n\n\t\tforeach(\$_POST as \$k => \$v) {\n\t\t\tif (\$k == 'submit') continue;\n\t\t\tif (!empty(\$v)) \$obj->\$k = \$v;\n\t\t}\n\t\ttry {\n\t\t\t\$obj->save();\n\t\t\tredirect_to(false);\n\t\t} catch (ValidationException \$e) {\n\t\t\tdie((\$e->log()));\n\t\t}\n\t}\n\n\n}\n\n?>";
-		} else {
-			$code = "<?php\n\nclass $cname extends AppController\n{\n\t\n}\n\n?>";
-		}
+		$code = "<?php\n\nclass $cname extends AppController\n{\n\t\n}\n\n?>";
 		write_script('app/controllers', $cname, $code);
 	}
 	

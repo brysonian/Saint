@@ -16,13 +16,12 @@
 	</head>
 
 	<body>
-		<h1><?php echo $msg; ?></h1>
+		<h1><?php echo $type; ?> Error</h1>
 		
 		<p>
 			<b><?php echo $msg; ?></b><br />
-			Occurred in <?php echo $file; ?> on line <?php echo $line; ?>
+			<!--Occurred in <?php echo $file; ?> on line <?php echo $line; ?>-->
 		</p>
-		<? if(defined('DEBUG') && DEBUG): ?>		
 		<h2>Trace</h2>
 		<ul>
 			<?php echo $trace; ?>
@@ -30,7 +29,6 @@
 
 		<h2>Request</h2>
 		<p><?php var_export(params()); ?></p>
-		<? endif; ?>
 	</body>
 </html>
 
