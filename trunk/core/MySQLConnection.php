@@ -38,11 +38,11 @@ class MySQLConnection {
 		
 		# make sure we conneted
 		if (!$this->db)
-			throw new DBException("Failed to connect to mysql.\n".mysql_error(), mysql_errno(), '');
+			throw new MySQLConnectionFailure("Failed to connect to mysql.\n".mysql_error(), mysql_errno(), '');
 		
 		# choose our db
 		if (!mysql_select_db($this->dbname)) {
-			throw new DBException('Failed to select database '.$this->dbname.".\n".mysql_error(), mysql_errno(), '');
+			throw new MySQLDatabaseSelectionFailure('Failed to select database '.$this->dbname.".\n".mysql_error(), mysql_errno(), '');
 		}
 		
 	}
@@ -107,5 +107,12 @@ class MySQLConnection {
 		if ($this->db && !$this->persistent) mysql_close($this->db);
 	}
 }
+
+// ===========================================================
+// - EXCEPTIONS
+// ===========================================================
+class MySQLConnectionFailure extends DBRecordError {}
+class MySQLDatabaseSelectionFailure extends DBRecordError {}
+
 
 ?>

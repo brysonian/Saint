@@ -28,7 +28,7 @@ class ViewFactory
 				break;
 				
 			default:
-				throw(new SaintException("ViewFactory doesn't know what view object to use for ".$tempinfo['file']."."));
+				throw(new UnknownViewType("ViewFactory doesn't know how to use a ".$tempinfo['file']." file."));
 
 		}
 		return $the_view;
@@ -62,9 +62,15 @@ class ViewFactory
 				);
 	
 			default:
-				throw(new SaintException("No html, xml, or xsl template was found at $template."));
+				throw(new MissingTemplate("No recognizable template was found at $template."));
 		}
 	}
 }
+
+// ===========================================================
+// - EXTENSIONS
+// ===========================================================
+class UnknownViewType extends SaintException {}
+class MissingTemplate extends SaintException {}
 
 ?>

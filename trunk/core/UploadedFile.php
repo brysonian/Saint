@@ -43,7 +43,7 @@ class UploadedFile
 	function __construct($path, $name, $mime, $err, $size) {
 		
 		# make sure it was uploaded
-		if (!is_uploaded_file($path)) throw new SaintException("File is not a valid uploaded file", INVALID_UPLOADED_FILE);
+		if (!is_uploaded_file($path)) throw new NotUploadedFile("File is not a valid uploaded file.");
 		
 		# set params
 		$this->set_path($path);
@@ -152,10 +152,10 @@ class UploadedFile
 	*/
 	function move_to($path, $newname=false, $force=false) {
 		# first see if the dir exists
-		if (!file_exists($path)) throw new SaintException("The path ".$path." does not seem to exist.", PATH_DOESNT_EXIST);
+		if (!file_exists($path)) throw new InvalidPath("The path ".$path." does not seem to exist.");
 
 		# now see if i can write to it
-		if (!is_writable($path)) throw new SaintException("Cannot write to the directory ".$path.".", PATH_NOT_WRITABLE);
+		if (!is_writable($path)) throw new WritePermission("Cannot write to the directory ".$path.".");
 
 		# if no newname is specified, set newname to the original name
 		if ($newname == false) $newname = $this->get_filename();
@@ -179,7 +179,7 @@ class UploadedFile
 			chmod ($path.$newname, 0775);
 			$this->set_path($path.$newname);
 		} else {
-			throw new SaintException("There was a problem moving the file ".$this->get_name()." to the directory $path.", 0);
+			throw new FileMove("There was a problem moving the file ".$this->get_name()." to the directory $path.");;
 		}
 		return true;
 	}
@@ -199,7 +199,7 @@ class UploadedFile
 	function resize($width, $height, $path, $output_type='jpg') {
 		# make sure GD is installed
 		if (!function_exists('gd_info')) 
-			throw new SaintException("GD is required to resize image.", 0);
+			throw new GDMissing("GD is required to resize image.", 0);
 			
 		if ($this->is_jpeg()) {
 			$src_img = @imagecreatefromjpeg($this->get_path());
@@ -212,7 +212,7 @@ class UploadedFile
 			imagealphablending($src_img, false); 
 			imagesavealpha($src_img,true);
 		} else {
-			throw new SaintException("File is not a resizable format.", 0);
+			throw new FormatNotResizable("File is not a resizable format.", 0);
 		}
 
 		$dst_img = imagecreatetruecolor($width,$height);
@@ -258,5 +258,15 @@ class UploadedFile
 		return $this->path;
 	}
 }
+
+// ===========================================================
+// - EXCEPTIONS
+// ===========================================================
+class InvalidPath extends SaintException {}
+class WritePermission extends SaintException {}
+class NotUploadedFile extends SaintException {}
+class FileMove extends SaintException {}
+class GDMissing extends SaintException {}
+class FormatNotResizable extends SaintException {}
 
 ?>

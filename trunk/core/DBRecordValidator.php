@@ -36,7 +36,7 @@ class DBRecordValidator {
 // ===========================================================
 	public function errors() {
 		if (!empty($this->errors)) 
-			return new ValidationException($this->errors, $this->parent_class);
+			return new ValidationFailure($this->errors, get_class($this->parent_class));
 		
 		return false;
 	}

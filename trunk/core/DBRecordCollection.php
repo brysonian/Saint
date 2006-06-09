@@ -169,7 +169,7 @@ class DBRecordCollection implements Iterator
 
 			# check result
 			if ($this->result === false) {
-				throw(new DBException("Error loading ".__CLASS__.".\n".$this->db->error(), 0, $this->query.$this->limit));
+				throw new DBRecordError("Error loading ".get_class($this->model).".\n".$this->db->error(), 0, $this->query.$this->limit);
 			}
 			$this->loaded = true;
 		}

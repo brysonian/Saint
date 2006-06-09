@@ -49,12 +49,12 @@ class ControllerCore
 		# make sure the method exists
 		if (!method_exists($this, $the_method)) {
 			# if it doesn't, look for default
-			if (method_exists($this, '_index')) {
+			if (false && method_exists($this, '_index')) {
 				$the_method = '_index';
 			} else {
 				# if that's no good
-				# cause an error
-				throw(new SaintException("Invalid action ".substr($the_method,1).".", 0));
+				# throw an error
+				throw new InvalidAction(ucfirst(get_class($this))." does not have an action named ".substr($the_method,1).".", 0);
 			}
 		}
 		
@@ -171,7 +171,7 @@ class ControllerCore
 		$ok = fwrite($fp, $data);
 		fclose($fp);
 		if (!$ok) {
-			throw(new SaintException("Failed to write cache file to: ".$mkdir.'/'.$file.".", 0));
+			throw new CacheWrite("Failed to write cache file to: $mkdir/$file.");
 		}
 		return true;
 	}
@@ -342,6 +342,13 @@ class ControllerCore
 	function  get_before_filter_exceptions() { return $this->before_filter_exceptions; }
 	function  get_after_filter_exceptions() { return $this->after_filter_exceptions; }
 }
+
+
+// ===========================================================
+// - EXCEPTIONS
+// ===========================================================
+class InvalidAction	extends SaintException {}
+class CacheWrite		extends SaintException {}
 
 
 ?>

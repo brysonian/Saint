@@ -29,7 +29,8 @@ class DBService
 		if (isset(self::$connections[$serviceid])) return self::$connections[$serviceid];
 		
 		# make sure this id has an entry
-		if (!array_key_exists($serviceid, self::$map)) throw new RopeException('No connection with id: "'.$serviceid.'" found', 666);
+		if (!array_key_exists($serviceid, self::$map))
+			throw new UnknownServiceId('No connection found for '.$serviceid.'.');
 
 		# indicate that the connection exists
 		self::$map[$serviceid]['set'] = true;
@@ -114,6 +115,10 @@ class DBService
 }
 
 
+// ===========================================================
+// - EXCEPTIONS
+// ===========================================================
+class UnknownServiceId extends SaintException {}
 
 
 ?>

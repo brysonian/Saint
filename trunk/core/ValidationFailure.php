@@ -1,7 +1,7 @@
 <?php
 
 
-class ValidationException extends SaintException
+class ValidationFailure extends SaintException
 {	
 	public $errors;
 	public $code;

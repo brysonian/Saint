@@ -57,7 +57,7 @@ class Usher
 		$params = $u->match_url($url);
 
 		# if no match was found, show the error
-		if (!$params) throw(new SaintException("No mapping was found for &quot;$url&quot;.", NOMAP));
+		if (!$params) throw new NoValidMapping("No mapping was found for &quot;$url&quot;.", NOMAP);
 
 		# add request to params and make sure magic quotes are dealt with
 		unset($_REQUEST['MAX_FILE_SIZE']);
@@ -103,11 +103,7 @@ class Usher
 		$cname = ucfirst($cname.'Controller');
 
 		# make an instance of the controller class
-		$controller = &new $cname;
-
-		# include the right class for this controller
-		#__autoload(ucfirst($params['controller']));
-
+		$controller = new $cname;
 	
 		# set the method name
 		$action = '_'.$params['action'];
@@ -497,6 +493,12 @@ class UsherMap
 	}
 }
 
+
+// ===========================================================
+// - EXCEPTIONS
+// ===========================================================
+class NoValidMapping extends SaintException {}
+class UnknownController extends SaintException {}
 
 
 ?>

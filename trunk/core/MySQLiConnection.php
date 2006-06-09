@@ -35,7 +35,7 @@ class MySQLiConnection
 
 		# make sure we conneted
 		if (mysqli_connect_errno())
-			throw new DBException("Failed to connect to mysql.\n".$this->db->error, $this->db->errno, '');		
+			throw new MySQLiConnectionFailure("Failed to connect to mysql.\n".$this->db->error, $this->db->errno, '');
 		
 	}
 	
@@ -119,5 +119,11 @@ class MySQLiConnection
 		$this->close();
 	}
 }
+
+// ===========================================================
+// - EXCEPTIONS
+// ===========================================================
+class MySQLiConnectionFailure extends SaintException {}
+
 
 ?>

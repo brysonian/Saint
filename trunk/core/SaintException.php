@@ -66,6 +66,7 @@ class SaintException extends Exception
 // - ERROR HTML
 // ===========================================================
 	function get_html() {
+		$type = get_class($this);
 		$msg = nl2br($this->get_message());
 		$file = $this->get_file();
 		$line = $this->get_line();
@@ -78,6 +79,8 @@ class SaintException extends Exception
 	}
 
 }
+
+class InvalidStatement extends SaintException {}
 
 
 

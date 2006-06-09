@@ -67,14 +67,14 @@ class DBRecord implements Iterator, Serviceable
 	// for id
 	function get_id()		{ return isset($this->id)?$this->id:false; }
 	function set_id($anId)	{ 
-		if (!is_numeric($anId)  && $anId !== false) throw(new SaintException("Invalid ID.", 0));
+		if (!is_numeric($anId)  && $anId !== false) throw new InvalidId("$anId is not a valid id.");
 		$this->id = $anId; 
 	}
 
 	// for uid
 	function get_uid()		{ return isset($this->uid)?$this->uid:false; }
 	function set_uid($aUid)	{
-		if (strlen($aUid) != 32 && $aUid !== false) throw(new SaintException("Invalid UID.", 0));
+		if (strlen($aUid) != 32 && $aUid !== false) throw new InvalidUid("$aUid is not a valid uid.");
 		$this->uid = $aUid; 
 	}
 
@@ -231,16 +231,8 @@ class DBRecord implements Iterator, Serviceable
 		# validate the data
 		$this->validate_builtins();
 		$this->validate();
-		if ($this->errors()) {
-			$file = false;
-			$line = false;
-			
-			$db = debug_backtrace();
-			if (array_key_exists(1, $db)) {
-				if (array_key_exists("file", $db[1])) $file = $db[1]['file'];
-				if (array_key_exists("line", $db[1])) $line = $db[1]['line'];
-			}
-			throw new ValidationException($this->errors()->errors, get_class($this), VALIDATION_ERROR, $file, $line);
+		if ($this->validation_errors()) {
+			throw $this->validation_errors();
 		}
 
 
@@ -271,9 +263,9 @@ class DBRecord implements Iterator, Serviceable
 			$this->set_id($this->db->insert_id());
 		} else {
 			if ($this->db->errno() == DUPLICATE_ENTRY) {
-				throw(new DBDuplicateException($this->db->error(), $this->db->errno(), $sql));
+				throw new DuplicateRecord($this->db->error(), $this->db->errno(), $sql);
 			} else {
-				throw(new DBException("Database error while attempting to create record.\n".$this->db->error(), $this->db->errno(), $sql));
+				throw new DBRecordError("Database error while attempting to create record.\n".$this->db->error(), $this->db->errno(), $sql);
 			}
 		}
 	}
@@ -287,16 +279,8 @@ class DBRecord implements Iterator, Serviceable
 		# validate the data
 		$this->validate_builtins();
 		$this->validate();
-		if ($this->errors()) {
-			$file = false;
-			$line = false;
-			
-			$db = debug_backtrace();
-			if (array_key_exists(1, $db)) {
-				if (array_key_exists("file", $db[1])) $file = $db[1]['file'];
-				if (array_key_exists("line", $db[1])) $line = $db[1]['line'];
-			}
-			throw new ValidationException($this->errors()->errors, get_class($this), VALIDATION_ERROR, $file, $line);
+		if ($this->validation_errors()) {
+			throw $this->validation_errors();
 		}
 
 		$sql = "UPDATE `".$this->get_table()."` SET ";
@@ -317,7 +301,7 @@ class DBRecord implements Iterator, Serviceable
 
 		$result = $this->db->query($sql);
 		if (!$result) {
-			throw(new DBException("Database error while attempting to update record.\n".$this->db->error(), $this->db->errno(), $sql));
+			throw new DBRecordError("Database error while attempting to update record.\n".$this->db->error(), $this->db->errno(), $sql);
 		}
 	}
 
@@ -325,7 +309,7 @@ class DBRecord implements Iterator, Serviceable
 
 	function delete() {
 		if (!($this->get_id() || $this->get_uid())) {
-			throw(new SaintException("You must define an ID or UID to delete an item", 666));			
+			throw new MissingIdentifier("You must define an id or uid to delete an item.");			
 		}
 			
 		$sql = "DELETE FROM `".$this->get_table()."` WHERE ";
@@ -333,7 +317,7 @@ class DBRecord implements Iterator, Serviceable
 		
 		$result = $this->db->query($sql);
 		if (!$result) {
-			throw(new DBException("Error deleting ".__CLASS__.".\n".$this->db->error(), $this->db->errno(), $sql));
+			throw new RecordDeletionError("Error deleting ".get_class($this).".\n".$this->db->error(), $this->db->errno(), $sql);
 		}
 		
 	}
@@ -353,7 +337,7 @@ class DBRecord implements Iterator, Serviceable
 // ===========================================================
 // - EXECUTE THE VALIDATION
 // ===========================================================
-	public function errors() {
+	public function validation_errors() {
 		if ($this->validator) return $this->validator->errors();
 		return false;
 	}
@@ -402,7 +386,7 @@ class DBRecord implements Iterator, Serviceable
 		$c = array();
 		preg_match('|([a-zA-Z0-9_]+)'.$db[$i]['type'].$db[$i]['function'].'.*|', $file[$line], $c);
 		if (empty($c)) {
-			throw new SaintException("DBRecord couldn't figure out the correct class for this static call.\nTry specifying it as a string for the last argument of the method.", 0);
+			throw new AmbiguousClass("DBRecord couldn't figure out the correct class for this static call.\nTry specifying it as an argument.");
 		}
 		return $c[1];
 	}
@@ -492,7 +476,7 @@ class DBRecord implements Iterator, Serviceable
 		} else if ($this->get_uid()) {
 			$where .= '`'.$this->get_table()."`.uid='".$this->get_uid()."'";
 		} else {
-			throw(new SaintException("You must define a ID or UID to load an object.", 0));
+			throw new MissingIdentifier("You must define an id or uid to load an object.");
 		}
 
 		# set the where clause
@@ -506,7 +490,7 @@ class DBRecord implements Iterator, Serviceable
 
 		# process results
 		if (!$result) {
-			throw(new DBException("Error loading ".__CLASS__.".\n".$this->db->error(), 0, $sql));
+			throw new DBRecordError("Error loading ".get_class($this).".\n".$this->db->error(), 0, $sql);
 		} else {
 			if ($row = $result->fetch_assoc()) {				
 				do {
@@ -514,7 +498,7 @@ class DBRecord implements Iterator, Serviceable
 				} while ($row = $result->fetch_assoc());
 				$result->free();
 			} else {
-				throw(new SaintException("Nothing found with id: ".$this->get_id()." or uid: ".$this->get_uid().".\n", 0));
+				throw new RecordNotFound('Nothing found with '.($this->get_uid()?'a uid of'.$this->get_uid():'an id of'.$this->get_id()).'.');
 			}
 		}
 		$this->loaded = true;
@@ -547,7 +531,7 @@ class DBRecord implements Iterator, Serviceable
 
 		# process results
 		if (!$result) {
-			throw(new DBException("Query Failed .\n".$this->db->error(), $this->db->errno(), $sql));
+			throw new DBRecordError("Query Failed .\n".$this->db->error(), $this->db->errno(), $sql);
 		} else if ($result !== true) {
 			$result->free();
 		}
@@ -1028,5 +1012,16 @@ class DBRecord implements Iterator, Serviceable
 		));
 	}
 }
+
+
+// ===========================================================
+// - EXCEPTIONS
+// ===========================================================
+class InvalidId extends SaintException {}
+class InvalidUid extends SaintException {}
+class MissingIdentifier extends SaintException {}
+class RecordNotFound extends SaintException {}
+class AmbiguousClass extends SaintException {}
+
 
 ?>

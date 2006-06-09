@@ -6,7 +6,7 @@
 class XSLTView extends ViewCore
 {
 	
-	var $params = array();
+	protected $params = array();
 
 
 	function XSLTView($template) {
