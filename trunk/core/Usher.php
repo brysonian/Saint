@@ -66,7 +66,7 @@ class Usher
 		$params = $u->match_url($url);
 
 		# if no match was found, show the error
-		if (!$params) throw new NoValidMapping("No mapping was found for &quot;$url&quot;.", NOMAP);
+		if (!$params) throw new NoValidMapping("No mapping was found for &quot;$url&quot;.");
 
 		# add request to params and make sure magic quotes are dealt with
 		unset($_REQUEST['MAX_FILE_SIZE']);
