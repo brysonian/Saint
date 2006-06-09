@@ -20,7 +20,7 @@ class DBRecordError extends SaintException
 	function get_query() { return $this->query; }
 	function set_query($q) { $this->query = $q; }
 	function get_message() {
-		return parent::get_message()."<code>".$this->get_query()."<code>";
+		return parent::get_message()."\n<code>".$this->get_query()."<code>";
 	}
 }
 
