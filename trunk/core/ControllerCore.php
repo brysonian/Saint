@@ -341,6 +341,14 @@ class ControllerCore
 
 	function  get_before_filter_exceptions() { return $this->before_filter_exceptions; }
 	function  get_after_filter_exceptions() { return $this->after_filter_exceptions; }
+	
+	
+	// ===========================================================
+	// - ERROR HANDLING
+	// ===========================================================
+	function rescue($e) {
+		echo $e->log();
+	}
 }
 
 

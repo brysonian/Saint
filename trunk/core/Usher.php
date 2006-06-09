@@ -9,6 +9,7 @@ class Usher
 
 	static private	$instance = false;
 	static public $params;
+	static public $controller = false;
 	
 	# singleton
 	static function get_instance() {
@@ -29,6 +30,14 @@ class Usher
 	
 	function get_base() {
 		return $this->base?$this->base:'/';
+	}
+
+	/**
+		get the controller used in the current request
+		@return (ControllerCore) 
+	**/
+	static public function controller() {
+		return self::$controller;
 	}
 	
 	
@@ -52,64 +61,73 @@ class Usher
 	* start hand off to the controller
 	*/
 	static function handle_url($url) {
-		$u = Usher::get_instance();
+		try {
+			$u = Usher::get_instance();
 
-		$params = $u->match_url($url);
+			$params = $u->match_url($url);
 
-		# if no match was found, show the error
-		if (!$params) throw new NoValidMapping("No mapping was found for &quot;$url&quot;.", NOMAP);
+			# if no match was found, show the error
+			if (!$params) throw new NoValidMapping("No mapping was found for &quot;$url&quot;.", NOMAP);
 
-		# add request to params and make sure magic quotes are dealt with
-		unset($_REQUEST['MAX_FILE_SIZE']);
-		foreach($_POST as $k => $v) {
-			if (!array_key_exists($k, $params)) {
-				$gpc = (get_magic_quotes_gpc() == 1);
-				if (is_array($v)) {
-					$params[$k] = array();
-					foreach($v as $k2 => $v2) {
-						$params[$k][$k2] = ($gpc)?stripslashes($v2):$v2;
+			# add request to params and make sure magic quotes are dealt with
+			unset($_REQUEST['MAX_FILE_SIZE']);
+			foreach($_POST as $k => $v) {
+				if (!array_key_exists($k, $params)) {
+					$gpc = (get_magic_quotes_gpc() == 1);
+					if (is_array($v)) {
+						$params[$k] = array();
+						foreach($v as $k2 => $v2) {
+							$params[$k][$k2] = ($gpc)?stripslashes($v2):$v2;
+						}
+					} else {
+						$params[$k] = ($gpc)?stripslashes($v):$v;
 					}
-				} else {
-					$params[$k] = ($gpc)?stripslashes($v):$v;
 				}
 			}
-		}
 
-		foreach($_GET as $k => $v) {
-			if (!array_key_exists($k, $params)) {
-				$gpc = (get_magic_quotes_gpc() == 1);
-				if (is_array($v)) {
-					$params[$k] = array();
-					foreach($v as $k2 => $v2) {
-						$params[$k][$k2] = ($gpc)?stripslashes($v2):$v2;
+			foreach($_GET as $k => $v) {
+				if (!array_key_exists($k, $params)) {
+					$gpc = (get_magic_quotes_gpc() == 1);
+					if (is_array($v)) {
+						$params[$k] = array();
+						foreach($v as $k2 => $v2) {
+							$params[$k][$k2] = ($gpc)?stripslashes($v2):$v2;
+						}
+					} else {
+						$params[$k] = ($gpc)?stripslashes($v):$v;
 					}
-				} else {
-					$params[$k] = ($gpc)?stripslashes($v):$v;
 				}
 			}
-		}
 
-		# add files to params and make sure magic quotes are dealt with		
-		foreach($_FILES as $k => $v) {
-			if (!array_key_exists($k, $params)) $params[$k] = array();
-			$params[$k] = array_merge($params[$k], UploadedFile::create($v));
-		}
+			# add files to params and make sure magic quotes are dealt with		
+			foreach($_FILES as $k => $v) {
+				if (!array_key_exists($k, $params)) $params[$k] = array();
+				$params[$k] = array_merge($params[$k], UploadedFile::create($v));
+			}
 		
-		# save the params
-		self::$params = $params;
+			# save the params
+			self::$params = $params;
 
-		# get the controller name
-		$cname = preg_replace('/(?:^|_)([a-zA-Z])/e', "strtoupper('\\1')", $params['controller']);
-		$cname = ucfirst($cname.'Controller');
+			# get the controller name
+			$cname = preg_replace('/(?:^|_)([a-zA-Z])/e', "strtoupper('\\1')", $params['controller']);
+			$cname = ucfirst($cname.'Controller');
 
-		# make an instance of the controller class
-		$controller = new $cname;
+			# make an instance of the controller class
+			self::$controller = new $cname;
 	
-		# set the method name
-		$action = '_'.$params['action'];
+			# set the method name
+			$action = '_'.$params['action'];
 
-		# tell the controller to execute the action
-		$controller->execute($action);
+			# tell the controller to execute the action
+			self::$controller->execute($action);
+
+		} catch (Exception $e) {
+			if (!self::$controller) self::$controller = new AppController;			
+			if (!($e instanceof SaintException))
+				$e = new SaintException($e->getMessage(), $e->getCode());
+				
+			self::$controller->rescue($e);
+		}
 	}
 	
 	/**
