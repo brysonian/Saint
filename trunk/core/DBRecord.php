@@ -375,6 +375,12 @@ class DBRecord implements Iterator, Serviceable
 // this is one way to find the class name
 	static function get_class_from_backtrace() {
 		$db = debug_backtrace();
+		
+		# if the last item is a call_user_func call, then this is easy
+		if ($db[2]['function'] == 'call_user_func') {
+			return $db[2]['args'][0][0];
+		}
+		
 		$i = 1;
 		$file = file($db[$i]['file']);
 		$line = $db[$i]['line']-1;
@@ -442,6 +448,23 @@ class DBRecord implements Iterator, Serviceable
 		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
 		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
 		$m->set_where("`$field` = '".$m->escape_string($value)."'");
+		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
+		return $sibs;
+	}
+
+	// handy shortcut to find_where for use on all searchable fields
+	static function find_by_all($value, $options=array(), $class=false) {
+		$class = $class?$class:self::get_class_from_backtrace();
+		$m = new $class;
+		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
+		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
+		$o = $m->table_info();
+		$sql = array();
+		foreach($o['order'] as $k => $v) {
+			if (strpos($k, 'id') !== false) continue;
+			$sql[] = ' `'.$m->get_table().'`.'.$k." LIKE '".$m->escape_string($value)."'";
+		}
+		$m->set_where(join(' OR ', $sql));
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
 		return $sibs;
 	}
