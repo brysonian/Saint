@@ -402,7 +402,7 @@ class DBRecord implements Iterator, Serviceable
 		$c = array();
 		preg_match('|([a-zA-Z0-9_]+)'.$db[$i]['type'].$db[$i]['function'].'.*|', $file[$line], $c);
 		if (empty($c)) {
-			throw new AmbiguousClass("DBRecord couldn't figure out the correct class for this static call.\nTry specifying it as an argument.");
+			throw new AmbiguousClass("Couldn't determine the correct class for this static call.\nTry specifying it as an argument.");
 		}
 		return $c[1];
 	}
