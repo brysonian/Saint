@@ -165,8 +165,14 @@ class DBRecord implements Iterator, Serviceable
 	// set
 	function set($prop, $val) { $this->__set($prop, $val); }
 	function __set($prop, $val) {
+		# make sure it isn't in the to-ones
 		if (is_null($val)) {
 			unset($this->data[$prop]);
+
+		} else if (is_array($this->to_one) && array_key_exists($prop, $this->to_one)) {
+			if (!$val->get_uid()) $val->save();
+			$this->data[$prop.'_uid'] = $val->get_uid();
+
 		} else {
 			$this->data[$prop] = $val;
 		}
@@ -330,7 +336,11 @@ class DBRecord implements Iterator, Serviceable
 		if (strpos($method, 'validates_') !== false) {
 			if (!$this->validator) $this->validator = new DBRecordValidator($this);
 			call_user_func_array(array($this->validator, $method), $args);
+
+		} else if (strpos($method, 'add_') !== false) {
+			$this->add_to_many_object(str_replace('add_', '', $method), $args);
 		}
+		
 	}
 
 	
@@ -775,7 +785,24 @@ class DBRecord implements Iterator, Serviceable
 		$this->has_many($class);		
 	}
 
-
+	protected function add_to_many_object($class, $value) {
+		$table = $this->get_table_from_classname($class);
+		
+		# search in habtm
+		if (array_key_exists($table, $this->habtm)) {
+			$table = $this->habtm[$table];
+			foreach($value as $k => $v) {
+				$this->exec("INSERT INTO $table VALUES('".$this->get_uid()."', '".$v->get_uid()."')");
+			}
+		} else if (array_key_exists($table, $this->to_many)) {
+			$class = $this->to_many_class[$table];
+			$uidprop = $this->get_table().'_uid';
+			foreach($value as $k => $v) {
+				$v->$uidprop = $this->get_uid();
+				$v->save();
+			}
+		}
+	}
 
 
 // ===========================================================

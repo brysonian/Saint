@@ -136,6 +136,11 @@ class ControllerCore
 		call_user_func(array($this, "_{$action}"));
 	}
 
+	// reference to redirect_to
+	function redirect_to($args=false) {
+		redirect_to($args);
+	}
+
 
 // ===========================================================
 // - CACHE
