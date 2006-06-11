@@ -37,7 +37,6 @@
 	require_once (SAINT_ROOT.'/core/MySQLiResult.php');
 		
 	# error codes and messages //TODO: Localize
-	require_once (SAINT_ROOT.'/error_codes.php');
 	require_once (SAINT_ROOT.'/error_messages.php');
 
 	# always need the AppController
