@@ -34,7 +34,7 @@ class SaintException extends Exception
 				ob_start();				
 				echo $this->get_message();
 				echo "\nFor URL: ".$_SERVER['REQUEST_URI']."\n\n";
-				echo "With Requst:";
+				echo "With Reqeust:";
 				var_export(params());
 				echo "\n\n";
 				echo "In ".$this->get_file()." on line ".$this->get_line()."\n";
