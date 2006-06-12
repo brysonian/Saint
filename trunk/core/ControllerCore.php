@@ -34,12 +34,17 @@ class ControllerCore
 		$this->data = array();
 
 		# call if there is an init() method in the App class
-		$m = get_class_methods('AppController');
-		if (in_array('init', $m)) AppController::init();
+		#$m = get_class_methods('AppController');
+		#if (in_array('init', $m)) AppController::init();
+		AppController::init();
 		
 		# if there is an init method, call it		
-		if (method_exists($this, 'init')) $this->init();		
+		#if (method_exists($this, 'init')) $this->init();
+		$this->init();
 	}
+	
+	# just overridden
+	function init() {}
 	
 
 // ===========================================================
