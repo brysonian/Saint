@@ -227,7 +227,7 @@ class ControllerCore
 	// get a view using the template
 	// this is the only method that returns an actual view object
 	function  get_view($template) {
-		return ViewFactory::make_view($template);
+		return ViewFactory::make_view(strtolower($template));
 	}
 
 	// get a view object using the specified action
