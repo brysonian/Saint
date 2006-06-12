@@ -6,10 +6,10 @@ RewriteBase /
 
 
 ### any slash, followed by a "_" , do nothing, and stop.
-RewriteRule  /_ [L]
+RewriteRule  ^/_ [L]
 
 ### same with favicon
-RewriteRule  ^.*\.ico [L]
+RewriteRule  ^/favicon.ico [L]
 
 ### if the requested item exists, use it.
 RewriteCond %{REQUEST_FILENAME} -f
