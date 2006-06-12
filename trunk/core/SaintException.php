@@ -31,8 +31,14 @@ class SaintException extends Exception
 			
 			case 'email':
 			case 'mail':
-				$out .= $this->get_message()."\nIn ".$this->get_file()." on line ".$this->get_line()."\n\n";
-				mail($address, $title, $out);
+				ob_start();				
+				echo $this->get_message();
+				echo "\nFor URL: ".$_SERVER['REQUEST_URI']."\n\n";
+				echo "With Requst:";
+				var_export(params());
+				echo "\n\n";
+				echo "In ".$this->get_file()." on line ".$this->get_line()."\n";
+				mail($address, $title.': '.get_class($this).' Error', ob_get_clean());
 				break;
 
 			case 'html':
