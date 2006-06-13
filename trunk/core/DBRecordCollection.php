@@ -51,7 +51,7 @@ class DBRecordCollection implements Iterator
 			$this->limit = '';
 		} else {
 			if ($max) {
-				$this->limit = " LIMIT $min".($max?', '.($max*2):'');
+				$this->limit = " LIMIT $min".($max?', '.($max*10):'');
 			}
 		}
 	}
@@ -89,8 +89,7 @@ class DBRecordCollection implements Iterator
 		
 		# check for limits
 		if ($this->max) {
-			if ($this->current >= $this->max) $this->valid = false;
-			$this->current++;
+			if ($this->current >= $this->max) {$this->valid = false;}
 			$this->num_objects = $this->current;
 		}
 		return $this->valid;
@@ -108,7 +107,7 @@ class DBRecordCollection implements Iterator
 				break;
 			}
 		} while(true);
-		
+		$this->current++;
 		return $themodel;
 	}
 
@@ -160,9 +159,15 @@ class DBRecordCollection implements Iterator
 // ===========================================================
 // - DB RELATED
 // ===========================================================
+	function reload() {
+		$this->loaded = false;
+		$this->result = false;
+		$this->load();
+	}
+	
 	// load all entries from the DB
-	function load($force=false) {
-		if ($this->loaded && !$force && $this->result) {
+	function load() {
+		if ($this->loaded && $this->result) {
 			$this->result->data_seek(0);
 		} else {
 			$this->result = $this->db->query($this->query.$this->limit);
