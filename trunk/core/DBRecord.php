@@ -353,7 +353,12 @@ class DBRecord implements Iterator, Serviceable
 // ===========================================================
 // - EXECUTE THE VALIDATION
 // ===========================================================
-	public function validation_errors() {
+	// validation errors is internal
+	public function errors() {
+		return $this->validation_errors();
+	}
+
+	protected function validation_errors() {
 		if ($this->validator) return $this->validator->errors();
 		return false;
 	}
@@ -1083,6 +1088,8 @@ class InvalidUid extends SaintException {}
 class MissingIdentifier extends SaintException {}
 class RecordNotFound extends SaintException {}
 class AmbiguousClass extends SaintException {}
+class RecordDeletionError extends DBRecordError {}
+class DuplicateRecord extends DBRecordError {}
 
 
 // ===========================================================
