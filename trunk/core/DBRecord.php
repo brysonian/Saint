@@ -74,9 +74,14 @@ class DBRecord implements Iterator, Serviceable
 	// for uid
 	function get_uid()		{ return isset($this->uid)?$this->uid:false; }
 	function set_uid($aUid)	{
-		if (strlen($aUid) != 32 && $aUid !== false) throw new InvalidUid("$aUid is not a valid uid.");
+		if (!DBRecord::is_valid_uid($aUid) && $aUid !== false) throw new InvalidUid("$aUid is not a valid uid.");
 		$this->uid = $aUid; 
 	}
+	
+	public static function is_valid_uid($val) {
+		return (strlen($val) == 32) && (preg_match('|[^0-9a-z]|', $val) == 0);
+	}
+
 
 	// for table
 	function get_table()		{ return $this->table; }
@@ -590,7 +595,7 @@ class DBRecord implements Iterator, Serviceable
 	function get_query() {
 		# make query
 		$sql = "SELECT `".$this->get_table()."`.*";
-		$order = '';
+		$order = $this->get_order()?$this->get_order():'';
 
 		# add to_one
 		if (!empty($this->to_one)) {
@@ -628,7 +633,7 @@ class DBRecord implements Iterator, Serviceable
 				# add any order by stuff
 				$cname = $this->get_classname_from_table($v);
 				$temp = new $cname;
-				$order .= $temp->get_order()?$temp->get_order():'';
+				$order .= $temp->get_order()?($order?',':'').$temp->get_order():'';
 				
 			}
 		}
@@ -648,7 +653,7 @@ class DBRecord implements Iterator, Serviceable
 				# add any order by stuff
 				$cname = $this->get_classname_from_table($v);
 				$temp = new $cname;
-				$order .= $temp->get_order()?$temp->get_order():'';
+				$order .= $temp->get_order()?($order?',':'').$temp->get_order():'';
 			}
 		}
 
@@ -659,7 +664,7 @@ class DBRecord implements Iterator, Serviceable
 		if ($this->get_group()) $sql .= " GROUP BY ".$this->get_group();
 
 		# add order by if there is one
-		if ($this->get_order() || $order) $sql .= " ORDER BY ".$this->get_order().' '.$order;
+		if ($order) $sql .= " ORDER BY ".$order;
 
 		# add order by if there is one
 		if ($this->get_limit()) $sql .= " LIMIT ".$this->get_limit();
