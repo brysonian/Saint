@@ -89,7 +89,9 @@ function select($obj, $name, $prop, $collection, $key, $value, $options=array())
 		}
 	}
 
-	$html .= "name='{$name}[{$prop}]' id='{$name}_$prop'>\n";
+	$html .= "name='{$name}[{$prop}]' id='{$name}";
+	if (!empty($prop)) $html .= "_$prop";
+	$html .= "'>\n";
 		
 	# get selected value
 	$default = false;
