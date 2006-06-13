@@ -183,6 +183,12 @@ function params($name=false) {
 	return Usher::get_param($name);
 }
 
+function param_as_uid($name=false) {
+	$val = Usher::get_param($name);
+	if (!DBRecord::is_valid_uid($val)) return false;
+	return $val;
+}
+
 
 // URL STUFF
 function get_root() {
