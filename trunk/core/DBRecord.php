@@ -79,6 +79,7 @@ class DBRecord implements Iterator, Serviceable
 	}
 	
 	public static function is_valid_uid($val) {
+		if (!is_string($val)) return false;
 		return (strlen($val) == 32) && (preg_match('|[^0-9a-z]|', $val) == 0);
 	}
 
