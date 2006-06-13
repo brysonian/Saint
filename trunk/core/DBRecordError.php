@@ -24,11 +24,5 @@ class DBRecordError extends SaintException
 	}
 }
 
-// ===========================================================
-// - RELATED
-// ===========================================================
-class DuplicateRecord extends DBRecordError {}
-class RecordDeletionError extends DBRecordError {}
-
 
 ?>
