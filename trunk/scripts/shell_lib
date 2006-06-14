@@ -133,9 +133,9 @@
 	function display_errors() {
 		global $errors;
 		if (empty($errors)) return;
-		echo "\n+----------------------------+\n";
-		echo "|     SAINT some errors:     |\n";
-		echo "+----------------------------+\n";
+		echo "\n+----------------------------------------+\n";
+		echo "|     SAINT experienced some errors:     |\n";
+		echo "+----------------------------------------+\n";
 		echo(join("\n", $errors)."\n\n\n");
 	}
 
