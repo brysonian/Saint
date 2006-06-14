@@ -26,6 +26,7 @@ class DBRecord implements Iterator, Serviceable
 	protected $key;
 	protected $current;
 	protected $fields;
+	protected $shallow = false;
 
 	protected $loaded = false;
 
@@ -437,6 +438,7 @@ class DBRecord implements Iterator, Serviceable
 		$m = new $class;
 		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
 		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
+		if (is_array($options) && array_key_exists('shallow', $options)) $m->shallow = $options['shallow'];
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
 		return $sibs;
 	}
@@ -447,6 +449,7 @@ class DBRecord implements Iterator, Serviceable
 		$m = new $class;
 		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
 		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
+		if (is_array($options) && array_key_exists('shallow', $options)) $m->shallow = $options['shallow'];
 		$m->set_where($where);
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
 		return $sibs;
@@ -458,6 +461,7 @@ class DBRecord implements Iterator, Serviceable
 		$m = new $class;
 		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
 		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
+		if (is_array($options) && array_key_exists('shallow', $options)) $m->shallow = $options['shallow'];
 		$m->set_where("`$field` = '".$m->escape_string($value)."'");
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
 		return $sibs;
@@ -469,6 +473,7 @@ class DBRecord implements Iterator, Serviceable
 		$m = new $class;
 		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
 		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
+		if (is_array($options) && array_key_exists('shallow', $options)) $m->shallow = $options['shallow'];
 		$o = $m->table_info();
 		$sql = array();
 		foreach($o['order'] as $k => $v) {
@@ -604,7 +609,7 @@ class DBRecord implements Iterator, Serviceable
 		$order = $this->get_order()?$this->get_order():'';
 
 		# add to_one
-		if (!empty($this->to_one)) {
+		if (!empty($this->to_one) && !$this->shallow) {
 			# loop through to_one's
 			foreach ($this->to_one as $v) {
 				$info = $this->table_info($v);
@@ -616,7 +621,7 @@ class DBRecord implements Iterator, Serviceable
 			}
 		}
 		# add to_many
-		if (!empty($this->to_many)) {
+		if (!empty($this->to_many) && !$this->shallow) {
 			# loop through to_many's
 			foreach ($this->to_many as $v) {
 				$info = $this->table_info($v);
@@ -632,7 +637,7 @@ class DBRecord implements Iterator, Serviceable
 		$sql .= " FROM `".$this->get_table()."` ";
 
 		# join to_one
-		if (!empty($this->to_one)) {
+		if (!empty($this->to_one) && !$this->shallow) {
 			foreach ($this->to_one as $v) {
 				$sql .= " LEFT JOIN `{$v}` ON {$v}.uid = `".$this->get_table()."`.{$v}_uid ";				
 
@@ -645,7 +650,7 @@ class DBRecord implements Iterator, Serviceable
 		}
 
 		# join to_many
-		if (!empty($this->to_many)) {
+		if (!empty($this->to_many) && !$this->shallow) {
 			# loop through to_many's
 			foreach ($this->to_many as $v) {
 				# see if this is actually a habtm, then add the extra join
