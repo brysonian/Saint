@@ -51,7 +51,7 @@ class DBRecordCollection implements Iterator
 			$this->limit = '';
 		} else {
 			if ($max) {
-				$this->limit = " LIMIT $min".($max?', '.($max*10):'');
+				$this->limit = " LIMIT $min".($max?', '.($max*200):'');
 			}
 		}
 	}
