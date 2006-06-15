@@ -833,12 +833,12 @@ class DBRecord implements Iterator, Serviceable
 		$table = $this->get_table_from_classname($class);
 		
 		# search in habtm
-		if (array_key_exists($table, $this->habtm)) {
+		if (is_array($this->habtm) && array_key_exists($table, $this->habtm)) {
 			$table = $this->habtm[$table];
 			foreach($value as $k => $v) {
 				$this->exec("INSERT INTO $table (".$this->get_table()."_uid, ".$v->get_table()."_uid) VALUES('".$this->get_uid()."', '".$v->get_uid()."')");
 			}
-		} else if (array_key_exists($table, $this->to_many)) {
+		} else if (is_array($this->to_many) && array_key_exists($table, $this->to_many)) {
 			$class = $this->to_many_class[$table];
 			$uidprop = $this->get_table().'_uid';
 			foreach($value as $k => $v) {
