@@ -296,7 +296,8 @@ function url_for($args=false) {
 		# replace tokens with values
 		foreach($theargs as $k2 => $v2) {
 			if (strpos($temp, ":$k2") !== false) {
-				$temp = str_replace(":$k2", $v2, $temp);	
+#				$temp = str_replace(":$k2", $v2, $temp);	
+				$temp = preg_replace('/:'.$k2.'(?![a-zA-Z0-9_])/', $v2, $temp);
 				unset($theargs[$k2]);
 			}
 		}
@@ -304,7 +305,8 @@ function url_for($args=false) {
 		# replace not-null defaults
 		foreach($v->defaults as $k2 => $v2) {
 			if (is_null($v2)) continue;
-			$temp = str_replace(":$k2", '', $temp);
+#			$temp = str_replace(":$k2", '', $temp);
+			$temp = preg_replace('/:'.$k2.'(?![a-zA-Z0-9_])/', '', $temp);
 			# get a point for each default that matches a value in the args
 			if (array_key_exists($k2, $args) && ($v2 == $args[$k2])) $s--;
 		}
@@ -314,6 +316,9 @@ function url_for($args=false) {
 
 		# * items cost a lot
 		$s += (substr_count($temp, '*') * 3);
+		
+		# length costs ya
+		$s += strlen($temp);
 
 		# dbugin
 		#echo "\n Score: $s\n map:".$v->usermap."\n url: $temp\nArgs:";
