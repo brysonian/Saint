@@ -288,11 +288,15 @@ function url_for($args=false) {
 	$score = 999;
 	$best_args = array();
 	foreach($u->maps as $k => $v) {
+		# skip anytime the controller specified doesn't match this map's default controller
+		if (array_key_exists("controller", $v->defaults) && 
+				$v->defaults['controller'] != $args['controller']) continue;
+
 		$theargs = $args;
 		# get the map
 		$temp = $v->usermap;
 		$s = 0;
-		
+				
 		# replace tokens with values
 		foreach($theargs as $k2 => $v2) {
 			if (strpos($temp, ":$k2") !== false) {
@@ -317,9 +321,6 @@ function url_for($args=false) {
 		# * items cost a lot
 		$s += (substr_count($temp, '*') * 3);
 		
-		# length costs ya
-		$s += strlen($temp);
-
 		# dbugin
 		#echo "\n Score: $s\n map:".$v->usermap."\n url: $temp\nArgs:";
 		#var_export($args);
