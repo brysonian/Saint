@@ -160,6 +160,7 @@ class DBRecord implements Iterator, Serviceable
 			if ($tm) {
 				$out = array();
 				foreach ($tm as $obj) {
+#					if (!$obj->loaded) $obj->load();
 					$out[] = $obj;
 				}
 				return $out;
@@ -777,9 +778,11 @@ class DBRecord implements Iterator, Serviceable
 // ===========================================================
 // - ADD TO-MANY AND TO-ONE RELATIONSHIPS
 // ===========================================================
-	function has_one($class, $propname=false, $table=false) {
+	function has_one($class, $options=false) {
+		$propname = (is_array($options) && array_key_exists("propname", $options))?$options['propname']:false;
+		
 		# if no table, try to get the tablename
-		if ($table == false) $table = $this->get_table_from_classname($class);
+		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:$this->get_table_from_classname($class);
 
 		# if to_ones are empty make an array
 		if (empty($this->to_one)) {
@@ -793,9 +796,11 @@ class DBRecord implements Iterator, Serviceable
 		}
 	}
 
-	function has_many($class, $propname=false, $table=false) {
+	function has_many($class, $options=false) {
+		$propname = (is_array($options) && array_key_exists("propname", $options))?$options['propname']:false;
+
 		# if no table, try to get the tablename
-		if ($table == false) $table = $this->get_table_from_classname($class);
+		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:$this->get_table_from_classname($class);
 
 		# if to_many are empty make an array
 		if (empty($this->to_many)) {
@@ -814,7 +819,9 @@ class DBRecord implements Iterator, Serviceable
 		$this->to_many_class[$table] = $class;		
 	}
 
-	function has_and_belongs_to_many($class, $table=false) {
+	function has_and_belongs_to_many($class, $options=false) {
+		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:false;
+		
 		# if no table, try to get the tablename
 		if ($table == false) {
 			$tables = array(
@@ -882,8 +889,11 @@ class DBRecord implements Iterator, Serviceable
 // - ITERATOR INTERFACE
 // ===========================================================
 	function rewind() {
-		reset($this->fields);
-		$k = $this->key = current($this->fields);
+#		reset($this->fields);
+#		$k = $this->key = current($this->fields);
+#		$this->current = $this->$k;
+		$this->key = 0;
+		$k = $this->key();
 		$this->current = $this->$k;
 		$this->valid = true;
 	}
@@ -893,7 +903,7 @@ class DBRecord implements Iterator, Serviceable
 	}
 
 	function key() {
-		return $this->key;
+		return $this->fields[$this->key];
 	}
 	
 	function current() {
@@ -901,10 +911,19 @@ class DBRecord implements Iterator, Serviceable
 	}
 	
 	function next() {
-		$ok = next($this->fields);
-		$k = $this->key = current($this->fields);
+#		$ok = next($this->fields);
+#		$k = $this->key = current($this->fields);
+#		$this->current = $this->$k;
+
+		$this->key++;
+		if ($this->key >= count($this->fields)) {
+			$this->current = false;
+			$this->valid = false;
+			return;
+		}
+		$k = $this->key();
 		$this->current = $this->$k;
-		if ($ok === false) $this->valid = false;
+#		if ($ok === false) $this->valid = false;
 	}
 
 
