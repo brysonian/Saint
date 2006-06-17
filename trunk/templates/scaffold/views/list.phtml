@@ -10,16 +10,16 @@
 	<body>
 		<h1>Listing :php_echo ucfirst(params('controller'));:php_close</h1>
 		
-		<ul id="listing">			
+		<ul id="listing">
 			:php_open $alt = 0;	:php_close
 			:php_open foreach ($:objects as $:object): :php_close
 			
 				<li class="row:php_echo $alt; :php_close">
-					:php_echo link_to($:object, array('action'=>'show', 'uid'=>$:object->uid));:php_close
 					<span class="controls">
 						:php_echo link_to("Edit", array('action'=>'edit', 'uid'=>$:object->uid));:php_close |
 						:php_echo link_to("Delete", array('action'=>'delete', 'uid'=>$:object->uid), true);:php_close
 					</span>
+					:php_echo link_to($:object, array('action'=>'show', 'uid'=>$:object->uid));:php_close
 				</li>
 			:php_open $alt = 1 - $alt;	:php_close
 			:php_open endforeach :php_close
