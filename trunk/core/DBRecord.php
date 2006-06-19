@@ -46,7 +46,8 @@ class DBRecord implements Iterator, Serviceable
 		$this->set_table($table);
 		
 		# get a ref to the dbconnection
-		$this->db = DBService::get_connection($this->get_service_id());
+		// TODO: cleanup
+#		$this->db = DBService::get_connection($this->get_service_id());
 
 		if (method_exists($this, 'init')) $this->init();
 		
@@ -79,11 +80,19 @@ class DBRecord implements Iterator, Serviceable
 		$this->uid = $aUid; 
 	}
 	
+	# test if a string is a valid uid
 	public static function is_valid_uid($val) {
 		if (!is_string($val)) return false;
 		return (strlen($val) == 32) && (preg_match('|[^0-9a-z]|', $val) == 0);
 	}
-
+	
+	// db
+	function db() {
+		if (!$this->db) 
+			$this->db = DBService::get_connection($this->get_service_id());
+		return $this->db;
+	}
+	
 
 	// for table
 	function get_table()		{ return $this->table; }
@@ -102,10 +111,12 @@ class DBRecord implements Iterator, Serviceable
 	function get_limit()		{ return $this->limit; }
 	function set_limit($t)	{ $this->limit = $t; }
 	
-	function is_empty() {
+	function is_empty($idcheck=false) {
 		# see if there is anything in data
 		$v = join('', $this->data);
-		return (empty($v) && !$this->get_uid() && !$this->get_id());
+		$v = empty($v);
+		if ($idcheck) $v &= (!$this->get_uid() && !$this->get_id());
+		return $v;
 	}
 	
 	// get
@@ -148,19 +159,19 @@ class DBRecord implements Iterator, Serviceable
 		# if the connection exists
 		if (!empty($this->to_many) && array_key_exists($prop, $this->to_many)) {
  			$tm = $this->get_to_many_objects($this->to_many[$prop]);
-				
-			# if there are some, see if they have to_many and to_one's of their own
-			# and if so load them up
-			if (!$tm && !$this->loaded && $this->get_uid()) {
+			
+			# if none are found, but i should have some, reload me
+			if (!$tm && is_array($this->to_many) && !$this->loaded && $this->get_uid()) {
 				$this->load();
 				$tm = $this->get_to_many_objects($this->to_many[$prop]);
-			}
-			
+			}			
+
 			# TODO: Maybe this can be replaced by the to_many collection class
 			if ($tm) {
 				$out = array();
 				foreach ($tm as $obj) {
-#					if (!$obj->loaded) $obj->load();
+					# on each item, if it is empty or has many's or ones, load it
+					if ($obj->is_empty() || $obj->does_have_many() || $obj->does_have_one()) $obj->load();
 					$out[] = $obj;
 				}
 				return $out;
@@ -272,14 +283,14 @@ class DBRecord implements Iterator, Serviceable
 		$sql .= "(`".join("`,`", $keys)."`) VALUES ('".join("','", $values)."')";
 		$sql = str_replace("'NULL'", "NULL", $sql);
 
-		$result = $this->db->query($sql);
+		$result = $this->db()->query($sql);
 		if ($result) {
-			$this->set_id($this->db->insert_id());
+			$this->set_id($this->db()->insert_id());
 		} else {
-			if ($this->db->errno() == DUPLICATE_ENTRY) {
-				throw new DuplicateRecord($this->db->error(), $this->db->errno(), $sql);
+			if ($this->db()->errno() == DUPLICATE_ENTRY) {
+				throw new DuplicateRecord($this->db()->error(), $this->db()->errno(), $sql);
 			} else {
-				throw new DBRecordError("Database error while attempting to create record.\n".$this->db->error(), $this->db->errno(), $sql);
+				throw new DBRecordError("Database error while attempting to create record.\n".$this->db()->error(), $this->db()->errno(), $sql);
 			}
 		}
 	}
@@ -313,9 +324,9 @@ class DBRecord implements Iterator, Serviceable
 		
 		$sql .= join(',',$props)." WHERE id=".$this->escape_string($this->get_id());		
 
-		$result = $this->db->query($sql);
+		$result = $this->db()->query($sql);
 		if (!$result) {
-			throw new DBRecordError("Database error while attempting to update record.\n".$this->db->error(), $this->db->errno(), $sql);
+			throw new DBRecordError("Database error while attempting to update record.\n".$this->db()->error(), $this->db()->errno(), $sql);
 		}
 	}
 
@@ -329,9 +340,9 @@ class DBRecord implements Iterator, Serviceable
 		$sql = "DELETE FROM `".$this->get_table()."` WHERE ";
 		$sql .= $this->get_id()?"id=".$this->get_id():"uid = '".$this->get_uid()."'";
 		
-		$result = $this->db->query($sql);
+		$result = $this->db()->query($sql);
 		if (!$result) {
-			throw new RecordDeletionError("Error deleting ".get_class($this).".\n".$this->db->error(), $this->db->errno(), $sql);
+			throw new RecordDeletionError("Error deleting ".get_class($this).".\n".$this->db()->error(), $this->db()->errno(), $sql);
 		}
 		
 	}
@@ -440,7 +451,7 @@ class DBRecord implements Iterator, Serviceable
 		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
 		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
 		if (is_array($options) && array_key_exists('shallow', $options)) $m->shallow = $options['shallow'];
-		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
+		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
 		return $sibs;
 	}
 	
@@ -452,7 +463,7 @@ class DBRecord implements Iterator, Serviceable
 		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
 		if (is_array($options) && array_key_exists('shallow', $options)) $m->shallow = $options['shallow'];
 		$m->set_where($where);
-		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
+		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
 		return $sibs;
 	}
 	
@@ -464,7 +475,7 @@ class DBRecord implements Iterator, Serviceable
 		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
 		if (is_array($options) && array_key_exists('shallow', $options)) $m->shallow = $options['shallow'];
 		$m->set_where("`$field` = '".$m->escape_string($value)."'");
-		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
+		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
 		return $sibs;
 	}
 
@@ -482,7 +493,7 @@ class DBRecord implements Iterator, Serviceable
 			$sql[] = ' `'.$m->get_table().'`.'.$k." LIKE '".$m->escape_string($value)."'";
 		}
 		$m->set_where(join(' OR ', $sql));
-		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db);
+		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
 		return $sibs;
 	}
 		
@@ -499,7 +510,7 @@ class DBRecord implements Iterator, Serviceable
 	static function find_sql($sql, $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
-		$sibs = new DBRecordCollection($m, $sql, $m->db);
+		$sibs = new DBRecordCollection($m, $sql, $m->db());
 		return $sibs;
 	}
 
@@ -541,11 +552,11 @@ class DBRecord implements Iterator, Serviceable
 		$sql = $this->get_query();
 				
 		# run the query
-		$result = $this->db->query($sql);
+		$result = $this->db()->query($sql);
 
 		# process results
 		if (!$result) {
-			throw new DBRecordError("Error loading ".get_class($this).".\n".$this->db->error(), 0, $sql);
+			throw new DBRecordError("Error loading ".get_class($this).".\n".$this->db()->error(), 0, $sql);
 		} else {
 			if ($row = $result->fetch_assoc()) {				
 				do {
@@ -582,11 +593,11 @@ class DBRecord implements Iterator, Serviceable
 	// run arbitrary sql without processing
 	function exec($sql) {
 		# run the query
-		$result = $this->db->query($sql);
+		$result = $this->db()->query($sql);
 
 		# process results
 		if (!$result) {
-			throw new DBRecordError("Query Failed .\n".$this->db->error(), $this->db->errno(), $sql);
+			throw new DBRecordError("Query Failed .\n".$this->db()->error(), $this->db()->errno(), $sql);
 		} else if ($result !== true) {
 			$result->free();
 		}
@@ -595,10 +606,10 @@ class DBRecord implements Iterator, Serviceable
 	
 	function table_info($table=false, $full=false) {
 		if ($table === false) $table = $this->get_table();
-		if ($full) return $this->db->table_info($table, true);
+		if ($full) return $this->db()->table_info($table, true);
 		
 		if (!array_key_exists($table, DBRecord::$table_info)) {
-			DBRecord::$table_info[$table] = $this->db->table_info($table, false);
+			DBRecord::$table_info[$table] = $this->db()->table_info($table, false);
 		}
 		return DBRecord::$table_info[$table];
 	}
@@ -865,7 +876,7 @@ class DBRecord implements Iterator, Serviceable
 		do {
 			$uid = md5(uniqid(rand(), true));
 			$sql = "SELECT uid from `".$this->get_table()."` WHERE uid='$uid'";
-			$result = $this->db->query($sql);
+			$result = $this->db()->query($sql);
 
 			# if nothing is found, break the loop
 			if ($result->num_rows() == 0) break;
@@ -940,7 +951,7 @@ class DBRecord implements Iterator, Serviceable
 // - ESCAPE FOR DB
 // ===========================================================
 	function escape_string($v) {
-		return $this->db->escape_string($this->utf8_to_entities($v));
+		return $this->db()->escape_string($this->utf8_to_entities($v));
 	}
 
 	function utf8_to_entities($str) {
