@@ -1,6 +1,6 @@
 <?php
 
-class :ObjectController extends AppController
+class :ControllerController extends AppController
 {
 	function _index() {
 		$this->render_action('list');

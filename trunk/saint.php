@@ -3,6 +3,8 @@
 	// ===========================================================
 	// - GET THE SAINT ROOT
 	// ===========================================================
+	array_key_exists("argv", $_SERVER)?define('SHELL', 1):define('SHELL', 0);
+	
 	if(!defined('SAINT_ROOT')) define('SAINT_ROOT', realpath(dirname(__FILE__)));
 	if(!defined('PROJECT_ROOT')) define('PROJECT_ROOT', realpath(dirname($_SERVER['SCRIPT_FILENAME']).'/../'));
 	if(!defined('DOC_ROOT')) define('DOC_ROOT', $_SERVER['DOCUMENT_ROOT']);
@@ -53,7 +55,7 @@
 	// ===========================================================
 	// - GET USER USHER CONFIG.
 	// ===========================================================
-	__autoload('Usher');
+#	__autoload('Usher');
 	require_once (PROJECT_ROOT."/config/urls.php");
 
 
@@ -106,7 +108,11 @@
 		# manually attempt to close all db connections
 		DBService::close();
 		$e = new InvalidStatement($errstr, $errno, $errfile, $errline);
-		Usher::handle_error($e);
+		if (SHELL) {
+			$e->log();
+		} else {
+			Usher::handle_error($e);
+		}
 		exit;
 	}
 	set_error_handler('saint_error_handler');
@@ -117,7 +123,11 @@
 		
 		# manually attempt to close all db connections
 		DBService::close();
-		Usher::handle_error($e);
+		if (SHELL) {
+			$e->log();
+		} else {
+			Usher::handle_error($e);
+		}
 		exit;
 	}
 	set_exception_handler('saint_exception_handler');

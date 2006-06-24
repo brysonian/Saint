@@ -42,7 +42,8 @@ class DBRecord implements Iterator, Serviceable
 		$table = get_class($this);
 		
 		# turn camelback into underscore and lowercase
-		$table = $this->get_table_from_classname($table);
+#		$table = $this->get_table_from_classname($table);
+		$table = to_table_name($table);
 		$this->set_table($table);
 		
 		# get a ref to the dbconnection
@@ -145,7 +146,8 @@ class DBRecord implements Iterator, Serviceable
 			}
 
 			if (array_key_exists($prop.'_uid', $this->data) && $this->data[$prop.'_uid']) {
-				$cname = $this->get_classname_from_table($prop);
+#				$cname = $this->get_classname_from_table($prop);
+				$cname = to_class_name($prop);
 				$this->to_one_obj[$prop] = new $cname;
 				$this->to_one_obj[$prop]->set_uid($this->data[$prop.'_uid']);
 				$this->to_one_obj[$prop]->load();
@@ -323,7 +325,6 @@ class DBRecord implements Iterator, Serviceable
 		}	
 		
 		$sql .= join(',',$props)." WHERE id=".$this->escape_string($this->get_id());		
-
 		$result = $this->db()->query($sql);
 		if (!$result) {
 			throw new DBRecordError("Database error while attempting to update record.\n".$this->db()->error(), $this->db()->errno(), $sql);
@@ -654,7 +655,8 @@ class DBRecord implements Iterator, Serviceable
 				$sql .= " LEFT JOIN `{$v}` ON {$v}.uid = `".$this->get_table()."`.{$v}_uid ";				
 
 				# add any order by stuff
-				$cname = $this->get_classname_from_table($v);
+#				$cname = $this->get_classname_from_table($v);
+				$cname = to_class_name($v);
 				$temp = new $cname;
 				$order .= $temp->get_order()?($order?',':'').$temp->get_order():'';
 				
@@ -674,7 +676,8 @@ class DBRecord implements Iterator, Serviceable
 				}				
 
 				# add any order by stuff
-				$cname = $this->get_classname_from_table($v);
+#				$cname = $this->get_classname_from_table($v);
+				$cname = to_class_name($v);
 				$temp = new $cname;
 				$order .= $temp->get_order()?($order?',':'').$temp->get_order():'';
 			}
@@ -739,7 +742,8 @@ class DBRecord implements Iterator, Serviceable
 				$prop = str_replace($to.'_', '', $k);
 				# if the object doesn't exist, make it
 				if (!array_key_exists($to, $this->to_one_obj)) {
-					$cname = $this->get_classname_from_table($to);
+#					$cname = $this->get_classname_from_table($to);
+					$cname = to_class_name($to);
 					$this->to_one_obj[$to] = new $cname;
 				}
 				if ($prop == 'id') {
@@ -793,7 +797,8 @@ class DBRecord implements Iterator, Serviceable
 		$propname = (is_array($options) && array_key_exists("propname", $options))?$options['propname']:false;
 		
 		# if no table, try to get the tablename
-		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:$this->get_table_from_classname($class);
+#		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:$this->get_table_from_classname($class);
+		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:to_table_name($class);
 
 		# if to_ones are empty make an array
 		if (empty($this->to_one)) {
@@ -811,7 +816,8 @@ class DBRecord implements Iterator, Serviceable
 		$propname = (is_array($options) && array_key_exists("propname", $options))?$options['propname']:false;
 
 		# if no table, try to get the tablename
-		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:$this->get_table_from_classname($class);
+#		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:$this->get_table_from_classname($class);
+		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:to_table_name($class);
 
 		# if to_many are empty make an array
 		if (empty($this->to_many)) {
@@ -836,19 +842,22 @@ class DBRecord implements Iterator, Serviceable
 		# if no table, try to get the tablename
 		if ($table == false) {
 			$tables = array(
-				$this->get_table_from_classname($class),
+				#$this->get_table_from_classname($class),
+				to_table_name($class),
 				$this->get_table()
 			);
 			sort($tables);
 		}
 
 		if (empty($this->habtm)) $this->habtm = array();
-		$this->habtm[$this->get_table_from_classname($class)] = $tables[0].'_'.$tables[1];
+#		$this->habtm[$this->get_table_from_classname($class)] = $tables[0].'_'.$tables[1];
+		$this->habtm[to_table_name($class)] = $tables[0].'_'.$tables[1];
 		$this->has_many($class);		
 	}
 
 	protected function add_to_many_object($class, $value) {
-		$table = $this->get_table_from_classname($class);
+#		$table = $this->get_table_from_classname($class);
+		$table = to_table_name($class);
 		
 		# search in habtm
 		if (is_array($this->habtm) && array_key_exists($table, $this->habtm)) {
@@ -886,13 +895,13 @@ class DBRecord implements Iterator, Serviceable
 	}
 
 	// parse a tablename into a classname
-	function get_classname_from_table($table) {
-		return preg_replace('/(?:^|_)([a-zA-Z])/e', "strtoupper('\\1')", $table);
-	}
+#	function get_classname_from_table($table) {
+#		return preg_replace('/(?:^|_)([a-zA-Z])/e', "strtoupper('\\1')", $table);
+#	}
 	// parse a classname into a tablename
-	function get_table_from_classname($class) {
-		return strtolower(preg_replace('/([a-zA-Z])([A-Z])/', '\\1_\\2', $class));
-	}
+#	function get_table_from_classname($class) {
+#		return strtolower(preg_replace('/([a-zA-Z])([A-Z])/', '\\1_\\2', $class));
+#	}
 	
 
 
@@ -951,6 +960,7 @@ class DBRecord implements Iterator, Serviceable
 // - ESCAPE FOR DB
 // ===========================================================
 	function escape_string($v) {
+		if (is_numeric($v)) return $v;
 		return $this->db()->escape_string($this->utf8_to_entities($v));
 	}
 
@@ -1113,6 +1123,15 @@ class DBRecord implements Iterator, Serviceable
 		));
 	}
 }
+
+// ===========================================================
+// - SOME THINGS NEED TO BE EASIER TO GET TO
+// ===========================================================
+function is_uid($val=false) {
+	if (!DBRecord::is_valid_uid($val)) return false;
+	return true;
+}
+
 
 
 // ===========================================================

@@ -133,7 +133,7 @@ class Usher
 		if (!self::$controller) self::$controller = new AppController;			
 		if (!($e instanceof SaintException))
 			$e = new SaintException($e->getMessage(), $e->getCode());
-		
+
 		self::$controller->rescue($e);
 	}
 	
@@ -177,18 +177,11 @@ class Usher
 
 
 // ===========================================================
-// - SOME THINGS IN USHER NEED TO BE EASIER TO GET TO
+// - SOME THINGS NEED TO BE EASIER TO GET TO
 // ===========================================================
 function params($name=false) {
 	return Usher::get_param($name);
 }
-
-function param_as_uid($name=false) {
-	$val = Usher::get_param($name);
-	if (!DBRecord::is_valid_uid($val)) return false;
-	return $val;
-}
-
 
 // URL STUFF
 function get_root() {
@@ -376,6 +369,29 @@ function redirect_to($args=false) {
 }
 
 
+// ===========================================================
+// - TRANSLATE BETWEEN THE COMMON STRINGS FOR CLASSES
+// ===========================================================
+// parse a tablename/urlname into a classname
+function to_class_name($str) {
+	return preg_replace('/(?:^|_)([a-zA-Z])/e', "strtoupper('\\1')", $str);
+}
+
+// parse a classname into a tablename
+function to_url_name($class) { return to_tablename($class); }
+function to_table_name($class) {
+	return strtolower(preg_replace('/([a-zA-Z])([A-Z])/', '\\1_\\2', $class));
+}
+
+// make a classname or tablename into a human friendly name
+function to_human_name($str, $is_class=false) {
+	# best bet is to see if it has a cap, if so it's a classname
+	if ((preg_match('|[A_Z]|', $str) == 0) || $is_class) {
+		return preg_replace('/([a-zA-Z])([A-Z])/', '\\1 \\2', $str);
+	} else {
+		return ucwords(str_replace('_', ' ', $str));
+	}
+}
 
 
 

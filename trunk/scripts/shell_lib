@@ -1,20 +1,21 @@
 <?php
 
 	function safe_mkdir($dir) {
-		if ($dir{0} != '.' && $dir{0} != '/') $dir = getcwd().'/'.$dir;
+		$fulldir = $dir;
+		if ($fulldir{0} != '.' && $fulldir{0} != '/') $fulldir = getcwd().'/'.$fulldir;
 
-		if (!realpath($dir)) {
-			if (strpos($dir, '/') !== false) {
-				$path = explode('/', $dir);
+		if (!realpath($fulldir)) {
+			if (strpos($fulldir, '/') !== false) {
+				$path = explode('/', $fulldir);
 				array_pop($path);
 				safe_mkdir(join('/', $path));
 			}
 		}
-		if (!file_exists(realpath("../$dir").'/'.$dir)) {
-			echo "Create directory: $dir\n";
-			$ok = mkdir(realpath("../$dir").'/'.$dir);
-			if (!$ok) die ("Failed to create: $dir\n");
-			return $dir;
+		if (!file_exists(realpath("../$fulldir").'/'.$fulldir)) {
+			echo "\t create:  $dir\n";
+			$ok = mkdir(realpath("../$fulldir").'/'.$fulldir);
+			if (!$ok) die ("Failed to create: $fulldir\n");
+			return $fulldir;
 		}
 	}
 	
@@ -99,14 +100,15 @@
 	function write_file($path, $contents, $force=false) {
 		if (file_exists($path)) {
 			if (!$force) {
-				error("Failed to create $path file already exists.");
+				#error("Failed to create $path file already exists.");
+				echo "\t exists:  $path\n";
 				return;
 			} else {
 				unlink($path);
 			}
 		}
 
-		echo "Create: $path\n";
+		echo "\t create:  $path\n";
 		$fp = fopen($path, "w");
 		fwrite($fp, $contents);
 		fclose($fp);

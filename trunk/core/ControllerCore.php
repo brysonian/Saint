@@ -237,7 +237,7 @@ class ControllerCore
 
 	// get a view object using the specified action
 	function  get_view_for_action($action) {
-		$template = $this->get_template_base().$this->template;
+		$template = $this->get_template_base().'/'.$this->template;
 		return $this->get_view($template);
 	}
 
@@ -268,7 +268,7 @@ class ControllerCore
 
 
 	# get/set the template base
-	function get_template_base() { return $this->templatebase.'/';}
+	function get_template_base() { return $this->templatebase;}
 	function set_template_base($v) { $this->templatebase = $v; }
 
 	function set_template($template) {
@@ -281,7 +281,7 @@ class ControllerCore
 
 	function get_layout() {
 		if ($this->layout) return PROJECT_VIEWS.'/layouts/'.$this->layout;
-		return false;
+		return PROJECT_VIEWS.'/layouts/'.$this->get_template_base();
 	}
 
 

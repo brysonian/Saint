@@ -80,15 +80,15 @@
 			else
 				create_model($argv[1]);
 				#create_controller($argv[1], true);
-				create_view_folder($argv[1]);
-				create_scaffold($argv[1], true);
+				create_view_folder(array_key_exists(2, $argv)?$argv[2]:$argv[1]);
+				create_scaffold($argv[1], array_key_exists(2, $argv)?$argv[2]:$argv[1]);
 			break;
 
 		case 'view':
 			if (count($argv) == 1)
 				error("Please specify the name of the scaffold you would like to generate.");
 			else
-				create_scaffold($argv[1], true);
+				create_scaffold($argv[1], false);
 			break;
 
 		default:
@@ -112,6 +112,7 @@
 	function create_model($name) {
 		$cname = ucfirst($name);
 		$code = "<?php\n\nclass $cname extends DBRecord \n{\n\tfunction init() {\n\t\t\n\t}\n}\n\n?>";
+		echo "\tcreate model\n";
 		write_script('app/models', $cname, $code);
 		
 	}
@@ -120,6 +121,7 @@
 		$mname = ucfirst($name);
 		$cname = $mname.'Controller';
 		$code = "<?php\n\nclass $cname extends AppController\n{\n\t\n}\n\n?>";
+		echo "\tcreate controller\n";
 		write_script('app/controllers', $cname, $code);
 	}
 	
@@ -128,8 +130,13 @@
 	}
 	
 	function create_scaffold($name, $controller=false) {
-		$path = strtolower("app/views/$name");
+		$view_base = (($controller===false)?strtolower($name):strtolower($controller));
+		$path = "app/views/$view_base";
 				
+		#layout
+		echo "\tcreate view\n";
+		write_scaffold_template($view_base, $name, "app/views/layouts", true);
+		
 		#list
 		write_scaffold_template('list', $name, $path);
 		
@@ -150,21 +157,26 @@
 		safe_mkdir("public/_css");
 		safe_copy(SAINT_ROOT."/templates/scaffold/css/scaffold.css", "public/_css/scaffold.css");
 
-		if ($controller) {
+		if ($controller !== false) {
 			$t = str_replace(
-				array(':object',':Object'),
-				array(strtolower($name), ucfirst($name)),
+				array(':hname_object', ':object',':Object', ':Controller'),
+				array(to_human_name($name), strtolower($name), ucfirst($name), ucfirst($controller)),
 				file_get_contents(SAINT_ROOT."/templates/scaffold/controllers/Controller.php"));
-			write_file("app/controllers/".ucfirst($name)."Controller.php", $t);
+			echo "\tcreate controller\n";
+			write_file("app/controllers/".ucfirst($controller)."Controller.php", $t);
 		}
 	}
 	
-	function write_scaffold_template($template, $name, $path) {	
-		$src = str_replace(':object', strtolower($name), file_get_contents(SAINT_ROOT."/templates/scaffold/views/$template.phtml"));
+	function write_scaffold_template($template, $name, $path, $layout=false) {
+		if (!$layout) {
+			$src = str_replace(':object', strtolower($name), file_get_contents(SAINT_ROOT."/templates/scaffold/views/$template.phtml"));
+		} else {
+			$src = str_replace(':object', strtolower($name), file_get_contents(SAINT_ROOT."/templates/scaffold/views/layout.phtml"));
+		}
 		$src = str_replace(':php_open',	OPEN_TAG, $src);
 		$src = str_replace(':php_echo',	OPEN_ECHO_TAG, $src);
 		$src = str_replace(':php_close',	CLOSE_TAG, $src);
-
+		$src = str_replace(':hname_object', to_human_name($name), $src);
 		write_file("$path/$template.phtml", $src);
 	}
 

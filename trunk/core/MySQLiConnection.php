@@ -58,7 +58,7 @@ class MySQLiConnection
 		# get result
 		$r = $this->db->query($sql);
 		
-		if(defined('MYSQLI_DEBUG') && MYSQLI_DEBUG > 1) error_log($sql);		
+		if(defined('MYSQLI_DEBUG') && MYSQLI_DEBUG > 1 && !SHELL) error_log($sql);		
 		
 		# if it's true, return that (insert, etc)
 		# else make sure it's a resource and has rows
@@ -83,7 +83,7 @@ class MySQLiConnection
 		
 		$sql = "SHOW COLUMNS FROM `$table`";
 		$result = new MySQLiResult($this->db->query($sql));
-		if(defined('MYSQLI_DEBUG') && MYSQLI_DEBUG > 1) error_log($sql);
+		if(defined('MYSQLI_DEBUG') && MYSQLI_DEBUG > 1 && !SHELL) error_log($sql);
 
 		$output = array();
 		if (!$full) $output['order'] = array();
@@ -119,7 +119,7 @@ class MySQLiConnection
 	}
 	
 	function __destruct() {
-		if(defined('MYSQLI_DEBUG') && MYSQLI_DEBUG > 0 && MySQLiConnection::$query_count > 0) error_log('MySQLiConnection made '.MySQLiConnection::$query_count.' queries.');
+		if(defined('MYSQLI_DEBUG') && MYSQLI_DEBUG > 0 && !SHELL && MySQLiConnection::$query_count > 0) error_log('MySQLiConnection made '.MySQLiConnection::$query_count.' queries.');
 		$this->close();
 	}
 }

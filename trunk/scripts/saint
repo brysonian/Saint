@@ -30,7 +30,8 @@
 	$scripts = get_files("$dir/scripts");
 	foreach($scripts as $k => $v) {
 		$s = file_get_contents("$dir/scripts/$v");
-		$s = str_replace("<?php\n", "<?php\n	define('SAINT_ROOT', '".SAINT_ROOT."');\n", $s);
+		
+		$s = str_replace("<?php\n", "<?php\n	define('SAINT_ROOT', array_key_exists('SAINT_ROOT', \$_SERVER)?\$_SERVER['SAINT_ROOT']:'".SAINT_ROOT."');\n", $s);
 		
 		$f = fopen("$dir/scripts/$v", 'w');
 		fwrite($f, $s);

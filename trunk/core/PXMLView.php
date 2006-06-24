@@ -1,9 +1,5 @@
 <?php
 
-// requires PHTMLView
-#__autoload('PHTMLView');
-
-
 class PXMLView extends PHTMLView
 {	
 	function PXMLView($template) {

@@ -27,17 +27,19 @@ class PHTMLView extends ViewCore
 		
 		# if there is a layout
 		if ($this->layout) {
-			# validate it
-			$templateinfo = ViewFactory::template_info($layout_template);
+			# find the type
+			$type = ViewFactory::get_template_type($layout_template);
 			
-			# push the content into the layout
-			$content_for_layout = $parsed;
+			if ($type) {
+				# push the content into the layout
+				$content_for_layout = $parsed;
 			
-			# include the template
-			include $templateinfo['file'];
+				# include the template
+				include $this->layout.".$type";
 		
-			# get the buffer contents
-			$parsed = ob_get_contents();
+				# get the buffer contents
+				$parsed = ob_get_contents();
+			}
 		}
 		
 		# close the output buffer

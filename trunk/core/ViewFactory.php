@@ -7,63 +7,39 @@ class ViewFactory
 	
 	static function  make_view($template, $layout=false) {
 		# get the template type
-		$tempinfo = ViewFactory::template_info(PROJECT_VIEWS.'/'.$template);
-
+		$template = PROJECT_VIEWS.'/'.$template;
+		$type = ViewFactory::get_template_type($template);
+		
+		if ($type === false) {
+		 throw(new MissingTemplate("No recognizable template was found at $template."));
+		}
+		
 		# return the right view depending on the extension of the template
-		switch ($tempinfo['type']) {
+		switch ($type) {
 			case 'phtml':
-				# make sure it's loaded
-				#__autoload('PHTMLView');
-				$the_view = new PHTMLView($tempinfo['file']);
+				$the_view = new PHTMLView("$template.$type");
 				break;
 
 			case 'pxml':
-				# make sure it's loaded
-				#__autoload('PXMLView');				
-				$the_view = new PXMLView($tempinfo['file']);
+				$the_view = new PXMLView("$template.$type");
 				break;
 				
 			case 'xsl':
-				$the_view = new XSLTView($tempinfo['file']);
+				$the_view = new XSLTView("$template.$type");
 				break;
 				
 			default:
-				throw(new UnknownViewType("ViewFactory doesn't know how to use a ".$tempinfo['file']." file."));
+				throw(new UnknownViewType("ViewFactory doesn't know how to use a $type file."));
 
 		}
 		return $the_view;
-	}
-	
-	/**
-	* Given a path to a template without an extension, returns the type of the template
-	* and the filesystem path of the template including the extension
-	*/
-	static function template_info($template) {
-		switch (true) {
-			case file_exists("$template.phtml"):
-				return array(
-					'type'		=> 'phtml',
-					'file'		=> "$template.phtml",
-					'template'	=> $template
-				);
-							
-			case file_exists("$template.pxml"):
-				return array(
-					'type'		=> 'pxml',
-					'file'		=> "$template.pxml",
-					'template'	=> $template
-				);
+	}	
 
-			case file_exists("$template.xsl"):
-				return array(
-					'type'		=> 'xsl',
-					'file'		=> "$template.xsl",
-					'template'	=> $template
-				);
-	
-			default:
-				throw(new MissingTemplate("No recognizable template was found at $template."));
-		}
+	static function get_template_type($template) {
+		if (file_exists("$template.phtml")) return "phtml";
+		if (file_exists("$template.pxml")) return "pxml";
+		if (file_exists("$template.xsl")) return "xsl";
+		return false;		
 	}
 }
 
