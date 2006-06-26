@@ -3,7 +3,7 @@
 	// ===========================================================
 	// - GET THE SAINT ROOT
 	// ===========================================================
-	array_key_exists("argv", $_SERVER)?define('SHELL', 1):define('SHELL', 0);
+	(php_sapi_name() == 'cli')?define('SHELL', 1):define('SHELL', 0);
 	
 	if(!defined('SAINT_ROOT')) define('SAINT_ROOT', realpath(dirname(__FILE__)));
 	if(!defined('PROJECT_ROOT')) define('PROJECT_ROOT', realpath(dirname($_SERVER['SCRIPT_FILENAME']).'/../'));
