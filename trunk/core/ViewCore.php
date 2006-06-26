@@ -80,22 +80,22 @@ class ViewCore
 			if (array_key_exists('controller', $controller)) {
 				$controller = $controller['controller'];
 			} else {
-				$controller = to_class_name(params('controller'));
+				$controller = params('controller');
 			}
 			
 		} else if ($action === false) {		
 			# if action is false, use the controller as the action
 			# name on the current controller
 			$action = $controller;
-			$controller = to_class_name(params('controller'));
+			$controller = params('controller');
 		
 		} else if ($controller == false) {
 			# if controller is false, use the current
-			$controller = to_class_name(params('controller'));
+			$controller = params('controller');
 		}
-		
+
 		# make an instance of the controller class
-		$conname = ucfirst("{$controller}Controller");
+		$conname = to_class_name($controller).'Controller';
 		$theController = new $conname;
 
 		# set the method name

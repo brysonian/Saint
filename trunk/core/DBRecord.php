@@ -123,8 +123,18 @@ class DBRecord implements Iterator, Serviceable
 	// get
 	function get($prop) { return $this->__get($prop); }	
 	function __get($prop) {
+		# allow id and uid
+		if ($prop == 'id') return $this->get_id();
+		if ($prop == 'uid') return $this->get_uid();
+		
 		# first check in data
-		if (isset($this->data[$prop])) return $this->data[$prop];
+		if (isset($this->data[$prop])) {
+			# if there is a method with this name, call it and pass the value
+			if (method_exists($this, $prop)) {
+				return $this->$prop($this->data[$prop]);
+			}
+			return $this->data[$prop];
+		}
 		
 		# then the to_one's
 		# if the connection exists
@@ -186,6 +196,10 @@ class DBRecord implements Iterator, Serviceable
 	// set
 	function set($prop, $val) { $this->__set($prop, $val); }
 	function __set($prop, $val) {
+		# allow id and uid
+		if ($prop == 'id') return $this->set_id($val);
+		if ($prop == 'uid') return $this->set_uid($val);
+
 		# make sure it isn't in the to-ones
 		if (is_null($val)) {
 			unset($this->data[$prop]);

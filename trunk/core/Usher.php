@@ -378,7 +378,7 @@ function to_class_name($str) {
 }
 
 // parse a classname into a tablename
-function to_url_name($class) { return to_tablename($class); }
+function to_url_name($class) { return to_table_name($class); }
 function to_table_name($class) {
 	return strtolower(preg_replace('/([a-zA-Z])([A-Z])/', '\\1_\\2', $class));
 }
