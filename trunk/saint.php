@@ -101,6 +101,7 @@
 // ===========================================================
 // - ERRORS
 // ===========================================================
+	error_reporting(E_ALL);
 	function saint_error_handler($errno, $errstr, $errfile, $errline) {
 		$l = ob_get_level();
 		while($l--) ob_end_clean();
