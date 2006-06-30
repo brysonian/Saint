@@ -176,7 +176,7 @@ class UploadedFile
 
 		# if it worked, set the perms and return new location
 		if ($status) {
-			chmod ($path.$newname, 0775);
+			chmod ($path.$newname, 0777);
 			$this->set_path($path.$newname);
 		} else {
 			throw new FileMove("There was a problem moving the file ".$this->get_name()." to the directory $path.");;
