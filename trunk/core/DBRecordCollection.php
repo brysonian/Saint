@@ -154,6 +154,10 @@ class DBRecordCollection implements Iterator
 		}
 		return $this->last;
 	}
+	
+	function is_empty() {
+		return !$this->first();
+	}
 
 
 // ===========================================================
