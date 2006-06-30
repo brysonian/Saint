@@ -26,7 +26,7 @@ class DBRecord implements Iterator, Serviceable
 	protected $key;
 	protected $current;
 	protected $fields;
-	protected $shallow = false;
+	protected $include = array();
 
 	protected $loaded = false;
 
@@ -99,19 +99,7 @@ class DBRecord implements Iterator, Serviceable
 	function get_table()		{ return $this->table; }
 	function set_table($t)	{ $this->table = $t; }
 	
-	// query params
-	function get_order()		{ return $this->order; }
-	function set_order($t)	{ $this->order = $t;}
-            
-	function get_where()		{ return $this->where; }
-	function set_where($t)	{ $this->where = $t; }
-	         
-	function get_group()		{ return $this->group; }
-	function set_group($t)	{ $this->group = $t; }
-	         
-	function get_limit()		{ return $this->limit; }
-	function set_limit($t)	{ $this->limit = $t; }
-	
+		
 	function is_empty($idcheck=false) {
 		# see if there is anything in data
 		$v = join('', $this->data);
@@ -369,6 +357,7 @@ class DBRecord implements Iterator, Serviceable
 		# validation
 		if (strpos($method, 'validates_') !== false) {
 			if (!$this->validator) $this->validator = new DBRecordValidator($this);
+			// TODO: Replace with variable functions
 			call_user_func_array(array($this->validator, $method), $args);
 
 		} else if (strpos($method, 'add_') !== false) {
@@ -454,6 +443,7 @@ class DBRecord implements Iterator, Serviceable
 	static function find($uid, $options=array(), $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
+		$m->set_options($options);
 		$m->set_uid($uid);
 		$m->load();
 		return $m;
@@ -463,9 +453,7 @@ class DBRecord implements Iterator, Serviceable
 	static function find_all($options=array(), $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
-		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
-		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
-		if (is_array($options) && array_key_exists('shallow', $options)) $m->shallow = $options['shallow'];
+		$m->set_options($options);
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
 		return $sibs;
 	}
@@ -474,9 +462,7 @@ class DBRecord implements Iterator, Serviceable
 	static function find_where($where, $options=array(), $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
-		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
-		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
-		if (is_array($options) && array_key_exists('shallow', $options)) $m->shallow = $options['shallow'];
+		$m->set_options($options);
 		$m->set_where($where);
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
 		return $sibs;
@@ -486,9 +472,7 @@ class DBRecord implements Iterator, Serviceable
 	static function find_by($field, $value, $options=array(), $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
-		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
-		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
-		if (is_array($options) && array_key_exists('shallow', $options)) $m->shallow = $options['shallow'];
+		$m->set_options($options);
 		$m->set_where("`$field` = '".$m->escape_string($value)."'");
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
 		return $sibs;
@@ -498,9 +482,7 @@ class DBRecord implements Iterator, Serviceable
 	static function find_by_all($value, $options=array(), $class=false) {
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
-		if (is_array($options) && array_key_exists('order', $options)) $m->set_order($options['order']);
-		if (is_array($options) && array_key_exists('group', $options)) $m->set_group($options['group']);
-		if (is_array($options) && array_key_exists('shallow', $options)) $m->shallow = $options['shallow'];
+		$m->set_options($options);
 		$o = $m->table_info();
 		$sql = array();
 		foreach($o['order'] as $k => $v) {
@@ -517,6 +499,7 @@ class DBRecord implements Iterator, Serviceable
 		$class = $class?$class:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_id($id);
+		$m->set_options($options);
 		$m->load();
 		return $m;
 	}
@@ -530,7 +513,13 @@ class DBRecord implements Iterator, Serviceable
 	}
 
 
-
+	// sets query options on an object based on options array
+	public function set_options($options=array()) {
+		if (is_array($options) && array_key_exists('order', $options)) $this->set_order($options['order']);
+		if (is_array($options) && array_key_exists('group', $options)) $this->set_group($options['group']);
+		if (is_array($options) && array_key_exists('limit', $options)) $this->set_limit($options['limit']);
+		if (is_array($options) && array_key_exists('include', $options)) $this->include = is_array($options['include'])?$options['include']:array($options['include']);
+	}
 
 
 
@@ -628,12 +617,38 @@ class DBRecord implements Iterator, Serviceable
 		}
 		return DBRecord::$table_info[$table];
 	}
-
+	
+// ===========================================================
+// - GET THE QUERY FOR THIS OBJECT
+// ===========================================================
 	// get the query for this obj
 	function get_query() {
 		# make query
-		$sql = "SELECT `".$this->get_table()."`.*";
-		$order = $this->get_order()?$this->get_order():'';
+		$sql = 'SELECT '.$this->get_select();
+
+		# ADD FROM
+		$sql .= " FROM `".$this->get_table()."` ";
+
+		# ADD JOINS
+		$sql .= $this->get_joins();
+
+		# add WHERE clause
+		if ($this->get_where()) $sql .= " WHERE ".$this->get_where();
+		
+		# add group by if there is one
+		if ($this->get_group()) $sql .= " GROUP BY ".$this->get_group();
+
+		# add order by if there is one
+		if ($this->get_order()) $sql .= " ORDER BY ".$this->get_order();
+
+		# add order by if there is one
+		if ($this->get_limit()) $sql .= " LIMIT ".$this->get_limit();
+
+		return $sql;
+	}
+	
+	private function get_select() {
+		$sql = "`".$this->get_table()."`.*";
 
 		# add to_one
 		if (!empty($this->to_one) && !$this->shallow) {
@@ -659,21 +674,15 @@ class DBRecord implements Iterator, Serviceable
 				}
 			}
 		}
-
-		# add from
-		$sql .= " FROM `".$this->get_table()."` ";
-
+		return $sql;
+	}
+	
+	private function get_joins() {
+		$sql = '';
 		# join to_one
 		if (!empty($this->to_one) && !$this->shallow) {
 			foreach ($this->to_one as $v) {
 				$sql .= " LEFT JOIN `{$v}` ON {$v}.uid = `".$this->get_table()."`.{$v}_uid ";				
-
-				# add any order by stuff
-#				$cname = $this->get_classname_from_table($v);
-				$cname = to_class_name($v);
-				$temp = new $cname;
-				$order .= $temp->get_order()?($order?',':'').$temp->get_order():'';
-				
 			}
 		}
 
@@ -688,32 +697,29 @@ class DBRecord implements Iterator, Serviceable
 				} else {
 					$sql .= " LEFT JOIN `$v` ON `$v`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
 				}				
-
-				# add any order by stuff
-#				$cname = $this->get_classname_from_table($v);
-				$cname = to_class_name($v);
-				$temp = new $cname;
-				$order .= $temp->get_order()?($order?',':'').$temp->get_order():'';
 			}
 		}
-
-		# add WHERE clause
-		if ($this->get_where()) $sql .= " WHERE ".$this->get_where();
-		
-		# add group by if there is one
-		if ($this->get_group()) $sql .= " GROUP BY ".$this->get_group();
-
-		# add order by if there is one
-		if ($order) $sql .= " ORDER BY ".$order;
-
-		# add order by if there is one
-		if ($this->get_limit()) $sql .= " LIMIT ".$this->get_limit();
-
 		return $sql;
 	}
 
+	// query params
+	function get_order()		{ return $this->order; }
+	function set_order($t)	{ $this->order = $t;}
+            
+	function get_where()		{ return $this->where; }
+	function set_where($t)	{ $this->where = $t; }
+	         
+	function get_group()		{ return $this->group; }
+	function set_group($t)	{ $this->group = $t; }
+	         
+	function get_limit()		{ return $this->limit; }
+	function set_limit($t)	{ $this->limit = $t; }
 
-	// process a row
+
+
+// ===========================================================
+// - PROCESS A ROW INTO OBJECTS
+// ===========================================================
 	function process_row($row) {
 		# skip cols with tablename_id
 		$skipme = $this->get_table().'_id';

@@ -516,7 +516,9 @@ class UsherMap
 					# class is available
 					if (array_key_exists($name, $this->requirements)) {
 						if (function_exists($this->requirements[$name])) {
-							if (!call_user_func($this->requirements[$name], $out[$name])) return false;
+							// TODO: Replace with variable functions
+							#if (!call_user_func($this->requirements[$name], $out[$name])) return false;
+							if (!$this->requirements[$name]($out[$name])) return false;
 						} else {
 							if (!preg_match($this->requirements[$name], $out[$name])) return false;
 						}
@@ -528,7 +530,9 @@ class UsherMap
 						# if the req is a function, call it and pass the value,
 						# otherwise assume it's a regex
 						if (function_exists($this->requirements[$name])) {
-							if (!call_user_func($this->requirements[$name], $out[$name])) return false;
+							// TODO: Replace with variable functions
+							#if (!call_user_func($this->requirements[$name], $out[$name])) return false;
+							if (!$this->requirements[$name]($out[$name])) return false;
 						} else {
 							if (!preg_match($this->requirements[$name], $out[$name])) return false;
 						}

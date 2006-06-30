@@ -79,7 +79,8 @@ class ControllerCore
 
 					# loop through all filters and call each
 					foreach($filters as $filter) {
-						$fok = call_user_func($filter);
+						#$fok = call_user_func($filter);
+						$fok = $filter();
 					
 						# only fail if it's really false not just undef
 						if ($fok === false) $ok = false;
@@ -89,7 +90,9 @@ class ControllerCore
 		}
 
 		# call the method if none of the filters returned false
-		if ($ok) call_user_func(array($this, $the_method));
+		#if ($ok) call_user_func(array($this, $the_method));
+		if ($ok) $this->$the_method();
+
 		
 		# perform the after filters
 		$af = $this->get_after_filters();
@@ -103,7 +106,8 @@ class ControllerCore
 				if ($method == '*' || $method == $the_method) {
 					# loop through all filters and call each
 					foreach($filters as $filter) {
-						call_user_func($filter);
+						#call_user_func($filter);
+						$filter();
 					}
 				}
 			}
@@ -138,7 +142,10 @@ class ControllerCore
 
 	function render_action($action) {
 		$this->render_view($action);
-		call_user_func(array($this, "_{$action}"));
+		// TODO: Replace with variable functions
+		#call_user_func(array($this, "_{$action}"));
+		$a = "_{$action}";
+		$this->$a();
 	}
 
 	// reference to redirect_to
