@@ -28,14 +28,16 @@ h1
 	font-size: 1.8em;
 }
 
+#pages
+{
+	margin-top: 15px;
+	width: 600px;
+	text-align: center;
+}
+
 #footer
 {
 	margin-top: 50px;
-	margin-bottom: 10px;
-}
-
-p
-{
 	margin-bottom: 10px;
 }
 
@@ -78,18 +80,18 @@ p
 ul#listing
 {
 	list-style: none;
-	width: 400px;
+	width: 600px;
 }
 
 ul#listing li
 {
-	padding: 0px 3px 0px 3px;
+	padding: 1px 3px 1px 3px;
 	margin-bottom: 1px;
 }
 
 li.row1
 {
-	background-color: #D8EBDB;
+	background-color: #EDF2FF;
 }
 
 .controls
@@ -116,14 +118,38 @@ dd
 	margin: 1px 0px 20px 5px;
 }
 
+dd ul
+{
+	margin-left: 20px;
+}
+
 /* EDIT */
 form ul
 {
 	list-style: none; padding: 0px;
 }
+
 form label
 {
 	display: block;
 	margin-top: 10px;
 	font-weight: bold;
+}
+
+fieldset
+{
+	margin-top: 10px;
+	padding: 10px;
+	width: 500px;
+	border: 1px solid #989898;
+}
+
+legend
+{
+	font-weight: bold;
+}
+
+p
+{
+	margin-bottom: 10px;
 }
