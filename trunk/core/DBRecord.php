@@ -403,7 +403,6 @@ class DBRecord implements Iterator, Serviceable
 // this is one way to find the class name
 	static function get_class_from_backtrace() {
 		$db = debug_backtrace();
-		
 		# if the last item is a call_user_func call, then this is easy
 		if ($db[2]['function'] == 'call_user_func') {
 			return $db[2]['args'][0][0];
@@ -415,7 +414,8 @@ class DBRecord implements Iterator, Serviceable
 		
 		# if the args are on multiple lines, we need to account for that
 		if (array_key_exists('args', $db[$i]) && is_array($db[$i]['args'])) {
-			foreach($db[$i]['args'] as $k => $v) {
+			//TODO: check this
+		/*	foreach($db[$i]['args'] as $k => $v) {
 				if (!is_string($v)) {
 					if (is_array($v)) {
 						$v = join('',$v);
@@ -424,7 +424,11 @@ class DBRecord implements Iterator, Serviceable
 					}
 				}
 				$line -= substr_count($v, "\n");
-			}
+			}*/
+			ob_start();
+			array_walk_recursive ($db[$i]['args'], create_function('$v, $k', 'if (!is_array($v)) echo $v;'));
+			$v = ob_get_clean();
+			$line -= substr_count($v, "\n");
 		}
 		
 		$c = array();
@@ -434,6 +438,7 @@ class DBRecord implements Iterator, Serviceable
 		}
 		return $c[1];
 	}
+
 
 
 // ===========================================================
