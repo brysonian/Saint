@@ -490,7 +490,7 @@ class DBRecord implements Iterator, Serviceable
 		$m->set_options($options);
 		$o = $m->table_info();
 		$sql = array();
-		foreach($o['order'] as $k => $v) {
+		foreach($o as $k => $v) {
 			if (strpos($k, 'id') !== false) continue;
 			$sql[] = ' `'.$m->get_table().'`.'.$k." LIKE '".$m->escape_string($value)."'";
 		}
@@ -660,7 +660,7 @@ class DBRecord implements Iterator, Serviceable
 			# loop through to_one's
 			foreach ($this->to_one as $v) {
 				$info = $this->table_info($v);
-				foreach ($info['order'] as $col => $colorder) {
+				foreach ($info as $colorder=>$col) {
 					# skip columns that have the table name in them
 					if (strpos($col, $this->get_table().'_') !== false) continue;
 					$sql .= ','.$v.'.'.$col. ' as '.$v.'_'.$col;					
@@ -672,7 +672,7 @@ class DBRecord implements Iterator, Serviceable
 			# loop through to_many's
 			foreach ($this->to_many as $v) {
 				$info = $this->table_info($v);
-				foreach ($info['order'] as $col => $colorder) {
+				foreach ($info as $colorder=>$col) {
 					# skip columns that have the table name in them
 					if (strpos($col, $this->get_table().'_') !== false) continue;
 					$sql .= ','.$v.'.'.$col. ' as '.$v.'_'.$col;					
