@@ -87,13 +87,15 @@ class MySQLiConnection
 
 		$output = array();
 		$i=0;
-		while ($row = $result->fetch_assoc()) {
-			if ($full) {
-				$output[] = $row;
-			} else {
-				$output[$i] = $row['Field'];
+		if ($result) {
+			while ($row = $result->fetch_assoc()) {
+				if ($full) {
+					$output[] = $row;
+				} else {
+					$output[$i] = $row['Field'];
+				}
+				$i++;
 			}
-			$i++;
 		}
 		return $output;
 	}
