@@ -82,17 +82,16 @@ class MySQLiConnection
 		MySQLiConnection::$query_count++;
 		
 		$sql = "SHOW COLUMNS FROM `$table`";
-		$result = new MySQLiResult($this->db->query($sql));
+		$result = $this->db->query($sql);
 		if(defined('MYSQLI_DEBUG') && MYSQLI_DEBUG > 1 && !SHELL) error_log($sql);
 
 		$output = array();
-		if (!$full) $output['order'] = array();
 		$i=0;
 		while ($row = $result->fetch_assoc()) {
 			if ($full) {
 				$output[] = $row;
 			} else {
-				$output['order'][$row['Field']] = $i;
+				$output[$i] = $row['Field'];
 			}
 			$i++;
 		}
