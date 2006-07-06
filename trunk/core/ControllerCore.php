@@ -79,8 +79,7 @@ class ControllerCore
 
 					# loop through all filters and call each
 					foreach($filters as $filter) {
-						#$fok = call_user_func($filter);
-						$fok = $filter();
+						$fok = call_user_func($filter);
 					
 						# only fail if it's really false not just undef
 						if ($fok === false) $ok = false;
