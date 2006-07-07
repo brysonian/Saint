@@ -492,7 +492,7 @@ class DBRecord implements Iterator, Serviceable
 		$sql = array();
 		foreach($o as $k => $v) {
 			if (strpos($k, 'id') !== false) continue;
-			$sql[] = ' `'.$m->get_table().'`.'.$k." LIKE '".$m->escape_string($value)."'";
+			$sql[] = ' `'.$m->get_table().'`.'.$v." LIKE '".$m->escape_string($value)."'";
 		}
 		$m->set_where(join(' OR ', $sql));
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
