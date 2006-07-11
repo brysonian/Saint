@@ -71,10 +71,48 @@ class ViewCore
 		render_partial(array('action'=>'partial', 'obj'=>array('one', 'two'), 'collect'=>true))
 		render_partial(false, 'partial')	
 	*/
-	function render_partial($controller, $action=false, $obj=false, $collect=false) {
+	function render_partial($action, $object=false, $collect=false) {
+		#if the controller is an array, use it and ignore the rest
+		if (is_array($action)) {
+			if (array_key_exists('object', $action))	$object = $action['object'];
+			if (array_key_exists('action', $action))	$action = $action['action'];
+			if (array_key_exists('collect', $action))	$collect = $action['collect'];			
+		}
+
+		$controller = params('controller');
+
+		# set the template and object name
+		$slashloc = strrpos($action, '/');
+		if ($slashloc !== false) {			
+			$objectname = substr($action, $slashloc+1);
+			$template = substr($action, 0, $slashloc).'/_'.$objectname;
+		} else {
+			$template = strtolower($controller).'/_'.$action;
+			$objectname = $action;
+		}
+
+		$view = ViewFactory::make_view($template);
+					
+		# if it's a collection, call it for each item in the obj
+		if ($collect === true) {
+			foreach($object as $k => $v) {
+				echo $view->parse_partial($objectname, $v);
+			}
+
+		} else {
+			echo $view->parse_partial($objectname, $object);				
+		}
+	}
+
+
+
+
+
+	// TODO: FINISH THE COMPONENTS
+	function render_component($controller, $action=false, $object=false, $collect=false) {
 		#if the controller is an array, use it and ignore the rest
 		if (is_array($controller)) {
-			if (array_key_exists('obj', $controller))			$obj = $controller['obj'];
+			if (array_key_exists('object', $controller))	$object = $controller['object'];
 			if (array_key_exists('action', $controller))	$action = $controller['action'];
 			if (array_key_exists('collect', $controller))	$collect = $controller['collect'];
 			if (array_key_exists('controller', $controller)) {
@@ -110,10 +148,10 @@ class ViewCore
 					
 		# if it's a collection, call it for each item in the obj
 		if ($collect === true) {
-			foreach($obj as $k => $v) {
+			foreach($object as $k => $v) {
 				if ($me) {
 					# add the obj to the controller if there is one
-					if ($obj !== false) $theController->$action = $v;
+					if ($object !== false) $theController->$action = $v;
 				
 					# tell the controller to execute the action
 					$theController->execute($theMethod);
@@ -125,12 +163,12 @@ class ViewCore
 		} else {
 			if ($me) {
 				# add the obj to the controller if there is one
-				if ($obj !== false) $theController->$action = $obj;
+				if ($object !== false) $theController->$action = $object;
 
 				# tell the controller to execute the action
 				$theController->execute($theMethod);
 			} else {
-				echo $view->parse_partial($controller, $obj);				
+				echo $view->parse_partial($controller, $object);				
 			}
 		}
 	}
