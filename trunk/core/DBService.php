@@ -20,6 +20,10 @@ class DBService
 		return self::$instance;
 	}
 	
+	static function has_connection($serviceid) {
+		return array_key_exists($serviceid, self::$map);
+	}
+	
 	static function get_connection($serviceid) {
 		# first see if the connection exists, then return it
 		if (isset(self::$connections[$serviceid])) return self::$connections[$serviceid];
@@ -60,6 +64,18 @@ class DBService
 			case 'sqlite':
 				self::$connections[$serviceid] = new SQLiteConnection(
 					$called['dbname']
+				);
+				break;
+
+			// TODO: maybe we don't really need this switch
+			default:
+				$cname = $called['type'];
+				self::$connections[$serviceid] = new $cname(
+					$called['host'],
+					$called['user'],
+					$called['pass'],
+					$called['dbname'],
+					$called['options']
 				);
 				break;
 		}		
