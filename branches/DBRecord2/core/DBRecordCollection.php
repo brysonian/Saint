@@ -1,7 +1,7 @@
 <?php
 
 
-class DBRecordCollection implements Iterator
+class DBRecordCollection implements Iterator, Countable, ArrayAccess
 {
 
 	protected $loaded = false;
@@ -31,7 +31,7 @@ class DBRecordCollection implements Iterator
 		$this->model = $model;
 		$this->query = $query;		
 		$this->limit = '';
-		
+
 		# clear props
 		$this->row = false;
 		
@@ -128,7 +128,7 @@ class DBRecordCollection implements Iterator
 	function first() {
 		if (!$this->first) {
 			$this->rewind();
-			if ($this->result->num_rows() === false) return false;
+			if (count($this->result) === false) return false;
 			if ($this->valid()) {
 				$this->first = $this->current();
 			} else {
@@ -159,6 +159,29 @@ class DBRecordCollection implements Iterator
 		return !$this->first();
 	}
 
+// ===========================================================
+// - ARRAYACCESS INTERFACE
+// ===========================================================
+	public function offsetExists($offset) {
+		if ($this->item($offset) !== false) return true;
+		return false;
+	}
+	
+	public function offsetGet($offset) {
+		return $this->item($offset);
+	}
+
+	public function offsetSet($offset, $value) {
+		throw new ReadOnlyAccess('DBRecordCollection items are read only.');
+	}
+
+	public function offsetUnset($offset) {
+		throw new ReadOnlyAccess('DBRecordCollection items are read only.');
+	}
+
+
+
+
 
 // ===========================================================
 // - DB RELATED
@@ -188,9 +211,15 @@ class DBRecordCollection implements Iterator
 		if($this->result) $this->result->free();
 	}
 	
-	function num_rows() {
-		if (!$this->result) $this->load();
-		return $this->result->num_rows();
+
+
+// ===========================================================
+// - COUNTABLE INTERFACE
+// ===========================================================
+	public function count() {
+		$where = $this->model->get_where()?' WHERE '.$this->model->get_where():'';
+		$unique_result = $this->db->query('SELECT uid from '.$this->model->get_table().$where.' GROUP BY uid '.$this->limit);
+		return count($unique_result);
 	}
 
 	
@@ -214,6 +243,7 @@ class DBRecordCollection implements Iterator
 	}
 
 	// get array rep of this object
+	function to_a($deep=false) { return $this->to_array($deep); }
 	function to_array($deep=false) {
 		$out = array();
 		foreach($this as $obj) {

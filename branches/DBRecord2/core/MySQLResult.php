@@ -1,6 +1,7 @@
 <?php
 
-class MySQLResult {	
+class MySQLResult implements Countable
+{	
 
 	protected $result;
 	protected $parent;
@@ -25,7 +26,10 @@ class MySQLResult {
 		return true;
 	}
 	
-	function num_rows() {
+// ===========================================================
+// - COUNTABLE INTERFACE
+// ===========================================================
+	public function count() {
 		return mysql_num_rows($this->result);
 	}
 

@@ -61,6 +61,8 @@ class Usher
 	* start hand off to the controller
 	*/
 	static function handle_url($url) {
+		if (defined('DEBUG') && DEBUG) $start = microtime(true);
+		
 		$u = Usher::get_instance();
 
 		$params = $u->match_url($url);
@@ -124,6 +126,12 @@ class Usher
 
 		# tell the controller to execute the action
 		self::$controller->execute($action);
+		
+		# log exec time
+		if (defined('DEBUG') && DEBUG) {
+			$end = microtime(true);
+			error_log("Executed in ".($end-$start)." seconds.");
+		}
 	}
 	
 	/**
@@ -516,8 +524,6 @@ class UsherMap
 					# class is available
 					if (array_key_exists($name, $this->requirements)) {
 						if (function_exists($this->requirements[$name])) {
-							// TODO: Replace with variable functions
-							#if (!call_user_func($this->requirements[$name], $out[$name])) return false;
 							if (!$this->requirements[$name]($out[$name])) return false;
 						} else {
 							if (!preg_match($this->requirements[$name], $out[$name])) return false;
@@ -530,8 +536,6 @@ class UsherMap
 						# if the req is a function, call it and pass the value,
 						# otherwise assume it's a regex
 						if (function_exists($this->requirements[$name])) {
-							// TODO: Replace with variable functions
-							#if (!call_user_func($this->requirements[$name], $out[$name])) return false;
 							if (!$this->requirements[$name]($out[$name])) return false;
 						} else {
 							if (!preg_match($this->requirements[$name], $out[$name])) return false;

@@ -7,7 +7,7 @@
 	@author Chandler McWilliams
 	@version 2006-06-03
 */
-class DBRecordCollectionPaginator implements Iterator
+class DBRecordCollectionPaginator implements Iterator, Countable, ArrayAccess
 {
 
 	protected $per_page = 10;
@@ -45,14 +45,17 @@ class DBRecordCollectionPaginator implements Iterator
 		return $this->iterator;
 	}
 	
-	function num_pages() {
+
+// ===========================================================
+// - COUNTABLE INTERFACE
+// ===========================================================
+	function count() {
 		if ($this->page_count === false) {
 			# load them all
 			$dupe = clone $this->iterator;
 			$dupe->set_limit(false);
 			
-			$c = 0;
-			foreach($dupe as $v) $c++;
+			$c = count($dupe);
 			$this->page_count = ceil($c/$this->per_page);
 		}
 		return $this->page_count;
@@ -63,7 +66,7 @@ class DBRecordCollectionPaginator implements Iterator
 // - ITERATOR INTERFACE
 // ===========================================================
 	function rewind() {
-		$c = $this->num_pages();
+		$c = count($this);
 		$this->current_page = 1;
 	}
 	
@@ -82,6 +85,28 @@ class DBRecordCollectionPaginator implements Iterator
 	function next() {
 		$this->current_page++;
 	}
+
+
+// ===========================================================
+// - ARRAYACCESS INTERFACE
+// ===========================================================
+	public function offsetExists($offset) {
+		if ($this->get_page($offset) !== false) return true;
+		return false;
+	}
+	
+	public function offsetGet($offset) {
+		return $this->get_page($offset);
+	}
+
+	public function offsetSet($offset, $value) {
+		throw new ReadOnlyAccess('DBRecordCollectionPaginator pages are read only.');
+	}
+
+	public function offsetUnset($offset) {
+		throw new ReadOnlyAccess('DBRecordCollectionPaginator pages are read only.');
+	}
+
 
 }
 

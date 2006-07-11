@@ -1,7 +1,7 @@
 <?php
 
 
-class DBRecord implements Iterator, Serviceable
+class DBRecord2 implements Iterator, Serviceable, Countable
 {
 	protected $data = array();
 	
@@ -25,10 +25,12 @@ class DBRecord implements Iterator, Serviceable
 	protected $valid;
 	protected $key;
 	protected $current;
-	protected $fields;
+	protected $fields = array();
 	protected $include = array();
+	protected $included = array();
 
 	protected $loaded = false;
+	protected $modified = false;
 
 	protected $validator = array();
 	
@@ -42,14 +44,9 @@ class DBRecord implements Iterator, Serviceable
 		$table = get_class($this);
 		
 		# turn camelback into underscore and lowercase
-#		$table = $this->get_table_from_classname($table);
 		$table = to_table_name($table);
 		$this->set_table($table);
 		
-		# get a ref to the dbconnection
-		// TODO: cleanup
-#		$this->db = DBService::get_connection($this->get_service_id());
-
 		if (method_exists($this, 'init')) $this->init();
 		
 		# if props, add them all
@@ -77,7 +74,7 @@ class DBRecord implements Iterator, Serviceable
 	// for uid
 	function get_uid()		{ return isset($this->uid)?$this->uid:false; }
 	function set_uid($aUid)	{
-		if (!DBRecord::is_valid_uid($aUid) && $aUid !== false) throw new InvalidUid("$aUid is not a valid uid.");
+		if (!DBRecord2::is_valid_uid($aUid) && $aUid !== false) throw new InvalidUid("$aUid is not a valid uid.");
 		$this->uid = $aUid; 
 	}
 	
@@ -114,7 +111,7 @@ class DBRecord implements Iterator, Serviceable
 		# allow id and uid
 		if ($prop == 'id') return $this->get_id();
 		if ($prop == 'uid') return $this->get_uid();
-		
+
 		# first check in data
 		if (isset($this->data[$prop])) {
 			# if there is a method with this name, call it and pass the value
@@ -123,58 +120,58 @@ class DBRecord implements Iterator, Serviceable
 			}
 			return $this->data[$prop];
 		}
+
 		
 		# then the to_one's
 		# if the connection exists
-		if (!empty($this->to_one) && array_key_exists($prop, $this->to_one)) {
-			# if the obj exists return it
-			$prop = $this->to_one[$prop];
+		if ($this->has_relationship($prop, 'to-one')) {
 			if (isset($this->to_one_obj[$prop])) {
-				if (!$this->to_one_obj[$prop]->is_empty()) {
-					return $this->to_one_obj[$prop];
-				} else {
-					return false;
-				}
-			}
-			
-			# no object exists for this, so if we have a uid for one, load it up
-			if (!array_key_exists($prop.'_uid', $this->data) && $this->get_uid()) {
-				$this->load();
+				$this->to_one_obj[$prop]->load();
 				return $this->to_one_obj[$prop];
-			}
-
-			if (array_key_exists($prop.'_uid', $this->data) && $this->data[$prop.'_uid']) {
-#				$cname = $this->get_classname_from_table($prop);
-				$cname = to_class_name($prop);
-				$this->to_one_obj[$prop] = new $cname;
+			} else if (array_key_exists($prop.'_uid', $this->data) && !empty($this->data[$prop.'_uid'])) {
+				$this->to_one_obj[$prop] = new $this->to_one[$prop]['class'];
 				$this->to_one_obj[$prop]->set_uid($this->data[$prop.'_uid']);
 				$this->to_one_obj[$prop]->load();
 				return $this->to_one_obj[$prop];
-			} else {
-				return false;
 			}
 		}
 
 		# then try the to_manys
 		# if the connection exists
-		if (!empty($this->to_many) && array_key_exists($prop, $this->to_many)) {
- 			$tm = $this->get_to_many_objects($this->to_many[$prop]);
-			
-			# if none are found, but i should have some, reload me
-			if (!$tm && is_array($this->to_many) && !$this->loaded && $this->get_uid()) {
-				$this->load();
-				$tm = $this->get_to_many_objects($this->to_many[$prop]);
-			}			
+		if ($this->has_relationship($prop, 'to-many')) {
 
-			# TODO: Maybe this can be replaced by the to_many collection class
-			if ($tm) {
+			# TODO: Maybe this array making can be replaced by a to_many collection class
+			if (array_key_exists($prop, $this->to_many_obj) && !empty($this->to_many_obj[$prop])) {
 				$out = array();
-				foreach ($tm as $obj) {
-					# on each item, if it is empty or has many's or ones, load it
-					if ($obj->is_empty() || $obj->does_have_many() || $obj->does_have_one()) $obj->load();
+				foreach ($this->to_many_obj[$prop] as $obj) {
 					$out[] = $obj;
 				}
 				return $out;
+				
+			} else {
+				// TODO: see about this include stuff
+
+				# if it's actually a habtm, load accordingly
+				if ($this->has_relationship($prop, 'habtm')) {
+					$other_table = $this->habtm[$prop]['other_table'];
+					$table = $this->habtm[$prop]['table'];
+					$props = DBRecord2::find_sql(
+						"SELECT * from `$other_table` LEFT JOIN `$table` ON `$table`.{$other_table}_uid=`$other_table`.uid WHERE `$table`.".$this->get_table()."_uid = '".$this->get_uid()."'",
+						array('class'=>$this->habtm[$prop]['class'], 'include'=>$this->include)						
+					);						
+				} else {
+					$props = DBRecord2::find_by($this->get_table().'_uid', $this->get_uid(), array('class'=>$this->to_many[$prop]['class'], 'include'=>$this->include));					
+				}
+				
+				# tmobj is indexed by uid, until tmcollection
+				// TODO: another point for a to-many collection
+				$a = $props->to_a();
+				$this->to_many_obj[$prop] = array();
+				foreach($a as $k => $v) {
+					$this->to_many_obj[$prop][$v->get_uid()] = $v;
+				}
+				// convert results into an array
+				return $a;
 			}
 		}
 		
@@ -192,7 +189,7 @@ class DBRecord implements Iterator, Serviceable
 		if (is_null($val)) {
 			unset($this->data[$prop]);
 
-		} else if (is_array($this->to_one) && array_key_exists($prop, $this->to_one)) {
+		} else if ($this->has_relationship($prop, 'to-one') && is_object($val)) {
 			if (!$val->get_uid()) $val->save();
 			$this->data[$prop.'_uid'] = $val->get_uid();
 
@@ -201,41 +198,9 @@ class DBRecord implements Iterator, Serviceable
 		}
 		
 		# reset loaded because things have changed
-		$this->loaded = false;
+		$this->modified = true;
 	}
 
-	// get a list of to_many object
-	function get_to_many_objects($prop) {
-		# check if it's there
-		if (isset($this->to_many_obj[$prop])) {
-			return $this->to_many_obj[$prop];
-		}
-		return false;
-	}
-
-	// see if this object has to many or to one associations
-	// exclude the passed class
-	function does_have_many($not_class=false) {
-		if (is_array($this->to_many) && !empty($this->to_many)) {
-			$c = 0;
-			foreach($this->to_many as $k => $v) {
-				if ($v != $not_class) $c++;
-			}
-			if ($c > 0)	return true;
-		}
-		return false;
-	}
-
-	function does_have_one($not_class=false) {
-		if (is_array($this->to_one) && !empty($this->to_one)) {
-			$c = 0;
-			foreach($this->to_one as $k => $v) {
-				if (strtolower($v) != strtolower($not_class)) $c++;
-			}
-			if ($c > 0)	return true;
-		}
-		return false;
-	}
 
 
 
@@ -247,7 +212,8 @@ class DBRecord implements Iterator, Serviceable
 // - CRUD
 // ===========================================================
 	// save to the db
-	function save() {
+	function save($force=false) {
+		if (!$this->modified && !$force) return;
 		# if no id or uid, then insert a new post, otherwise update
 		if ($this->get_id() || $this->get_uid()) {
 			$this->update();
@@ -357,7 +323,7 @@ class DBRecord implements Iterator, Serviceable
 		# validation
 		if (strpos($method, 'validates_') !== false) {
 			if (!$this->validator) $this->validator = new DBRecordValidator($this);
-			// TODO: Replace with variable functions
+			// can't use variable functions since the args array needs to be expanded to args
 			call_user_func_array(array($this->validator, $method), $args);
 
 		} else if (strpos($method, 'add_') !== false) {
@@ -414,7 +380,7 @@ class DBRecord implements Iterator, Serviceable
 		
 		# if the args are on multiple lines, we need to account for that
 		if (array_key_exists('args', $db[$i]) && is_array($db[$i]['args'])) {
-			//TODO: check this
+			//TODO: keep an eye on this
 		/*	foreach($db[$i]['args'] as $k => $v) {
 				if (!is_string($v)) {
 					if (is_array($v)) {
@@ -440,13 +406,12 @@ class DBRecord implements Iterator, Serviceable
 	}
 
 
-
 // ===========================================================
 // - FIND
 // ===========================================================
 	// return an a single item by uid
-	static function find($uid, $options=array(), $class=false) {
-		$class = $class?$class:self::get_class_from_backtrace();
+	static function find($uid, $options=array()) {
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);
 		$m->set_uid($uid);
@@ -455,8 +420,8 @@ class DBRecord implements Iterator, Serviceable
 	}
 
 	// return an array of all objects of this type
-	static function find_all($options=array(), $class=false) {
-		$class = $class?$class:self::get_class_from_backtrace();
+	static function find_all($options=array()) {
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
@@ -464,8 +429,8 @@ class DBRecord implements Iterator, Serviceable
 	}
 	
 	// return an array of all objects using this where clause
-	static function find_where($where, $options=array(), $class=false) {
-		$class = $class?$class:self::get_class_from_backtrace();
+	static function find_where($where, $options=array()) {
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);
 		$m->set_where($where);
@@ -474,8 +439,8 @@ class DBRecord implements Iterator, Serviceable
 	}
 	
 	// handy shortcut to find_where for use on a specific field
-	static function find_by($field, $value, $options=array(), $class=false) {
-		$class = $class?$class:self::get_class_from_backtrace();
+	static function find_by($field, $value, $options=array()) {
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);
 		$m->set_where("`$field` = '".$m->escape_string($value)."'");
@@ -484,15 +449,15 @@ class DBRecord implements Iterator, Serviceable
 	}
 
 	// handy shortcut to find_where for use on all searchable fields
-	static function find_by_all($value, $options=array(), $class=false) {
-		$class = $class?$class:self::get_class_from_backtrace();
+	static function find_by_all($value, $options=array()) {
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);
 		$o = $m->table_info();
 		$sql = array();
 		foreach($o as $k => $v) {
 			if (strpos($k, 'id') !== false) continue;
-			$sql[] = ' `'.$m->get_table().'`.'.$v." LIKE '".$m->escape_string($value)."'";
+			$sql[] = ' `'.$m->get_table().'`.'.$k." LIKE '".$m->escape_string($value)."'";
 		}
 		$m->set_where(join(' OR ', $sql));
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
@@ -500,8 +465,8 @@ class DBRecord implements Iterator, Serviceable
 	}
 		
 	// find an item by id
-	static function find_id($id, $options=array(), $class=false) {
-		$class = $class?$class:self::get_class_from_backtrace();
+	static function find_id($id, $options=array()) {
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_id($id);
 		$m->set_options($options);
@@ -510,9 +475,10 @@ class DBRecord implements Iterator, Serviceable
 	}
 
 	// return an array of all objects using this query
-	static function find_sql($sql, $class=false) {
-		$class = $class?$class:self::get_class_from_backtrace();
+	static function find_sql($sql, $options=array()) {
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
+		$m->set_options($options);
 		$sibs = new DBRecordCollection($m, $sql, $m->db());
 		return $sibs;
 	}
@@ -523,7 +489,18 @@ class DBRecord implements Iterator, Serviceable
 		if (is_array($options) && array_key_exists('order', $options)) $this->set_order($options['order']);
 		if (is_array($options) && array_key_exists('group', $options)) $this->set_group($options['group']);
 		if (is_array($options) && array_key_exists('limit', $options)) $this->set_limit($options['limit']);
-		if (is_array($options) && array_key_exists('include', $options)) $this->include = is_array($options['include'])?$options['include']:array($options['include']);
+		if (is_array($options) && array_key_exists('include', $options)) {
+			if ($options['include'] == '*') {
+				$this->include += array_keys($this->to_one);
+				$this->include += array_keys($this->to_many);
+			} else if ($options['include'] == 'to-one') {
+				$this->include += array_keys($this->to_one);
+			} else if ($options['include'] == 'to-many') {
+				$this->include += array_keys($this->to_many);
+			} else {
+				$this->include = is_array($options['include'])?$options['include']:array($options['include']);
+			}
+		}
 	}
 
 
@@ -533,12 +510,13 @@ class DBRecord implements Iterator, Serviceable
 // ===========================================================
 	function reload() {
 		$this->loaded = false;
+		$this->modified = false;
 		$this->load();
 	}
 
 	// load item from the db using id
 	function load() {
-		if ($this->loaded) return;
+		if ($this->loaded && !$this->modified) return;
 		
 		# start where clause if there isn't one
 		$where = $this->get_where();
@@ -613,21 +591,21 @@ class DBRecord implements Iterator, Serviceable
 		return true;
 	}
 	
-	function table_info($table=false, $full=false) {
+	protected function table_info($table=false, $full=false) {
 		if ($table === false) $table = $this->get_table();
 		if ($full) return $this->db()->table_info($table, true);
 		
-		if (!array_key_exists($table, DBRecord::$table_info)) {
-			DBRecord::$table_info[$table] = $this->db()->table_info($table, false);
+		if (!array_key_exists($table, DBRecord2::$table_info)) {
+			DBRecord2::$table_info[$table] = $this->db()->table_info($table, false);
 		}
-		return DBRecord::$table_info[$table];
+		return DBRecord2::$table_info[$table];
 	}
 	
 // ===========================================================
 // - GET THE QUERY FOR THIS OBJECT
 // ===========================================================
 	// get the query for this obj
-	function get_query() {
+	public function get_query() {
 		# make query
 		$sql = 'SELECT '.$this->get_select();
 
@@ -648,84 +626,99 @@ class DBRecord implements Iterator, Serviceable
 
 		# add order by if there is one
 		if ($this->get_limit()) $sql .= " LIMIT ".$this->get_limit();
-
+		
+		#die ($sql);
+		
 		return $sql;
 	}
 	
-	private function get_select() {
+	protected function get_select() {
 		$sql = "`".$this->get_table()."`.*";
 
-		# add to_one
-		if (!empty($this->to_one) && !$this->shallow) {
-			# loop through to_one's
-			foreach ($this->to_one as $v) {
-				$info = $this->table_info($v);
+		# add all included props
+		foreach($this->include as $k => $v) {
+			# only count ones with relationships
+			$type = $this->has_relationship($v, 'all', true);
+			if ($type) {
+				switch ($type) {
+					case 'to-one':
+						$table = $this->to_one[$v]['table'];
+						break;
+
+					case 'to-many':
+						$table = to_table_name($this->to_many[$v]['class']);
+						break;
+
+					case 'habtm':
+						$table = to_table_name($this->habtm[$v]['class']);
+						break;
+										
+				}
+
+				$info = $this->table_info($table);
 				foreach ($info as $colorder=>$col) {
 					# skip columns that have the table name in them
 					if (strpos($col, $this->get_table().'_') !== false) continue;
-					$sql .= ','.$v.'.'.$col. ' as '.$v.'_'.$col;					
+					$sql .= ','.$table.'.'.$col. ' as '.$v.'_'.$col;					
 				}
-			}
-		}
-		# add to_many
-		if (!empty($this->to_many) && !$this->shallow) {
-			# loop through to_many's
-			foreach ($this->to_many as $v) {
-				$info = $this->table_info($v);
-				foreach ($info as $colorder=>$col) {
-					# skip columns that have the table name in them
-					if (strpos($col, $this->get_table().'_') !== false) continue;
-					$sql .= ','.$v.'.'.$col. ' as '.$v.'_'.$col;					
-				}
-			}
-		}
-		return $sql;
-	}
-	
-	private function get_joins() {
-		$sql = '';
-		# join to_one
-		if (!empty($this->to_one) && !$this->shallow) {
-			foreach ($this->to_one as $v) {
-				$sql .= " LEFT JOIN `{$v}` ON {$v}.uid = `".$this->get_table()."`.{$v}_uid ";				
 			}
 		}
 
-		# join to_many
-		if (!empty($this->to_many) && !$this->shallow) {
-			# loop through to_many's
-			foreach ($this->to_many as $v) {
-				# see if this is actually a habtm, then add the extra join
-				if (is_array($this->habtm) && array_key_exists($v, $this->habtm)){
-					$sql .= " LEFT JOIN `".$this->habtm[$v]."` ON `".$this->habtm[$v]."`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
-					$sql .= " LEFT JOIN `$v` ON `".$this->habtm[$v]."`.".$v."_uid = `$v`.uid ";
-				} else {
-					$sql .= " LEFT JOIN `$v` ON `$v`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
-				}				
+		return $sql;
+	}
+	
+	protected function get_joins() {
+		$sql = '';
+
+		# add all included props
+		foreach($this->include as $k => $v) {
+
+			$type = $this->has_relationship($v, 'all', true);
+			if ($type) {
+				switch ($type) {	
+					case 'to-one':
+						$table = $this->to_one[$v]['table'];
+						$sql .= " LEFT JOIN `{$table}` ON {$table}.uid = `".$this->get_table()."`.{$table}_uid ";
+						break;
+
+					case 'habtm':
+						$table = $this->habtm[$v]['table'];
+						$other_table = $this->habtm[$v]['other_table'];
+						$sql .= " LEFT JOIN `$table` ON `".$table."`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
+						$sql .= " LEFT JOIN `".$other_table."` ON `".$table."`.".$other_table."_uid = `$other_table`.uid ";
+						break;
+					
+
+					# to-many
+					case 'to-many':
+						$table = $this->to_many[$v]['table'];
+						$sql .= " LEFT JOIN `$table` ON `$table`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
+						break;
+				}
 			}
 		}
 		return $sql;
 	}
 
 	// query params
-	function get_order()		{ return $this->order; }
-	function set_order($t)	{ $this->order = $t;}
+	public function get_order()		{ return $this->order; }
+	public function set_order($t)	{ $this->order = $t;}
             
-	function get_where()		{ return $this->where; }
-	function set_where($t)	{ $this->where = $t; }
+	public function get_where()		{ return $this->where; }
+	public function set_where($t)	{ $this->where = $t; }
 	         
-	function get_group()		{ return $this->group; }
-	function set_group($t)	{ $this->group = $t; }
+	public function get_group()		{ return $this->group; }
+	public function set_group($t)	{ $this->group = $t; }
 	         
-	function get_limit()		{ return $this->limit; }
-	function set_limit($t)	{ $this->limit = $t; }
+	public function get_limit()		{ return $this->limit; }
+	public function set_limit($t)	{ $this->limit = $t; }
 
 
 
 // ===========================================================
 // - PROCESS A ROW INTO OBJECTS
 // ===========================================================
-	function process_row($row) {
+	public function process_row($row) {
 		# skip cols with tablename_id
 		$skipme = $this->get_table().'_id';
 
@@ -733,7 +726,6 @@ class DBRecord implements Iterator, Serviceable
 		foreach ($row as $k=>$v) {
 			if ($k == $skipme) continue;
 			
-			# currently it's all eager loading,
 			# figure out if a particular result belongs to a to-one or to-many
 			# the key will have to have a _ in it for this to be the case, so
 			# skip keys without one straight out
@@ -745,16 +737,19 @@ class DBRecord implements Iterator, Serviceable
 
 				# check to-one
 				if (is_array($this->to_one)) {
-					foreach($this->to_one as $tname) {
-						if (strpos($k, $tname) !== false) $to = $tname;
+					foreach($this->to_one as $tkey => $tname) {
+						if ((strpos($k, $tkey.'_') === 0) && array_key_exists($tkey.'_uid', $row) && !empty($row[$tkey.'_uid'])) {
+							$to = $tkey;
+							break;
+						}
 					}
 				}
 
 				# check to-many
 				if (!$to && is_array($this->to_many)) {
-					foreach($this->to_many as $tname) {
-						if (strpos($k, $tname) !== false) {
-							$tm = $tname;
+					foreach($this->to_many as $tkey => $tname) {
+						if (strpos($k, $tkey.'_') === 0) {
+							$tm = $tkey;
 							break;
 						}						
 					}
@@ -765,11 +760,13 @@ class DBRecord implements Iterator, Serviceable
 			if ($to !== false) {
 				# remove the prefix from the prop names
 				$prop = str_replace($to.'_', '', $k);
+				
 				# if the object doesn't exist, make it
 				if (!array_key_exists($to, $this->to_one_obj)) {
-#					$cname = $this->get_classname_from_table($to);
-					$cname = to_class_name($to);
-					$this->to_one_obj[$to] = new $cname;
+					$this->to_one_obj[$to] = new $this->to_one[$to]['class'];
+					
+					# if it's included, mark as loaded
+					if (in_array($to, $this->include)) $this->to_one_obj[$to]->loaded = true;
 				}
 				if ($prop == 'id') {
 					if (!empty($v)) $this->to_one_obj[$to]->set_id($v);
@@ -777,6 +774,7 @@ class DBRecord implements Iterator, Serviceable
 					if (!empty($v)) $this->to_one_obj[$to]->set_uid($v);
 				} else {
 					$this->to_one_obj[$to]->$prop = stripslashes($v);
+					$this->to_one_obj[$to]->modified = false;
 				}
 	
 			# to_many
@@ -789,8 +787,7 @@ class DBRecord implements Iterator, Serviceable
 				# if the obj doesn't exist yet, make it
 				# objs are in the to_many_obj[name] array indexed by uid
 				if (!isset($this->to_many_obj[$tm][$tm_index])) {
-					$cname = $this->to_many_class[$tm];
-					$this->to_many_obj[$tm][$tm_index] = new $cname;
+					$this->to_many_obj[$tm][$tm_index] = new $this->to_many[$tm]['class'];
 				}
 				
 				# remove the prefix from the prop names
@@ -802,6 +799,7 @@ class DBRecord implements Iterator, Serviceable
 					$this->to_many_obj[$tm][$tm_index]->set_uid($v);
 				} else {
 					$this->to_many_obj[$tm][$tm_index]->$prop = stripslashes($v);
+					$this->to_many_obj[$tm][$tm_index]->modified = false;
 				}
 			# normal
 			} else {
@@ -810,39 +808,56 @@ class DBRecord implements Iterator, Serviceable
 		}
 		# save all the fields for this model
 		$this->fields = array_keys($this->data);
-		if (is_array($this->to_one_obj)) $this->fields = array_merge($this->fields, array_keys($this->to_one_obj));
-		if (is_array($this->to_many_obj)) $this->fields = array_merge($this->fields, array_keys($this->to_many_obj));
+		if (is_array($this->to_one)) $this->fields = array_merge($this->fields, array_keys($this->to_one));
+		if (is_array($this->to_many)) $this->fields = array_merge($this->fields, array_keys($this->to_many));
 	}
 
 
 // ===========================================================
 // - ADD TO-MANY AND TO-ONE RELATIONSHIPS
 // ===========================================================
+	public function has_relationship($property, $type='all', $return_type=false) {
+		switch ($type) {
+			case 'to-one':
+				return (is_array($this->to_one) && array_key_exists($property, $this->to_one));
+			
+			case 'habtm':
+				return (is_array($this->habtm) && array_key_exists($property, $this->habtm));
+
+			case 'to-many':
+				return (is_array($this->to_many) && array_key_exists($property, $this->to_many));
+						
+			case 'all':
+				if ($return_type) {
+					if (is_array($this->to_one) && array_key_exists($property, $this->to_one)) return 'to-one';
+					if (is_array($this->habtm) && array_key_exists($property, $this->habtm)) return 'habtm';
+					if (is_array($this->to_many) && array_key_exists($property, $this->to_many)) return 'to-many';
+				} else {
+					return (is_array($this->to_one) && array_key_exists($property, $this->to_one)) ||
+								(is_array($this->to_many) && array_key_exists($property, $this->to_many)) ||
+								(is_array($this->habtm) && array_key_exists($property, $this->habtm));
+				}
+		}
+		return false;
+	}
+
 	function has_one($class, $options=false) {
-		$propname = (is_array($options) && array_key_exists("propname", $options))?$options['propname']:false;
-		
-		# if no table, try to get the tablename
-#		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:$this->get_table_from_classname($class);
+		# parse options
 		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:to_table_name($class);
+		$propname = (is_array($options) && array_key_exists("propname", $options))?($options['propname']):(is_string($options)?$options:$table);
 
 		# if to_ones are empty make an array
 		if (empty($this->to_one)) {
 			$this->to_one = array();
 			$this->to_one_obj = array();
 		}
-		if ($propname === false) {
-			$this->to_one[$table] = $table;
-		} else {
-			$this->to_one[$propname] = $table;
-		}
+		$this->to_one[$propname] = array('table'=>$table, 'class'=>$class);
 	}
 
 	function has_many($class, $options=false) {
-		$propname = (is_array($options) && array_key_exists("propname", $options))?$options['propname']:false;
-
-		# if no table, try to get the tablename
-#		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:$this->get_table_from_classname($class);
+		# parse options
 		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:to_table_name($class);
+		$propname = (is_array($options) && array_key_exists("propname", $options))?($options['propname']):(is_string($options)?$options:$table);
 
 		# if to_many are empty make an array
 		if (empty($this->to_many)) {
@@ -850,38 +865,39 @@ class DBRecord implements Iterator, Serviceable
 			$this->to_many_obj	= array();
 			$this->to_many_class	= array();
 		}
-		if ($propname === false) {
-			$this->to_many[$table] = $table;
-		} else {
-			$this->to_many[$propname] = $table;
-		}
+		
+		$this->to_many[$propname] = array('table'=>$table, 'class'=>$class);
 
 		# create the obj
-		$this->to_many_obj[$table] = array();
-		$this->to_many_class[$table] = $class;		
+		$this->to_many_obj[$propname] = array();
+		$this->to_many_class[$propname] = $class;		
+		
 	}
 
 	function has_and_belongs_to_many($class, $options=false) {
 		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:false;
-		
+		$other_table = (is_array($options) && array_key_exists("other_table", $options))?$options['other_table']:to_table_name($class);
+		$propname = (is_array($options) && array_key_exists("propname", $options))?($options['propname']):(is_string($options)?$options:$table);
+
 		# if no table, try to get the tablename
 		if ($table == false) {
 			$tables = array(
-				#$this->get_table_from_classname($class),
-				to_table_name($class),
+				$other_table,
 				$this->get_table()
 			);
 			sort($tables);
 		}
 
 		if (empty($this->habtm)) $this->habtm = array();
-#		$this->habtm[$this->get_table_from_classname($class)] = $tables[0].'_'.$tables[1];
-		$this->habtm[to_table_name($class)] = $tables[0].'_'.$tables[1];
-		$this->has_many($class);		
+		$this->habtm[$propname] = array('table'=>$tables[0].'_'.$tables[1], 'class'=>$class, 'other_table'=>$other_table);
+
+		if (!is_array($options)) $options = array();
+		$options['table'] = $tables[0].'_'.$tables[1];
+		$options['propname'] = $propname;
+		$this->has_many($class, $options);
 	}
 
 	protected function add_to_many_object($class, $value) {
-#		$table = $this->get_table_from_classname($class);
 		$table = to_table_name($class);
 		
 		# search in habtm
@@ -906,37 +922,24 @@ class DBRecord implements Iterator, Serviceable
 // ===========================================================
 	// initalize UID
 	function gen_uid() {
-		//make sure this UID isn't taken already
+		// make sure this UID isn't taken already
 		do {
 			$uid = md5(uniqid(rand(), true));
 			$sql = "SELECT uid from `".$this->get_table()."` WHERE uid='$uid'";
 			$result = $this->db()->query($sql);
 
 			# if nothing is found, break the loop
-			if ($result->num_rows() == 0) break;
+			if (count($this->result) == 0) break;
 		} while(true);
 		$this->set_uid($uid);
 		return $this->get_uid();
 	}
-
-	// parse a tablename into a classname
-#	function get_classname_from_table($table) {
-#		return preg_replace('/(?:^|_)([a-zA-Z])/e', "strtoupper('\\1')", $table);
-#	}
-	// parse a classname into a tablename
-#	function get_table_from_classname($class) {
-#		return strtolower(preg_replace('/([a-zA-Z])([A-Z])/', '\\1_\\2', $class));
-#	}
-	
 
 
 // ===========================================================
 // - ITERATOR INTERFACE
 // ===========================================================
 	function rewind() {
-#		reset($this->fields);
-#		$k = $this->key = current($this->fields);
-#		$this->current = $this->$k;
 		$this->key = 0;
 		$k = $this->key();
 		$this->current = $this->$k;
@@ -956,10 +959,6 @@ class DBRecord implements Iterator, Serviceable
 	}
 	
 	function next() {
-#		$ok = next($this->fields);
-#		$k = $this->key = current($this->fields);
-#		$this->current = $this->$k;
-
 		$this->key++;
 		if ($this->key >= count($this->fields)) {
 			$this->current = false;
@@ -968,7 +967,13 @@ class DBRecord implements Iterator, Serviceable
 		}
 		$k = $this->key();
 		$this->current = $this->$k;
-#		if ($ok === false) $this->valid = false;
+	}
+
+// ===========================================================
+// - COUNTABLE INTERFACE
+// ===========================================================
+	public function count() {
+		return count($this->fields);
 	}
 
 
@@ -1057,7 +1062,7 @@ class DBRecord implements Iterator, Serviceable
 				$list = $root->appendChild($list);
 
 				# add items				
-				foreach ($this->get_to_many_objects($k) as $obj) {
+				foreach ($this->to_many_obj[$k] as $obj) {
 					$node = $dom->importNode($obj->to_xml()->documentElement, true);
 					$node = $list->appendChild($node);
 				}
@@ -1068,6 +1073,7 @@ class DBRecord implements Iterator, Serviceable
 
 
 	// get array rep of this object
+	function to_a($deep=false) { return $this->to_array($deep); }
 	function to_array($deep=false) {
 		$out = array();
 
@@ -1116,7 +1122,7 @@ class DBRecord implements Iterator, Serviceable
 					$out[$k] = array();
 
 					# add items				
-					foreach ($this->get_to_many_objects($k) as $obj) {
+					foreach ($this->to_many_obj[$k] as $obj) {
 						$out[$k][] = $obj->to_array(false);
 					}
 				}
@@ -1126,6 +1132,7 @@ class DBRecord implements Iterator, Serviceable
 		return $out;
 	}
 	
+	function to_s() { return $this->__toString(); }
 	function to_string() { return $this->__toString(); }
 	function __toString() {
 		if ($this->title) return $this->title;
@@ -1152,8 +1159,9 @@ class DBRecord implements Iterator, Serviceable
 // ===========================================================
 // - SOME THINGS NEED TO BE EASIER TO GET TO
 // ===========================================================
+// TODO: reinstate this!
 function is_uid($val=false) {
-	if (!DBRecord::is_valid_uid($val)) return false;
+	if (!DBRecord2::is_valid_uid($val)) return false;
 	return true;
 }
 
@@ -1169,6 +1177,7 @@ class RecordNotFound extends SaintException {}
 class AmbiguousClass extends SaintException {}
 class RecordDeletionError extends DBRecordError {}
 class DuplicateRecord extends DBRecordError {}
+class ReadOnlyAccess extends SaintException {}
 
 
 // ===========================================================

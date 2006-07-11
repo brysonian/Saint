@@ -192,8 +192,9 @@ class DBRecordValidator {
 		$where = $this->parent->get_table().".$prop = '".$this->parent->escape_string($testval)."'";
 		if ($this->parent->get_id()) $where .= " AND ".$this->parent->get_table().".id <> ".$this->parent->get_id();
 		
-		$r = DBRecord::find_where($where, array(), $this->parent_class);
-		if ($r->num_rows() > 0) {
+		$r = DBRecord::find_where($where, array('class'=>$this->parent_class));
+		// TODO: changed this to use count, watch it
+		if (count($r) > 0) {
 			$this->add_error($prop, $msg, VALIDATION_UNIQUE);
 			return false;
 		}

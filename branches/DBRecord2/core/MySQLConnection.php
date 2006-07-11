@@ -78,14 +78,21 @@ class MySQLConnection {
 		return mysql_insert_id($this->db);
 	}
 	
-	function table_info($table) {
-		$sql = "SHOW COLUMNS FROM $table";
-		$result = new MySQLResult(mysql_query($sql), $this);
+	function table_info($table, $full=false) {
+		if(!$this->db) $this->open();
+
+		$sql = "SHOW COLUMNS FROM `$table`";
+		$result = $this->db->query($sql);
+		if(defined('MYSQLI_DEBUG') && MYSQLI_DEBUG > 1 && !SHELL) error_log($sql);
+
 		$output = array();
-		$output['order'] = array();
 		$i=0;
 		while ($row = $result->fetch_assoc()) {
-			$output['order'][$row['Field']] = $i;
+			if ($full) {
+				$output[] = $row;
+			} else {
+				$output[$i] = $row['Field'];
+			}
 			$i++;
 		}
 		return $output;

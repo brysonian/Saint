@@ -141,7 +141,6 @@ class ControllerCore
 
 	function render_action($action) {
 		$this->render_view($action);
-		// TODO: Replace with variable functions
 		#call_user_func(array($this, "_{$action}"));
 		$a = "_{$action}";
 		$this->$a();
