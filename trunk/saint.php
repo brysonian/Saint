@@ -84,14 +84,14 @@
 	# get the DB config params
 	require_once (PROJECT_ROOT."/config/database.php");
 	
-	# DB SERVICE
-	DBService::add_connection(
-		'DBRecord', 'mysqli', $db_name, $user, $pass, $host, isset($db_options)?$db_options:array());
-
+	if (!DBService::has_connection('DBRecord') && isset($db_name, $user, $pass, $host)) {
+		# DB SERVICE
+		DBService::add_connection(
+			'DBRecord', 'mysqli', $db_name, $user, $pass, $host, isset($db_options)?$db_options:array());
+	}
 
 	# clear DB setup vars
-	unset($db_name, $user, $pass, $host);
-	if (isset($db_options)) unset($db_options);
+	unset($db_name, $user, $pass, $host, $db_options);
 
 
 
