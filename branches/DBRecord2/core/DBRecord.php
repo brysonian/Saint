@@ -1,7 +1,7 @@
 <?php
 
 
-class DBRecord2 implements Iterator, Serviceable, Countable
+class DBRecord implements Iterator, Serviceable, Countable
 {
 	protected $data = array();
 	
@@ -74,7 +74,7 @@ class DBRecord2 implements Iterator, Serviceable, Countable
 	// for uid
 	function get_uid()		{ return isset($this->uid)?$this->uid:false; }
 	function set_uid($aUid)	{
-		if (!DBRecord2::is_valid_uid($aUid) && $aUid !== false) throw new InvalidUid("$aUid is not a valid uid.");
+		if (!DBRecord::is_valid_uid($aUid) && $aUid !== false) throw new InvalidUid("$aUid is not a valid uid.");
 		$this->uid = $aUid; 
 	}
 	
@@ -155,12 +155,12 @@ class DBRecord2 implements Iterator, Serviceable, Countable
 				if ($this->has_relationship($prop, 'habtm')) {
 					$other_table = $this->habtm[$prop]['other_table'];
 					$table = $this->habtm[$prop]['table'];
-					$props = DBRecord2::find_sql(
+					$props = DBRecord::find_sql(
 						"SELECT * from `$other_table` LEFT JOIN `$table` ON `$table`.{$other_table}_uid=`$other_table`.uid WHERE `$table`.".$this->get_table()."_uid = '".$this->get_uid()."'",
 						array('class'=>$this->habtm[$prop]['class'], 'include'=>$this->include)						
 					);						
 				} else {
-					$props = DBRecord2::find_by($this->get_table().'_uid', $this->get_uid(), array('class'=>$this->to_many[$prop]['class'], 'include'=>$this->include));					
+					$props = DBRecord::find_by($this->get_table().'_uid', $this->get_uid(), array('class'=>$this->to_many[$prop]['class'], 'include'=>$this->include));					
 				}
 				
 				# tmobj is indexed by uid, until tmcollection
@@ -595,10 +595,10 @@ class DBRecord2 implements Iterator, Serviceable, Countable
 		if ($table === false) $table = $this->get_table();
 		if ($full) return $this->db()->table_info($table, true);
 		
-		if (!array_key_exists($table, DBRecord2::$table_info)) {
-			DBRecord2::$table_info[$table] = $this->db()->table_info($table, false);
+		if (!array_key_exists($table, DBRecord::$table_info)) {
+			DBRecord::$table_info[$table] = $this->db()->table_info($table, false);
 		}
-		return DBRecord2::$table_info[$table];
+		return DBRecord::$table_info[$table];
 	}
 	
 // ===========================================================
@@ -1161,7 +1161,7 @@ class DBRecord2 implements Iterator, Serviceable, Countable
 // ===========================================================
 // TODO: reinstate this!
 function is_uid($val=false) {
-	if (!DBRecord2::is_valid_uid($val)) return false;
+	if (!DBRecord::is_valid_uid($val)) return false;
 	return true;
 }
 
