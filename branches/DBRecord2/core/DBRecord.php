@@ -490,7 +490,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if (is_array($options) && array_key_exists('group', $options)) $this->set_group($options['group']);
 		if (is_array($options) && array_key_exists('limit', $options)) $this->set_limit($options['limit']);
 		if (is_array($options) && array_key_exists('include', $options)) {
-			if ($options['include'] == '*') {
+			if ($options['include'] == 'all') {
 				$this->include += array_keys($this->to_one);
 				$this->include += array_keys($this->to_many);
 			} else if ($options['include'] == 'to-one') {
