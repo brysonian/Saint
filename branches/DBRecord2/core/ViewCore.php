@@ -41,6 +41,11 @@ class ViewCore
 		echo $this->parsed;
 	}
 
+	function render_text($text='') {
+		# echo the page
+		echo $text;
+	}
+
 	function parse($layout_template=false) {
 		# save the layout
 		$this->layout = $layout_template;
@@ -69,8 +74,9 @@ class ViewCore
 	 render_partial
 	 usage examples:
 		render_partial(array('action'=>'partial', 'obj'=>array('one', 'two'), 'collect'=>true))
-		render_partial(false, 'partial')	
+		render_partial(false, 'partial')
 	*/
+	// TODO: abs path with leading /
 	function render_partial($action, $object=false, $collect=false) {
 		#if the controller is an array, use it and ignore the rest
 		if (is_array($action)) {
