@@ -22,6 +22,7 @@ class ControllerCore
 	protected $cache_page = false;
 	protected static $cache_extension = 'cache';
 	protected $data;
+	protected $rendered = false;
 	
 	
 // ===========================================================
@@ -124,6 +125,8 @@ class ControllerCore
 // - RENDER
 // ===========================================================
 	function render_view($viewname=false, $final=false) {
+		if ($this->rendered && $final) return;
+		$this->rendered = true;
 		if ($viewname !== false) $this->set_template($viewname);
 		if (!$final) return;
 		
@@ -141,10 +144,21 @@ class ControllerCore
 
 	function render_action($action) {
 		$this->render_view($action);
-		#call_user_func(array($this, "_{$action}"));
 		$a = "_{$action}";
 		$this->$a();
 	}
+
+	function render_text($text) {
+		$this->rendered = true;
+		$view = new ViewCore('');
+		# if we cache, do that
+		if ($this->cache_page && empty($_GET) && empty($_POST)) {
+			$this->save_cache($_SERVER['REQUEST_URI'], $text);
+		}
+		$view->render_text($text);
+	}
+
+
 
 	// reference to redirect_to
 	function redirect_to($args=false) {
