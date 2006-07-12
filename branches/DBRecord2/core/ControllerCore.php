@@ -75,7 +75,7 @@ class ControllerCore
 				if (array_key_exists($test_method, $bfe)) continue;
 				
 				# if it's a global filter or one for this method
-				if ($method == '*' || $method == $test_method) {
+				if ($method == 'all' || $method == $test_method) {
 
 
 					# loop through all filters and call each
@@ -91,9 +91,12 @@ class ControllerCore
 
 		# call the method if none of the filters returned false
 		#if ($ok) call_user_func(array($this, $the_method));
-		if ($ok) $this->$the_method();
+		if ($ok) {
+			$this->$the_method();
+		} else {
+			die();
+		}
 
-		
 		# perform the after filters
 		$af = $this->get_after_filters();
 		$afe = $this->get_after_filter_exceptions();
@@ -103,7 +106,7 @@ class ControllerCore
 				if (array_key_exists($test_method, $afe)) continue;
 
 				# if it's a global filter or one for this method
-				if ($method == '*' || $method == $the_method) {
+				if ($method == 'all' || $method == $the_method) {
 					# loop through all filters and call each
 					foreach($filters as $filter) {
 						#call_user_func($filter);
@@ -307,16 +310,16 @@ class ControllerCore
 // ===========================================================
 // - FILTER METHODS
 // ===========================================================
-	function filter_before($filter, $methods='*', $except=false) { $this->add_filter('before', $filter, $methods, $except); }
-	function filter_after($filter, $methods='*', $except=false) { $this->add_filter('after', $filter, $methods, $except); }
+	function filter_before($filter, $methods='all', $except=false) { $this->add_filter('before', $filter, $methods, $except); }
+	function filter_after($filter, $methods='all', $except=false) { $this->add_filter('after', $filter, $methods, $except); }
 
-	function filter_before_except($filter, $except) { $this->add_filter('before', $filter, '*', $except); }
-	function filter_after_except($filter, $except) { $this->add_filter('after', $filter, '*', $except); }
+	function filter_before_except($filter, $except) { $this->add_filter('before', $filter, 'all', $except); }
+	function filter_after_except($filter, $except) { $this->add_filter('after', $filter, 'all', $except); }
 	
 	
-	function add_filter($type, $filter, $methods='*', $except=false) {
+	function add_filter($type, $filter, $methods='all', $except=false) {
 		# grab the filter array to use
-		if ($type = 'before') {
+		if ($type == 'before') {
 			$farray =& $this->get_before_filters();
 		} else {
 			$farray =& $this->get_after_filters();
@@ -328,7 +331,7 @@ class ControllerCore
 		# if methods is an array, then add this filter
 		# to each of those methods, otherwise add it to the
 		# specified method
-		# * applies to all methods and is the default
+		# all applies to all methods and is the default
 		if (is_array($methods)) {
 			foreach ($methods as $method) {
 				# check that there isn't already a filter
