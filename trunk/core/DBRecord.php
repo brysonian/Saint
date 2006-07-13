@@ -142,7 +142,6 @@ class DBRecord implements Iterator, Serviceable
 				$this->load();
 				return $this->to_one_obj[$prop];
 			}
-
 			if (array_key_exists($prop.'_uid', $this->data) && $this->data[$prop.'_uid']) {
 #				$cname = $this->get_classname_from_table($prop);
 				$cname = to_class_name($prop);
@@ -161,7 +160,7 @@ class DBRecord implements Iterator, Serviceable
  			$tm = $this->get_to_many_objects($this->to_many[$prop]);
 			
 			# if none are found, but i should have some, reload me
-			if (!$tm && is_array($this->to_many) && !$this->loaded && $this->get_uid()) {
+			if (!is_array($tm) && !$tm && is_array($this->to_many) && !$this->loaded && $this->get_uid()) {
 				$this->load();
 				$tm = $this->get_to_many_objects($this->to_many[$prop]);
 			}			
@@ -172,6 +171,10 @@ class DBRecord implements Iterator, Serviceable
 				foreach ($tm as $obj) {
 					# on each item, if it is empty or has many's or ones, load it
 					if ($obj->is_empty() || $obj->does_have_many() || $obj->does_have_one()) $obj->load();
+#					if ($obj->is_empty()) {
+#						$obj->shallow = true;
+#						$obj->load();
+#					}
 					$out[] = $obj;
 				}
 				return $out;
@@ -520,6 +523,7 @@ class DBRecord implements Iterator, Serviceable
 
 	// sets query options on an object based on options array
 	public function set_options($options=array()) {
+		if (is_array($options) && array_key_exists('shallow', $options)) $this->shallow = $options['shallow'];
 		if (is_array($options) && array_key_exists('order', $options)) $this->set_order($options['order']);
 		if (is_array($options) && array_key_exists('group', $options)) $this->set_group($options['group']);
 		if (is_array($options) && array_key_exists('limit', $options)) $this->set_limit($options['limit']);
@@ -656,7 +660,7 @@ class DBRecord implements Iterator, Serviceable
 		$sql = "`".$this->get_table()."`.*";
 
 		# add to_one
-		if (!empty($this->to_one) && !$this->shallow) {
+		if (!$this->shallow && !empty($this->to_one)) {
 			# loop through to_one's
 			foreach ($this->to_one as $v) {
 				$info = $this->table_info($v);
@@ -668,7 +672,7 @@ class DBRecord implements Iterator, Serviceable
 			}
 		}
 		# add to_many
-		if (!empty($this->to_many) && !$this->shallow) {
+		if (!$this->shallow && !empty($this->to_many)) {
 			# loop through to_many's
 			foreach ($this->to_many as $v) {
 				$info = $this->table_info($v);
@@ -685,14 +689,14 @@ class DBRecord implements Iterator, Serviceable
 	private function get_joins() {
 		$sql = '';
 		# join to_one
-		if (!empty($this->to_one) && !$this->shallow) {
+		if (!$this->shallow && !empty($this->to_one)) {
 			foreach ($this->to_one as $v) {
 				$sql .= " LEFT JOIN `{$v}` ON {$v}.uid = `".$this->get_table()."`.{$v}_uid ";				
 			}
 		}
 
 		# join to_many
-		if (!empty($this->to_many) && !$this->shallow) {
+		if (!$this->shallow && !empty($this->to_many)) {
 			# loop through to_many's
 			foreach ($this->to_many as $v) {
 				# see if this is actually a habtm, then add the extra join
