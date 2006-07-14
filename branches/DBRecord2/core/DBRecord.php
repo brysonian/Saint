@@ -1148,11 +1148,15 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 
 	function to_url() {
-		return url_for(array(
+		return url_for($this->to_param());
+	}
+
+	function to_param() {
+		return array(
 			'controller' => strtolower(get_class($this)),
 			'action' => 'show',
 			'uid' => $this->get_uid()
-		));
+		);
 	}
 }
 
