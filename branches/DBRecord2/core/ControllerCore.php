@@ -91,7 +91,7 @@ class ControllerCore
 
 		# call the method if none of the filters returned false
 		#if ($ok) call_user_func(array($this, $the_method));
-		if ($ok) {
+		if ($ok !== false) {
 			$this->$the_method();
 		} else {
 			die();
@@ -109,8 +109,7 @@ class ControllerCore
 				if ($method == 'all' || $method == $the_method) {
 					# loop through all filters and call each
 					foreach($filters as $filter) {
-						#call_user_func($filter);
-						$filter();
+						call_user_func($filter);
 					}
 				}
 			}
