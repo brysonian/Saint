@@ -128,12 +128,12 @@ class ControllerCore
 // ===========================================================
 	function render_view($viewname=false, $final=false) {
 		if ($this->rendered && $final) return;
-		$this->rendered = true;
 		if ($viewname !== false) $this->set_template($viewname);
+
 		if (!$final) return;
-		
+		$this->rendered = true;
 		$view = $this->get_view_for_action($this->template);
-		
+
 		$view->set_all_props($this->data);
 
 		# if we cache, do that
@@ -141,7 +141,7 @@ class ControllerCore
 			$output = $view->parse($this->get_layout());
 			$this->save_cache($_SERVER['REQUEST_URI'], $output);
 		}
-		$view->render($this->get_layout());
+		$view->render(to_url_name(str_replace('Controller', '', get_class($this))), $this->get_layout());
 	}
 
 	function render_action($action) {
