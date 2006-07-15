@@ -491,12 +491,12 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if (is_array($options) && array_key_exists('limit', $options)) $this->set_limit($options['limit']);
 		if (is_array($options) && array_key_exists('include', $options)) {
 			if ($options['include'] == 'all') {
-				$this->include += array_keys($this->to_one);
-				$this->include += array_keys($this->to_many);
+				$this->include = array_merge($this->include, array_keys($this->to_one));
+				$this->include = array_merge($this->include, array_keys($this->to_many));
 			} else if ($options['include'] == 'to-one') {
-				$this->include += array_keys($this->to_one);
+				$this->include = array_merge($this->include, array_keys($this->to_one));
 			} else if ($options['include'] == 'to-many') {
-				$this->include += array_keys($this->to_many);
+				$this->include = array_merge($this->include, array_keys($this->to_many));
 			} else {
 				$this->include = is_array($options['include'])?$options['include']:array($options['include']);
 			}
@@ -1073,62 +1073,72 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 
 	// get array rep of this object
-	function to_a($deep=false) { return $this->to_array($deep); }
-	function to_array($deep=false) {
+	function to_a($include=array(), $skip_to_many=false) { return $this->to_array($include, $skip_to_many); }
+	function to_array($include=array(), $skip_to_many=false) {
+		if ($include == 'all') {
+			$include = array_keys($this->to_one);
+			$include = array_merge($include, array_keys($this->to_many));
+		} else if ($include == 'to-one') {
+			$include = array_keys($this->to_one);
+		} else if ($include == 'to-many') {
+			$include = array_keys($this->to_many);
+		} else {
+			$include = is_array($include)?$include:array($include);
+		}
+
 		$out = array();
 
 		# add id and uid
 		$out['id'] = $this->get_id();
 		$out['uid'] = $this->get_uid();
 		
-		if ($deep) {
-			foreach ($this as $k=>$v) {
-				if (is_array($v) && $deep) {
-					$out[$k] = array();
-					foreach ($v as $k2=>$v2) {
-						$v2->load();
-						$out[$k][$k2] = $v2->to_array(false);
-					}
-				} else if (is_object($v) && $deep) {
-					$v->load();
-					$out[$k] = $v->to_array(true);
-				} else {
-					$out[$k] = $v;
+		# add each prop
+		foreach ($this->data as $k=>$v) {
+			$out[$k] = $v;
+		}
+		
+		if (!empty($include)) {
+			foreach($include as $k => $v) {
+				if ($rel = $this->has_relationship($v, 'all', true)) {
+					if ($rel == 'to-many' && $skip_to_many) continue;
+					$p = $this->$v;
+					if(is_array($p)) {
+						$out[$v] = array();
+						foreach($p as $k2 => $v2) {
+							$out[$v][] = $v2->to_array($include, true);
+						}
+					} else {
+						$out[$v] = $p->to_array($include, true);
+					}	
 				}
 			}
-
-		} else {
-			# add each prop
-			foreach ($this->data as $k=>$v) {
-				$out[$k] = $v;
-			}
-
-			# add each to_one
-			if (!empty($this->to_one_obj)) {
-				foreach ($this->to_one_obj as $k=>$v) {
-					# get the array rep and loop through it, adding each prop
-					# and prepending the table name
-					$a = $v->to_array(true);
-					foreach ($a as $a_k => $a_v) {
-						$out[$k."_$a_k"] = $a_v;
-					}
+		}
+/*
+		# add each to_one
+		if (!empty($this->to_one_obj)) {
+			foreach ($this->to_one_obj as $k=>$v) {
+				if (in_array($k, $include)) {
+					#$out[$k] = $v->to_array();
+					$out[$k] = $this->$k->to_array();
 				}
 			}
+		}
 
-			# add each to_many
-			if (!empty($this->to_many_obj)) {
-				foreach ($this->to_many_obj as $k=>$v) {
+		# add each to_many
+		if (!empty($this->to_many_obj)) {
+			foreach ($this->to_many_obj as $k=>$v) {
+				if (in_array($k, $include)) {
 					# add array for chirren
 					$out[$k] = array();
 
 					# add items				
 					foreach ($this->to_many_obj[$k] as $obj) {
-						$out[$k][] = $obj->to_array(false);
+						$out[$k][] = $obj->to_array();
 					}
 				}
 			}
 		}
-		
+		*/
 		return $out;
 	}
 	
