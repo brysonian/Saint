@@ -1022,7 +1022,19 @@ class DBRecord implements Iterator, Serviceable, Countable
 // - REPRESENTATIONS
 // ===========================================================
 	// get xml rep of this object
-	function to_xml($str=false) {
+	function to_xml($include=array(), $usecdata=false, $str=true, $skip_to_many=false) {
+		if ($include == 'all') {
+			$include = array_keys($this->to_one);
+			$include = array_merge($include, array_keys($this->to_many));
+		} else if ($include == 'to-one') {
+			$include = array_keys($this->to_one);
+		} else if ($include == 'to-many') {
+			$include = array_keys($this->to_many);
+		} else {
+			$include = is_array($include)?$include:array($include);
+		}
+
+
 		# make doc and root
 		$dom = new DomDocument;
 		$root = $dom->createElement($this->get_table());
@@ -1035,36 +1047,34 @@ class DBRecord implements Iterator, Serviceable, Countable
 		# add node for each prop
 		foreach ($this->data as $k=>$v) {
 			$node = $dom->createElement($k);
-			if (is_numeric($v)) {
-				$cdata = $dom->createTextNode($v);
-			} else {
+			if ($usecdata && ((strpos($v, '<')!==false) || (strpos($v, '>')!==false) || (strpos($v, '&')!==false))) {
 				$cdata = $dom->createCDATASection($v);
+			} else {
+				$cdata = $dom->createTextNode($v);
 			}
 			$node->appendChild($cdata);
 
 			$node = $root->appendChild($node);
 		}
-					
-		# add nodes for each to_one
-		if (!empty($this->to_one_obj)) {
-			foreach ($this->to_one_obj as $k=>$v) {
-				$node = $dom->importNode($v->to_xml()->documentElement, true);
-				$node = $root->appendChild($node);
-			}
-		}
-					
-		# add nodes for each to_many
-		if (!empty($this->to_many_obj)) {
-			foreach ($this->to_many_obj as $k=>$v) {
-				# add node for chirren
-				$list = $dom->createElement('to-many');
-				$list->setAttribute('name', $k);
-				$list = $root->appendChild($list);
 
-				# add items				
-				foreach ($this->to_many_obj[$k] as $obj) {
-					$node = $dom->importNode($obj->to_xml()->documentElement, true);
-					$node = $list->appendChild($node);
+
+		if (!empty($include)) {
+			foreach($include as $k => $v) {
+				if ($rel = $this->has_relationship($v, 'all', true)) {
+					if ($rel == 'to-many' && $skip_to_many) continue;
+					$p = $this->$v;
+					if(is_array($p)) {
+						$list = $dom->createElement($v);
+						$list = $root->appendChild($list);
+						foreach($p as $k2 => $v2) {
+							$child = $dom->importNode($v2->to_xml($include, $usecdata, false, true)->documentElement, true);
+							$child = $list->appendChild($child);
+						}
+					} else {
+						$obj = $this->$v;
+						$child = $dom->importNode($obj->to_xml($include, $usecdata, false, true)->documentElement, true);
+						$child = $root->appendChild($child);
+					}	
 				}
 			}
 		}
@@ -1113,32 +1123,6 @@ class DBRecord implements Iterator, Serviceable, Countable
 				}
 			}
 		}
-/*
-		# add each to_one
-		if (!empty($this->to_one_obj)) {
-			foreach ($this->to_one_obj as $k=>$v) {
-				if (in_array($k, $include)) {
-					#$out[$k] = $v->to_array();
-					$out[$k] = $this->$k->to_array();
-				}
-			}
-		}
-
-		# add each to_many
-		if (!empty($this->to_many_obj)) {
-			foreach ($this->to_many_obj as $k=>$v) {
-				if (in_array($k, $include)) {
-					# add array for chirren
-					$out[$k] = array();
-
-					# add items				
-					foreach ($this->to_many_obj[$k] as $obj) {
-						$out[$k][] = $obj->to_array();
-					}
-				}
-			}
-		}
-		*/
 		return $out;
 	}
 	
