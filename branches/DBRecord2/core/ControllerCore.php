@@ -150,14 +150,22 @@ class ControllerCore
 		$this->$a();
 	}
 
-	function render_text($text) {
+	function render_text($text, $isxml=false) {
 		$this->rendered = true;
 		$view = new ViewCore('');
 		# if we cache, do that
 		if ($this->cache_page && empty($_GET) && empty($_POST)) {
 			$this->save_cache($_SERVER['REQUEST_URI'], $text);
 		}
-		$view->render_text($text);
+		if ($isxml) {
+			$view->render_xml($text);
+		} else {
+			$view->render_text($text);
+		}
+	}
+
+	function render_xml($text) {
+		$this->render_text($text, true);
 	}
 
 
