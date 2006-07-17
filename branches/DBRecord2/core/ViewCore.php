@@ -29,10 +29,12 @@ class ViewCore
 	}
 	
 	// render the page
-	function render($layout_template=false) {
-		if (!$this->parsed) {
-			$this->parse($layout_template);
-		}
+	function render($controller_name, $layout_template=false) {
+		# include the helpers
+		if (file_exists(PROJECT_ROOT.'/app/helpers/app.php')) include_once(PROJECT_ROOT.'/app/helpers/app.php');
+		if (file_exists(PROJECT_ROOT.'/app/helpers/'.$controller_name.'.php')) include_once(PROJECT_ROOT.'/app/helpers/'.$controller_name.'.php');
+
+		if (!$this->parsed) $this->parse($layout_template);
 		
 		# set the header if there is one
 		if ($this->header !== false) header($this->header);
@@ -41,8 +43,9 @@ class ViewCore
 		echo $this->parsed;
 	}
 
-	function render_text($text='') {
-		# echo the page
+	function render_text($text='') { echo $text; }
+	function render_xml($text='') { 
+		header('Content-Type: application/xml');
 		echo $text;
 	}
 
