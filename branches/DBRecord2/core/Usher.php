@@ -61,7 +61,10 @@ class Usher
 	* start hand off to the controller
 	*/
 	static function handle_url($url) {
-		if (defined('DEBUG') && DEBUG) $start = microtime(true);
+		if (defined('DEBUG') && DEBUG) {
+			error_log("Begin processing: $url");
+			$start = microtime(true);
+		}
 		
 		$u = Usher::get_instance();
 
