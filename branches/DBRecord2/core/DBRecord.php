@@ -121,7 +121,6 @@ class DBRecord implements Iterator, Serviceable, Countable
 			return $this->data[$prop];
 		}
 
-		
 		# then the to_one's
 		# if the connection exists
 		if ($this->has_relationship($prop, 'to-one')) {
@@ -193,13 +192,17 @@ class DBRecord implements Iterator, Serviceable, Countable
 		} else if ($this->has_relationship($prop, 'to-one') && is_object($val)) {
 			if (!$val->get_uid()) $val->save();
 			$this->data[$prop.'_uid'] = $val->get_uid();
+			$this->modified = true;
 
 		} else {
-			$this->data[$prop] = $val;
+			if (!array_key_exists($prop, $this->data)) {
+				$this->data[$prop] = $val;
+				$this->modified = true;
+			} else if ($this->data[$prop] != $val) {
+				$this->data[$prop] = $val;
+				$this->modified = true;
+			}
 		}
-		
-		# reset loaded because things have changed
-		$this->modified = true;
 	}
 
 
@@ -518,7 +521,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	// load item from the db using id
 	function load() {
 		if ($this->loaded && !$this->modified) return;
-		
+
 		# start where clause if there isn't one
 		$where = $this->get_where();
 		$where .= $this->get_where()?' AND ':' ';
@@ -556,6 +559,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 			}
 		}
 		$this->loaded = true;
+		$this->modified = false;
 	}
 	
 	// ===========================================================
