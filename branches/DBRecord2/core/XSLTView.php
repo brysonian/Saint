@@ -18,8 +18,8 @@ class XSLTView extends ViewCore
 		}
 	}
 	
-	function render($layout_template=false) {
-		parent::parse($layout_template);
+	function render($controller_name, $layout_template=false) {
+		parent::parse($controller_name, $layout_template);
 		
 		# make the source xml
 		# make doc and root
