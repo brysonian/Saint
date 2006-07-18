@@ -126,6 +126,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		# if the connection exists
 		if ($this->has_relationship($prop, 'to-one')) {
 			if (isset($this->to_one_obj[$prop])) {
+				$this->to_one_obj[$prop]->include = $this->include;
 				$this->to_one_obj[$prop]->load();
 				return $this->to_one_obj[$prop];
 			} else if (array_key_exists($prop.'_uid', $this->data) && !empty($this->data[$prop.'_uid'])) {
@@ -160,7 +161,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 						array('class'=>$this->habtm[$prop]['class'], 'include'=>$this->include)						
 					);						
 				} else {
-					$props = DBRecord::find_by($this->get_table().'_uid', $this->get_uid(), array('class'=>$this->to_many[$prop]['class'], 'include'=>$this->include));					
+					$props = DBRecord::find_by($this->get_table().'_uid', $this->get_uid(), array('class'=>$this->to_many[$prop]['class'], 'include'=>$this->include));
 				}
 				
 				# tmobj is indexed by uid, until tmcollection
@@ -1147,7 +1148,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 	function to_param() {
 		return array(
-			'controller' => strtolower(get_class($this)),
+			'controller' => to_url_name(get_class($this)),
 			'action' => 'show',
 			'uid' => $this->get_uid()
 		);
