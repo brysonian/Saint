@@ -8,12 +8,10 @@
 	
 	#get some useful shell funcs
 	require_once (SAINT_ROOT."/scripts/shell_lib");
-
-	
 	
 	# grab out the args and create the application
 	if (!array_key_exists(1, $_SERVER['argv'])) {
-		error("Please specify an application name.", true)
+		error("Please specify an application name.", true);
 	}
 	$argv = $_SERVER['argv'][1];
 	
