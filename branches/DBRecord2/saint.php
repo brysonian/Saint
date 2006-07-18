@@ -175,4 +175,12 @@ if (function_exists('date_default_timezone_set')) {
 		require_once("$class_name.php");
 	}
 
+	# mark out debug section in log
+	// TODO: Logger
+	if (defined('DEBUG') && DEBUG) {
+		error_log("");
+		error_log("--==--");
+		error_log("");
+	}
+
 ?>
