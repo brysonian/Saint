@@ -359,9 +359,6 @@ function url_for($args=false) {
 			$url = substr($url, 0, strlen($url)-1);
 		if (!empty($urlparams)) $url .= "?".join("&amp;", $urlparams);
 	}
-#		echo "Winner:$url\nArgs:";
-#		var_export($args);
-
 	return $url;
 }
 
