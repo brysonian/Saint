@@ -374,7 +374,8 @@ class Sparkup
 		
 		# replace typography stuff
 		$output = preg_replace('/\'/', '&#39;', $output);
-		$output = preg_replace('/--/', '&emdash;', $output);
+		$output = preg_replace('/--/', '&#151;', $output);
+
 		
 		# silly ie
 #		$output = str_replace('&apos;', '&#39;', $str);
