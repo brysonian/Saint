@@ -219,7 +219,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	// save to the db
 	function save($force=false) {
 		if (!$this->modified && !$force) return;
-		# if no id or uid, then insert a new post, otherwise update
+		# if no id or uid, then insert a new item, otherwise update
 		if ($this->get_id() || $this->get_uid()) {
 			$this->update();
 		} else {
@@ -907,16 +907,18 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$table = to_table_name($class);
 		
 		# search in habtm
-		if (is_array($this->habtm) && array_key_exists($table, $this->habtm)) {
+		#if (is_array($this->habtm) && array_key_exists($table, $this->habtm)) {
+		if ($this->has_relationship($table, 'habtm')) {
 			$table = $this->habtm[$table];
 			foreach($value as $k => $v) {
 				$this->exec("INSERT INTO $table (".$this->get_table()."_uid, ".$v->get_table()."_uid) VALUES('".$this->get_uid()."', '".$v->get_uid()."')");
 			}
-		} else if (is_array($this->to_many) && array_key_exists($table, $this->to_many)) {
-			$class = $this->to_many_class[$table];
+		} else if ($this->has_relationship($table, 'to-many')) {
+			$class = $this->to_many[$table]['class'];
 			$uidprop = $this->get_table().'_uid';
+			$uid = $this->get_uid();
 			foreach($value as $k => $v) {
-				$v->$uidprop = $this->get_uid();
+				$v->$uidprop = $uid;
 				$v->save();
 			}
 		}
@@ -935,7 +937,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 			$result = $this->db()->query($sql);
 
 			# if nothing is found, break the loop
-			if (count($this->result) == 0) break;
+			if (count($result) == 0) break;
 		} while(true);
 		$this->set_uid($uid);
 		return $this->get_uid();
