@@ -126,11 +126,11 @@
 	}
 	
 	function create_view_folder($name) {
-		safe_mkdir(strtolower("app/views/$name"));
+		safe_mkdir(strtolower("app/views/".to_url_name($name)));
 	}
 	
 	function create_scaffold($name, $controller=false) {
-		$view_base = (($controller===false)?strtolower($name):strtolower($controller));
+		$view_base = (($controller===false)?to_url_name(strtolower($name)):to_url_name($controller));
 		$path = "app/views/$view_base";
 				
 		#layout
