@@ -131,6 +131,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 			} else if (array_key_exists($prop.'_uid', $this->data) && !empty($this->data[$prop.'_uid'])) {
 				$this->to_one_obj[$prop] = new $this->to_one[$prop]['class'];
 				$this->to_one_obj[$prop]->set_uid($this->data[$prop.'_uid']);
+				$this->to_one_obj[$prop]->include = $this->include;
 				$this->to_one_obj[$prop]->load();
 				return $this->to_one_obj[$prop];
 			}
