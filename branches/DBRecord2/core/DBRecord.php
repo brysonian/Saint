@@ -597,7 +597,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		return true;
 	}
 	
-	protected function table_info($table=false, $full=false) {
+	public function table_info($table=false, $full=false) {
 		if ($table === false) $table = $this->get_table();
 		if ($full) return $this->db()->table_info($table, true);
 		
