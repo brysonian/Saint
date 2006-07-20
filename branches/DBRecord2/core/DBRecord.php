@@ -380,22 +380,15 @@ class DBRecord implements Iterator, Serviceable, Countable
 		}
 		
 		$i = 1;
-		$file = file($db[$i]['file']);
+		if (file_exists($db[$i]['file'])) {
+			$file = file($db[$i]['file']);
+		} else {
+			throw new AmbiguousClass("Couldn't determine the correct class for this static call.\nTry specifying it as an argument.");			
+		}
 		$line = $db[$i]['line']-1;
 		
 		# if the args are on multiple lines, we need to account for that
 		if (array_key_exists('args', $db[$i]) && is_array($db[$i]['args'])) {
-			//TODO: keep an eye on this
-		/*	foreach($db[$i]['args'] as $k => $v) {
-				if (!is_string($v)) {
-					if (is_array($v)) {
-						$v = join('',$v);
-					} else {
-						continue;
-					}
-				}
-				$line -= substr_count($v, "\n");
-			}*/
 			ob_start();
 			array_walk_recursive ($db[$i]['args'], create_function('$v, $k', 'if (!is_array($v)) echo $v;'));
 			$v = ob_get_clean();
