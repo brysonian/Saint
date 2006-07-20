@@ -15,7 +15,6 @@ class DBRecord implements Iterator, Serviceable, Countable
 	protected $to_one_obj;
 	protected $to_many;
 	protected $to_many_obj;
-	protected $to_many_class;
 	protected $habtm;
 
 	protected $order;
@@ -862,14 +861,12 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if (empty($this->to_many)) {
 			$this->to_many = array();
 			$this->to_many_obj	= array();
-			$this->to_many_class	= array();
 		}
 		
 		$this->to_many[$propname] = array('table'=>$table, 'class'=>$class);
 
 		# create the obj
 		$this->to_many_obj[$propname] = array();
-		$this->to_many_class[$propname] = $class;		
 		
 	}
 
@@ -1125,6 +1122,52 @@ class DBRecord implements Iterator, Serviceable, Countable
 			}
 		}
 		return $out;
+	}
+
+	function to_json($include=array(), $skip_to_many=false) {
+		if ($include == 'all') {
+			$include = array_keys($this->to_one);
+			$include = array_merge($include, array_keys($this->to_many));
+		} else if ($include == 'to-one') {
+			$include = array_keys($this->to_one);
+		} else if ($include == 'to-many') {
+			$include = array_keys($this->to_many);
+		} else {
+			$include = is_array($include)?$include:array($include);
+		}
+
+		$out = array();
+
+		# add id and uid
+		$out[] = 'id: "'.$this->get_id().'"';
+		$out[] = 'uid: "'.$this->get_uid().'"';
+		
+		# add each prop
+		foreach ($this->data as $k=>$v) {
+			$out[] = "$k: \"".str_replace(
+				array('"', chr(0x08),chr(0x09),chr(0x0A),chr(0x0C),chr(0x0D)),
+				array('\"', '\b', '\t', '\n', '\f', '\r'),
+				$v).'"';
+		}
+
+		if (!empty($include)) {
+			foreach($include as $k => $v) {
+				if ($rel = $this->has_relationship($v, 'all', true)) {
+					if ($rel == 'to-many' && $skip_to_many) continue;
+					$p = $this->$v;
+					if(is_array($p)) {
+						$j = array();
+						foreach($p as $k2 => $v2) {
+							$j[] = $v2->to_json($include, true);
+						}
+						$out[] = "$v: [\n".join(",\n", $j)."\n]";
+					} else {
+						$out[] = "$v: ".$p->to_json($include, true);
+					}	
+				}
+			}
+		}
+		return "{\n".join(",\n",$out)."\n}";
 	}
 	
 	function to_s() { return $this->__toString(); }
