@@ -1020,7 +1020,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 // - REPRESENTATIONS
 // ===========================================================
 	// get xml rep of this object
-	function to_xml($include=array(), $usecdata=false, $str=true, $skip_to_many=false) {
+	function to_xml($include=array(), $usecdata=false, $obj=false, $skip_to_many=false) {
 		if ($include == 'all') {
 			$include = array_keys($this->to_one);
 			$include = array_merge($include, array_keys($this->to_many));
@@ -1065,18 +1065,18 @@ class DBRecord implements Iterator, Serviceable, Countable
 						$list = $dom->createElement($v);
 						$list = $root->appendChild($list);
 						foreach($p as $k2 => $v2) {
-							$child = $dom->importNode($v2->to_xml($include, $usecdata, false, true)->documentElement, true);
+							$child = $dom->importNode($v2->to_xml($include, $usecdata, true, true)->documentElement, true);
 							$child = $list->appendChild($child);
 						}
 					} else {
 						$obj = $this->$v;
-						$child = $dom->importNode($obj->to_xml($include, $usecdata, false, true)->documentElement, true);
+						$child = $dom->importNode($obj->to_xml($include, $usecdata, true, true)->documentElement, true);
 						$child = $root->appendChild($child);
 					}	
 				}
 			}
 		}
-		return ($str)?$dom->saveXML():$dom;
+		return ($obj)?$dom:$dom->saveXML();
 	}
 
 
