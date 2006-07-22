@@ -32,22 +32,25 @@ class ViewCore
 		# make the source xml
 		# make doc and root
 		$xml = new DomDocument;
-		$root = $xml->createElement(params('controller').'-'.params('action'));
+		$root = $xml->createElement('request');
+		$root->setAttribute('controller', params('controller'));
+		$root->setAttribute('action', params('action'));
+
 		$root = $xml->appendChild($root);
 		
 		# unpack the props into xml
 		foreach($this->props as $k=>$v) {
 			# if it will become xml, do that, otherwise make a dumb tag
-			if (method_exists($v, 'to_xml')) {
-				$obj_xml = $v->to_xml(array(), false, false);
+			if (is_object($v) && method_exists($v, 'to_xml')) {
+				$obj_xml = $v->to_xml(array(), true, true);
 				$obj_xml = $xml->importNode($obj_xml->documentElement, true);
 				$root->appendChild($obj_xml);
 			} else {
 				$node = $xml->createElement($k);
-				if (is_numeric($v)) {
-					$cdata = $xml->createTextNode($v);
-				} else {
+				if (((strpos($v, '<')!==false) || (strpos($v, '>')!==false) || (strpos($v, '&')!==false))) {
 					$cdata = $xml->createCDATASection($v);
+				} else {
+					$cdata = $xml->createTextNode($v);
 				}
 				$node->appendChild($cdata);
 				$node = $root->appendChild($node);				
