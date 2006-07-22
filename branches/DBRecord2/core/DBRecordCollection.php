@@ -227,7 +227,7 @@ class DBRecordCollection implements Iterator, Countable, ArrayAccess
 // - REPRESENTATIONS
 // ===========================================================
 	// get xml rep of this object
-	function to_xml($include=array(), $usecdata=false, $str=true) {
+	function to_xml($include=array(), $usecdata=false, $obj=true) {
 		# make doc and root
 		$dom = new DomDocument;
 		$root = $dom->createElement($this->get_model()->get_table().'s');
@@ -235,11 +235,10 @@ class DBRecordCollection implements Iterator, Countable, ArrayAccess
 		
 		# get all objects in this list
 		foreach ($this as $obj) {
-			$obj_xml = $obj->to_xml($include, $usecdata, false);
-			$obj_xml = $dom->importNode($obj_xml->documentElement, true);
+			$obj_xml = $dom->importNode($obj->to_xml($include, $usecdata, true)->documentElement, true);
 			$root->appendChild($obj_xml);
 		}
-		return ($str)?$dom->saveXML():$dom;
+		return ($obj)?$dom:$dom->saveXML();
 	}
 
 	// get array rep of this object
