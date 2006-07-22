@@ -158,13 +158,14 @@ class ControllerCore
 			$this->save_cache($_SERVER['REQUEST_URI'], $text);
 		}
 		if ($isxml) {
+			if ($text == false) $view->set_all_props($this->data);
 			$view->render_xml($text);
 		} else {
 			$view->render_text($text);
 		}
 	}
 
-	function render_xml($text) {
+	function render_xml($text=false) {
 		$this->render_text($text, true);
 	}
 
