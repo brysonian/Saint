@@ -227,7 +227,7 @@ class DBRecordCollection implements Iterator, Countable, ArrayAccess
 // - REPRESENTATIONS
 // ===========================================================
 	// get xml rep of this object
-	function to_xml($include=array(), $usecdata=false, $str=false) {
+	function to_xml($include=array(), $usecdata=false, $str=true) {
 		# make doc and root
 		$dom = new DomDocument;
 		$root = $dom->createElement($this->get_model()->get_table().'s');
