@@ -28,6 +28,35 @@ class ViewCore
 		return $this->props = $p;
 	}
 	
+	function props_to_xml() {
+		# make the source xml
+		# make doc and root
+		$xml = new DomDocument;
+		$root = $xml->createElement(params('controller').'-'.params('action'));
+		$root = $xml->appendChild($root);
+		
+		# unpack the props into xml
+		foreach($this->props as $k=>$v) {
+			# if it will become xml, do that, otherwise make a dumb tag
+			if (method_exists($v, 'to_xml')) {
+				$obj_xml = $v->to_xml(array(), false, false);
+				$obj_xml = $xml->importNode($obj_xml->documentElement, true);
+				$root->appendChild($obj_xml);
+			} else {
+				$node = $xml->createElement($k);
+				if (is_numeric($v)) {
+					$cdata = $xml->createTextNode($v);
+				} else {
+					$cdata = $xml->createCDATASection($v);
+				}
+				$node->appendChild($cdata);
+				$node = $root->appendChild($node);				
+			}
+		}
+		return $xml;
+	}
+	
+	
 	// render the page
 	function render($controller_name, $layout_template=false) {
 		# include the helpers
@@ -44,8 +73,9 @@ class ViewCore
 	}
 
 	function render_text($text='') { echo $text; }
-	function render_xml($text='') { 
+	function render_xml($text=false) { 
 		header('Content-Type: application/xml');
+		if ($text==false) $text = $this->props_to_xml()->saveXML();
 		echo $text;
 	}
 
