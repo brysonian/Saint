@@ -905,7 +905,6 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$options['table'] = $tables[0].'_'.$tables[1];
 		$options['propname'] = $propname;
 		$this->has_many($class, $options);
-		die(var_export($this->to_many));
 	}
 
 	protected function add_to_many_object($class, $value) {
