@@ -32,6 +32,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 	protected $modified = false;
 
 	protected $validator = array();
+	protected $acts_as;
+	protected	$acts_as_methods;
 	
 	protected static $table_info = array();
 
@@ -135,11 +137,9 @@ class DBRecord implements Iterator, Serviceable, Countable
 				return $this->to_one_obj[$prop];
 			}
 		}
-
 		# then try the to_manys
 		# if the connection exists
 		if ($this->has_relationship($prop, 'to-many')) {
-
 			# TODO: Maybe this array making can be replaced by a to_many collection class
 			if (array_key_exists($prop, $this->to_many_obj) && !empty($this->to_many_obj[$prop])) {
 				$out = array();
@@ -332,6 +332,20 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 		} else if (strpos($method, 'add_') !== false) {
 			$this->add_to_many_object(str_replace('add_', '', $method), $args);
+
+
+		} else if (strpos($method, 'acts_as_') !== false) {
+			if (!is_array($this->acts_as)) {
+				$this->acts_as = array();
+				$this->acts_as_methods = array();
+			}
+			$class = to_class_name(str_replace('acts_as_', '', $method));
+			$class = new $class;
+			$this->acts_as[]= &$class;
+			$m = $class->get_method_list();
+			foreach($m as $k => $v) {
+				$this->acts_as_methods[$v] = &$class;
+			}
 		}
 		
 	}
@@ -855,7 +869,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	function has_many($class, $options=false) {
 		# parse options
 		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:to_table_name($class);
-		$propname = (is_array($options) && array_key_exists("propname", $options))?($options['propname']):(is_string($options)?$options:$table);
+		$propname = (is_array($options) && array_key_exists("propname", $options))?($options['propname']):(is_string($options)?$options:to_url_name($class));
 
 		# if to_many are empty make an array
 		if (empty($this->to_many)) {
@@ -873,7 +887,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	function has_and_belongs_to_many($class, $options=false) {
 		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:false;
 		$other_table = (is_array($options) && array_key_exists("other_table", $options))?$options['other_table']:to_table_name($class);
-		$propname = (is_array($options) && array_key_exists("propname", $options))?($options['propname']):(is_string($options)?$options:$table);
+		$propname = (is_array($options) && array_key_exists("propname", $options))?($options['propname']):(is_string($options)?$options:to_url_name($class));
 
 		# if no table, try to get the tablename
 		if ($table == false) {
@@ -891,6 +905,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$options['table'] = $tables[0].'_'.$tables[1];
 		$options['propname'] = $propname;
 		$this->has_many($class, $options);
+		die(var_export($this->to_many));
 	}
 
 	protected function add_to_many_object($class, $value) {
