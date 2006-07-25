@@ -137,6 +137,9 @@ class DBRecord implements Iterator, Serviceable, Countable
 				return $this->to_one_obj[$prop];
 			}
 		}
+		
+		
+
 		# then try the to_manys
 		# if the connection exists
 		if ($this->has_relationship($prop, 'to-many')) {
@@ -467,8 +470,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$o = $m->table_info();
 		$sql = array();
 		foreach($o as $k => $v) {
-			if (strpos($k, 'id') !== false) continue;
-			$sql[] = ' `'.$m->get_table().'`.'.$k." LIKE '".$m->escape_string($value)."'";
+			if (strpos($v, 'id') !== false) continue;
+			$sql[] = ' `'.$m->get_table().'`.'.$v." LIKE '".$m->escape_string($value)."'";
 		}
 		$m->set_where(join(' OR ', $sql));
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
@@ -913,7 +916,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		# search in habtm
 		#if (is_array($this->habtm) && array_key_exists($table, $this->habtm)) {
 		if ($this->has_relationship($table, 'habtm')) {
-			$table = $this->habtm[$table];
+			$table = $this->habtm[$table]['table'];
 			foreach($value as $k => $v) {
 				$this->exec("INSERT INTO $table (".$this->get_table()."_uid, ".$v->get_table()."_uid) VALUES('".$this->get_uid()."', '".$v->get_uid()."')");
 			}
