@@ -20,6 +20,7 @@
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/models';
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/controllers';	
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/helpers';	
+	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/plugins';	
 	set_include_path($inc);
 
 
@@ -159,7 +160,7 @@ if (function_exists('date_default_timezone_set')) {
 // - AUTOLOAD
 // ===========================================================
 	function __autoload($class_name) {
-		$class_name = ucfirst($class_name);
+		#$class_name = ucfirst($class_name);
 
 		# if it's a controller, make sure it exists
 		if (strpos($class_name, 'Controller') !== false) {
