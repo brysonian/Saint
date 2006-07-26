@@ -189,7 +189,7 @@
 
 		# get the html for each element
 		ob_start();
-		echo '<'.'?'.'php'." echo \$$name"."->errors(); ?".'>'."\n<ul>\n";
+		echo '<'.'?'.'php'." echo \$form"."->errors(); ?".'>'."\n<ul>\n";
 
 		foreach($info as $k => $v) {
 			$type = $v['Type'];
