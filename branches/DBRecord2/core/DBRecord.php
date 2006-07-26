@@ -356,11 +356,11 @@ class DBRecord implements Iterator, Serviceable, Countable
 			$cname = to_class_name($method);
 			
 			# manually load the class
-#			if (file_exists()) {
-				
-#			} else {
-				
-#			}
+			if (file_exists(PROJECT_ROOT."/plugins/$cname/$cname.php")) {
+				include_once PROJECT_ROOT."/plugins/$cname/$cname.php";
+			} else {
+				throw new PluginNotFound("Filed to load the $cname plugin.");
+			}
 			
 			$class = new $cname($this);
 			$this->acts_as[$cname]= &$class;
@@ -1273,6 +1273,7 @@ class RecordDeletionError extends DBRecordError {}
 class DuplicateRecord extends DBRecordError {}
 class ReadOnlyAccess extends SaintException {}
 class UndefinedMethod extends SaintException {}
+class PluginNotFound extends SaintException {}
 
 
 // ===========================================================
