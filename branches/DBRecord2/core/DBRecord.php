@@ -34,7 +34,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	protected $validator = array();
 	protected $acts_as;
 	protected	$acts_as_methods;
-	protected	$accessors;
+	protected	$getters;
 	
 	protected static $table_info = array();
 
@@ -119,17 +119,9 @@ class DBRecord implements Iterator, Serviceable, Countable
 			$val = $this->data[$prop];
 			
 			# if there is a method with this name, call it and pass the value
-			if (method_exists($this, $prop)) {
-				$val = $this->$prop($val);
-			}
-
-			if (is_array($this->accessors) && array_key_exists($prop, $this->accessors)) {
-				foreach($this->accessors[$prop] as $k => $v) {
-					$val = $this->acts_as[$v]->$prop($val);
-				}
-			}
+			if (method_exists($this, $prop)) $val = $this->$prop($val);
 						
-			return $val;
+			return $this->getter_mixin($prop, $val);
 		}
 
 		# then the to_one's
@@ -138,13 +130,13 @@ class DBRecord implements Iterator, Serviceable, Countable
 			if (isset($this->to_one_obj[$prop])) {
 				$this->to_one_obj[$prop]->include = $this->include;
 				$this->to_one_obj[$prop]->load();
-				return $this->to_one_obj[$prop];
+				return $this->getter_mixin($prop, $this->to_one_obj[$prop]);
 			} else if (array_key_exists($prop.'_uid', $this->data) && !empty($this->data[$prop.'_uid'])) {
 				$this->to_one_obj[$prop] = new $this->to_one[$prop]['class'];
 				$this->to_one_obj[$prop]->set_uid($this->data[$prop.'_uid']);
 				$this->to_one_obj[$prop]->include = $this->include;
 				$this->to_one_obj[$prop]->load();
-				return $this->to_one_obj[$prop];
+				return $this->getter_mixin($prop, $this->to_one_obj[$prop]);
 			}
 		}
 		
@@ -159,7 +151,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 				foreach ($this->to_many_obj[$prop] as $obj) {
 					$out[] = $obj;
 				}
-				return $out;
+				return $this->getter_mixin($prop, $out);
 				
 			} else {
 				// TODO: see about this include stuff
@@ -183,13 +175,31 @@ class DBRecord implements Iterator, Serviceable, Countable
 				foreach($a as $k => $v) {
 					$this->to_many_obj[$prop][$v->get_uid()] = $v;
 				}
-				// convert results into an array
-				return $a;
+				return $this->getter_mixin($prop, $a);
 			}
 		}
 		
 		return false;
 	}
+	
+	private function getter_mixin($prop, $val) {
+		if (is_array($this->getters)) {
+			if (array_key_exists($prop, $this->getters)) {
+				$method = "get_$prop";
+				foreach($this->getters[$prop] as $k => $v) {
+					$val = $this->acts_as[$v]->$method($val);
+				}
+			}
+		
+			if (array_key_exists('get', $this->getters)) {
+				foreach($this->getters['get'] as $k => $v) {
+					$val = $this->acts_as[$v]->get($prop, $val);
+				}
+			}
+		}
+		return $val;		
+	}
+
 	
 	// set
 	function set($prop, $val) { $this->__set($prop, $val); }
@@ -209,15 +219,16 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 		} else {
 			if (!array_key_exists($prop, $this->data)) {
-				$this->data[$prop] = $val;
+				$this->data[$prop] = $val;						
 				$this->modified = true;
+
+
 			} else if ($this->data[$prop] !== $val) {
 				$this->data[$prop] = $val;
 				$this->modified = true;
 			}
 		}
 	}
-
 
 
 
@@ -359,7 +370,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 			if (file_exists(PROJECT_ROOT."/plugins/$cname/$cname.php")) {
 				include_once PROJECT_ROOT."/plugins/$cname/$cname.php";
 			} else {
-				throw new PluginNotFound("Filed to load the $cname plugin.");
+				throw new PluginNotFound("Failed to load the $cname plugin. 
+				Make sure the plugin is in your plugins/$cname directory and includes a $cname.php file.");
 			}
 			
 			$class = new $cname($this);
@@ -369,12 +381,12 @@ class DBRecord implements Iterator, Serviceable, Countable
 			foreach($m as $k => $v) {
 				$this->acts_as_methods[$v] = $cname;
 			}
-			if (method_exists($class, 'accessor_list')) {
-				if (!is_array($this->accessors)) $this->accessors = array();
-				$m = $class->accessor_list();
+			if (method_exists($class, 'getter_list')) {
+				if (!is_array($this->getters)) $this->getters = array();
+				$m = $class->getter_list();
 				foreach($m as $k => $v) {
-					if (!array_key_exists($v, $this->accessors)) $this->accessors[$v] = array();
-					$this->accessors[$v][] = $cname;
+					if (!array_key_exists($v, $this->getters)) $this->getters[$v] = array();
+					$this->getters[$v][] = $cname;
 				}
 			}
 			
