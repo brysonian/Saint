@@ -342,13 +342,17 @@ class DBRecord implements Iterator, Serviceable, Countable
 				$this->acts_as = array();
 				$this->acts_as_methods = array();
 			}
-			$class = to_class_name(str_replace('acts_as_', '', $method));
-			$class = new $class;
-			$this->acts_as[]= &$class;
-			$m = $class->get_method_list();
+			$cname = 'ActsAs'.to_class_name(str_replace('acts_as_', '', $method));
+			$class = new $cname($this);
+			$this->acts_as[$cname]= &$class;
+
+			$m = $class->method_list();
 			foreach($m as $k => $v) {
-				$this->acts_as_methods[$v] = &$class;
+				$this->acts_as_methods[$v] = $cname;
 			}
+		} else if (is_array($this->acts_as_methods) && array_key_exists($method, $this->acts_as_methods)) {
+			return call_user_func_array(array($this->acts_as[$this->acts_as_methods[$method]], $method), $args);
+			
 		}
 		
 	}
