@@ -353,6 +353,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 		} else if (is_array($this->acts_as_methods) && array_key_exists($method, $this->acts_as_methods)) {
 			return call_user_func_array(array($this->acts_as[$this->acts_as_methods[$method]], $method), $args);
 			
+		} else {
+			throw new UndefinedMethod(get_class($this).' does not have a method named '.$method.'().');
 		}
 		
 	}
@@ -1241,6 +1243,7 @@ class AmbiguousClass extends SaintException {}
 class RecordDeletionError extends DBRecordError {}
 class DuplicateRecord extends DBRecordError {}
 class ReadOnlyAccess extends SaintException {}
+class UndefinedMethod extends SaintException {}
 
 
 // ===========================================================
