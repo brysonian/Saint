@@ -79,7 +79,11 @@ class ViewCore
 	function render_xml($text=false) { 
 		header('Content-Type: application/xml');
 		if ($text==false) $text = $this->props_to_xml()->saveXML();
-		echo $text;
+		if (is_object($text) && method_exists(get_class($text), 'to_xml')) {
+			echo $text->to_xml();
+		} else {
+			echo $text;
+		}
 	}
 
 	function parse($layout_template=false) {
