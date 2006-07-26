@@ -123,7 +123,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 				$val = $this->$prop($val);
 			}
 
-			if (array_key_exists($prop, $this->accessors)) {
+			if (is_array($this->accessors) && array_key_exists($prop, $this->accessors)) {
 				foreach($this->accessors[$prop] as $k => $v) {
 					$val = $this->acts_as[$v]->$prop($val);
 				}
@@ -354,6 +354,14 @@ class DBRecord implements Iterator, Serviceable, Countable
 			}
 			#$cname = 'ActsAs'.to_class_name(str_replace('acts_as_', '', $method));
 			$cname = to_class_name($method);
+			
+			# manually load the class
+#			if (file_exists()) {
+				
+#			} else {
+				
+#			}
+			
 			$class = new $cname($this);
 			$this->acts_as[$cname]= &$class;
 
