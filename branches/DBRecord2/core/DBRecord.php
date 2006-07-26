@@ -116,11 +116,20 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 		# first check in data
 		if (isset($this->data[$prop])) {
+			$val = $this->data[$prop];
+			
 			# if there is a method with this name, call it and pass the value
 			if (method_exists($this, $prop)) {
-				return $this->$prop($this->data[$prop]);
+				$val = $this->$prop($val);
 			}
-			return $this->data[$prop];
+
+			if (array_key_exists($prop, $this->accessors)) {
+				foreach($this->accessors[$prop] as $k => $v) {
+					$val = $this->acts_as[$v]->$prop($val);
+				}
+			}
+						
+			return $val;
 		}
 
 		# then the to_one's
@@ -352,9 +361,13 @@ class DBRecord implements Iterator, Serviceable, Countable
 			foreach($m as $k => $v) {
 				$this->acts_as_methods[$v] = $cname;
 			}
-			if (method_exists($class, '')) {
+			if (method_exists($class, 'accessor_list')) {
 				if (!is_array($this->accessors)) $this->accessors = array();
-				
+				$m = $class->accessor_list();
+				foreach($m as $k => $v) {
+					if (!array_key_exists($v, $this->accessors)) $this->accessors[$v] = array();
+					$this->accessors[$v][] = $cname;
+				}
 			}
 			
 		} else if (is_array($this->acts_as_methods) && array_key_exists($method, $this->acts_as_methods)) {
