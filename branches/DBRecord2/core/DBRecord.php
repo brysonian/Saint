@@ -34,6 +34,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	protected $validator = array();
 	protected $acts_as;
 	protected	$acts_as_methods;
+	protected	$accessors;
 	
 	protected static $table_info = array();
 
@@ -342,7 +343,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 				$this->acts_as = array();
 				$this->acts_as_methods = array();
 			}
-			$cname = 'ActsAs'.to_class_name(str_replace('acts_as_', '', $method));
+			#$cname = 'ActsAs'.to_class_name(str_replace('acts_as_', '', $method));
+			$cname = to_class_name($method);
 			$class = new $cname($this);
 			$this->acts_as[$cname]= &$class;
 
@@ -350,8 +352,14 @@ class DBRecord implements Iterator, Serviceable, Countable
 			foreach($m as $k => $v) {
 				$this->acts_as_methods[$v] = $cname;
 			}
+			if (method_exists($class, '')) {
+				if (!is_array($this->accessors)) $this->accessors = array();
+				
+			}
+			
 		} else if (is_array($this->acts_as_methods) && array_key_exists($method, $this->acts_as_methods)) {
 			return call_user_func_array(array($this->acts_as[$this->acts_as_methods[$method]], $method), $args);
+			
 			
 		} else {
 			throw new UndefinedMethod(get_class($this).' does not have a method named '.$method.'().');
