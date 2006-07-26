@@ -218,7 +218,18 @@ class DBRecordCollection implements Iterator, Countable, ArrayAccess
 // ===========================================================
 	public function count() {
 		$where = $this->model->get_where()?' WHERE '.$this->model->get_where():'';
-		$unique_result = $this->db->query('SELECT uid from '.$this->model->get_table().$where.' GROUP BY uid '.$this->limit);
+		$sql = $this->query;
+		if (stripos($sql, 'GROUP BY')) {
+			$sql = str_ireplace('GROUP BY', ' GROUP BY uid, ', $sql);
+		} else {
+			if (stripos($sql, 'ORDER BY')) {
+				$sql = str_ireplace('ORDER BY', ' GROUP BY uid ORDER BY', $sql);
+			} else {
+				$sql .= ' GROUP BY uid';				
+			}
+		}
+#select count(uid) from (SELECT * from tip GROUP BY episode_uid) as results
+		$unique_result = $this->db->query($sql);
 		return count($unique_result);
 	}
 
