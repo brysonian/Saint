@@ -202,7 +202,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 			if (!array_key_exists($prop, $this->data)) {
 				$this->data[$prop] = $val;
 				$this->modified = true;
-			} else if ($this->data[$prop] != $val) {
+			} else if ($this->data[$prop] !== $val) {
 				$this->data[$prop] = $val;
 				$this->modified = true;
 			}
