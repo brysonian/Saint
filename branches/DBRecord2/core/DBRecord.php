@@ -170,7 +170,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 				
 				# tmobj is indexed by uid, until tmcollection
 				// TODO: another point for a to-many collection
-				$a = $props->to_a();
+				$a = $props->to_a(false);
 				$this->to_many_obj[$prop] = array();
 				foreach($a as $k => $v) {
 					$this->to_many_obj[$prop][$v->get_uid()] = $v;
