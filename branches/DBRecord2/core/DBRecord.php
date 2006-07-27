@@ -509,6 +509,16 @@ class DBRecord implements Iterator, Serviceable, Countable
 		return $sibs;
 	}
 
+	// handy shortcut to find_where for use on a specific field
+	static function find_like_by($field, $value, $options=array()) {
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
+		$m = new $class;
+		$m->set_options($options);
+		$m->set_where("`$field` LIKE '".$m->escape_string($value)."'");
+		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
+		return $sibs;
+	}
+
 	// handy shortcut to find_where for use on all searchable fields
 	static function find_by_all($value, $options=array()) {
 		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
