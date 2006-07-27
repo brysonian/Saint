@@ -253,8 +253,8 @@ class DBRecordCollection implements Iterator, Countable, ArrayAccess
 	}
 
 	// get array rep of this object
-	function to_a($deep=false) { return $this->to_array($deep); }
-	function to_array($deep=false) {
+	function to_a($deep=true) { return $this->to_array($deep); }
+	function to_array($deep=true) {
 		$out = array();
 		foreach($this as $obj) {
 			$out[] = $deep?$obj->to_a():$obj;
