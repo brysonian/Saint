@@ -253,10 +253,9 @@ class DBRecord implements Iterator, Serviceable, Countable
 	function create() {
 		# validate the data
 		$this->validate_builtins();
-		$this->validate();
-		if ($this->validation_errors()) {
-			throw $this->validation_errors();
-		}
+		$validates = $this->validate();
+		if ($this->validation_errors()) throw $this->validation_errors();
+		if ($validates === false) return;
 
 
 		$sql = "INSERT INTO `".$this->get_table()."` ";
@@ -301,10 +300,10 @@ class DBRecord implements Iterator, Serviceable, Countable
 		
 		# validate the data
 		$this->validate_builtins();
-		$this->validate();
-		if ($this->validation_errors()) {
-			throw $this->validation_errors();
-		}
+		$validates = $this->validate();
+		if ($this->validation_errors()) throw $this->validation_errors();
+		if ($validates === false) return;
+
 
 		$sql = "UPDATE `".$this->get_table()."` SET ";
 		$props = array();
