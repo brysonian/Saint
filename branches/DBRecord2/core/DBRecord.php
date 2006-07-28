@@ -503,7 +503,10 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);
-		$m->set_where("`$field` = '".$m->escape_string($value)."'");
+		
+		# disabiguate the field 
+		if (strpos($field, '.') === false) $field = '`'.$m->get_table()."`.$field";		
+		$m->set_where("$field = '".$m->escape_string($value)."'");
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
 		return $sibs;
 	}
@@ -513,7 +516,10 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);
-		$m->set_where("`$field` LIKE '".$m->escape_string($value)."'");
+		
+		# disabiguate the field 
+		if (strpos($field, '.') === false) $field = '`'.$m->get_table()."`.$field";
+		$m->set_where("$field LIKE '".$m->escape_string($value)."'");
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
 		return $sibs;
 	}
