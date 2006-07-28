@@ -20,6 +20,14 @@
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/models';
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/controllers';	
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/helpers';	
+	
+	$dir = new DirectoryIterator(PROJECT_ROOT.'/plugins');
+	$out = array();
+	foreach($dir as $file) {
+		$fname = $file->getFilename();
+		if ($fname{0} != '.') $inc .= PATH_SEPARATOR.PROJECT_ROOT.'/plugins/'.$file->getFilename();
+	}
+	
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/plugins';	
 	set_include_path($inc);
 
@@ -166,13 +174,13 @@ if (function_exists('date_default_timezone_set')) {
 		if (strpos($class_name, 'Controller') !== false) {
 			$ok = file_exists(PROJECT_ROOT."/app/controllers/$class_name.php");
 			if(!$ok) {
-				# php is dumb so you can throw from inside autoload, to fix this we
+				# php is dumb so you can't throw from inside autoload, to fix this we
 				# make a dummy class that throws the error in the constructor
 				# note this won't work for static methods
 				eval("class $class_name {function __construct() {throw new UnknownController('No controller with the name ".str_replace('Controller', '', $class_name)." could be found.');}}");
 				return;
 			}
-		}				
+		}
 		require_once("$class_name.php");
 	}
 
