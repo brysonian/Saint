@@ -227,7 +227,7 @@ function datetime_field($obj, $name, $prop) {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
 	if ($v == -1 || $v === false) $v = Format::prettyDateTime();
 	$out = "<input type='text' name='{$name}[{$prop}]' value='$v' id='{$name}_$prop' size='40' maxlength='100' />\n";
-	$out .= "<span class='tip'><a href='#' onclick='d=new Date(); ds=d.toString(); ds=ds.split(\" \"); v=ds[1]+\" \"+ds[2]+\", \"+ds[3]+\" \"+ds[4].substring(0,ds[4].lastIndexOf(\":\"))+(d.getHours()>11?\" PM\":\" AM\"); document.getElementById(\"{$name}_$prop\").value=v;return false;'>Insert Current Date and Time</a></span>";
+	$out .= "<span class='tip'><a href='#' onclick='d=new Date(); ds=d.toString(); h=(d.getHours()%12); h=(h==0)?12:h; ds=ds.split(\" \"); v=ds[1]+\" \"+ds[2]+\", \"+ds[3]+\" \"+h+\":\"+d.getMinutes()+(d.getHours()>11?\" PM\":\" AM\"); document.getElementById(\"{$name}_$prop\").value=v;return false;'>Insert Current Date and Time</a></span>";
 	return $out;
 }
 
@@ -235,7 +235,7 @@ function time_field($obj, $name, $prop) {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
 	if ($v == -1 || $v === false) $v = Format::prettyTime();
 	$out = "<input type='text' name='{$name}[{$prop}]' value='$v' id='{$name}_$prop' size='40' maxlength='100' />\n";
-	$out .= "<span class='tip'><a href='#' onclick='d=new Date(); ds=d.toString(); ds=ds.split(\" \"); v=ds[4].substring(0,ds[4].lastIndexOf(\":\"))+(d.getHours()>11?\" PM\":\" AM\"); document.getElementById(\"{$name}_$prop\").value=v;return false;'>Insert Current Time</a></span>";
+	$out .= "<span class='tip'><a href='#' onclick='d=new Date(); h=(d.getHours()%12); h=(h==0)?12:h; v=h+\":\"+d.getMinutes()+(d.getHours()>11?\" PM\":\" AM\"); document.getElementById(\"{$name}_$prop\").value=v;return false;'>Insert Current Time</a></span>";
 	return $out;
 }
 
