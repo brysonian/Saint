@@ -239,6 +239,16 @@ function time_field($obj, $name, $prop) {
 	return $out;
 }
 
+function checkbox($obj, $name, $prop, $value=1) {
+	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
+	$out = "<input type='checkbox' value='$value' id='{$name}_{$prop}_box'";
+	if ($value == $v)	$out .= " checked='checked' ";
+	$out .= " onclick='document.getElementById(\"{$name}_$prop\").value = this.checked?this.value:0;' /><input type='hidden' id='{$name}_$prop' name='{$name}[{$prop}]' value='$value' />\n";
+	return $out;
+}
+
+
+
 function submit_to($name, $confirm=false) {
 	ob_start();
 	echo "<input type='submit'";
