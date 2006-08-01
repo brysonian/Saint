@@ -44,15 +44,13 @@ class Format {
 	public static function mysqlDateTime($value=false) {
 		$value = empty($value)?time():strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
-
-		return date('Y-m-d h:i:s', $value);
+		return date('Y-m-d H:i:s', $value);
 	}
 
 	public static function mysqlTime($value=false) {
 		$value = empty($value)?time():strtotime($value);
 		if (($value === false) || ($value == -1)) return $value;
-
-		return date('h:i:s', $value);
+		return date('H:i:s', $value);
 	}
 
 	# format a date string into something like: Apr 1, 1976
