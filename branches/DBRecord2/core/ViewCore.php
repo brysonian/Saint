@@ -138,7 +138,13 @@ class ViewCore
 		}
 
 		$view = ViewFactory::make_view($template);
-					
+
+
+		# include the helpers
+		if (file_exists(PROJECT_ROOT.'/app/helpers/app.php')) include_once(PROJECT_ROOT.'/app/helpers/app.php');
+		if (file_exists(PROJECT_ROOT.'/app/helpers/'.$controller.'.php')) include_once(PROJECT_ROOT.'/app/helpers/'.$controller.'.php');
+
+
 		# if it's a collection, call it for each item in the obj
 		if ($collect === true) {
 			foreach($object as $k => $v) {
