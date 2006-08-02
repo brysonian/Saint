@@ -81,7 +81,7 @@ class Usher
 				if (is_array($v)) {
 					$params[$k] = array();
 					foreach($v as $k2 => $v2) {
-						$params[$k][$k2] = ($gpc)?stripslashes($v2):$v2;
+						if (!is_array($v2)) $params[$k][$k2] = ($gpc)?stripslashes($v2):$v2;
 					}
 				} else {
 					$params[$k] = ($gpc)?stripslashes($v):$v;
@@ -95,7 +95,7 @@ class Usher
 				if (is_array($v)) {
 					$params[$k] = array();
 					foreach($v as $k2 => $v2) {
-						$params[$k][$k2] = ($gpc)?stripslashes($v2):$v2;
+						if (!is_array($v2)) $params[$k][$k2] = ($gpc)?stripslashes($v2):$v2;
 					}
 				} else {
 					$params[$k] = ($gpc)?stripslashes($v):$v;
