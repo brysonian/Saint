@@ -251,6 +251,12 @@ function checkbox($obj, $name, $prop, $value=1) {
 	return $out;
 }
 
+function hidden_field($obj, $name, $prop) {
+	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
+	# try to determine if the value should be in ' or " since escaping doesn't seem to work.
+	$v = (substr_count($v, "'") > substr_count($v, '"'))?'"'.$v.'"':"'".$v."'";
+	return "<input type='hidden' name='{$name}[{$prop}]' value=$v id='{$name}_$prop' />\n";
+}
 
 
 function submit_to($name, $confirm=false) {
