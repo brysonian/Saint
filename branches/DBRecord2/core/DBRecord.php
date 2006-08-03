@@ -311,6 +311,33 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$sql = "UPDATE `".$this->get_table()."` SET ";
 		$props = array();
 		foreach ($this->data as $k=>$v) {
+			# see if there is a t-o or t-m
+			if (strpos($k, '_') !== false) {
+
+				# check to-one
+				if (is_array($this->to_one)) {
+					foreach($this->to_one as $tkey => $tname) {
+						if (strpos($k, $tkey.'_') === 0) {
+							$rel = true;
+							break;
+						}
+					}
+				}
+				if ($rel) continue;
+
+				# check to-many
+				if (is_array($this->to_many)) {
+					foreach($this->to_many as $tkey => $tname) {
+						if (strpos($k, $tkey.'_') === 0) {
+							$rel = true;
+							break;
+						}						
+					}
+				}
+				if ($rel) continue;
+			}
+
+
 			# if the value is NULL then use that not empty string
 			if (is_null($v)) {
 				$props[] = "$k=NULL";
@@ -323,6 +350,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		}	
 		
 		$sql .= join(',',$props)." WHERE id=".$this->escape_string($this->get_id());		
+
 		$result = $this->db()->query($sql);
 		if (!$result) {
 			throw new DBRecordError("Database error while attempting to update record.\n".$this->db()->error(), $this->db()->errno(), $sql);
