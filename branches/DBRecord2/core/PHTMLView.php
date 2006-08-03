@@ -63,6 +63,86 @@ function xml_declaration() {
 	return '<'.'?'.'xml version="1.0" encoding="utf-8"?'.">\n";
 }
 
+// ===========================================================
+// - ASSET HELPERS
+// ===========================================================
+function javascript_path($file) {
+	$base = ($file{0} == '/')?'':get_root().JAVASCRIPT_BASE.'/';	
+	return "$base$file.js";
+}
+
+function javascript_include_tag() {
+	$args = func_get_args();
+	$out = '';
+	if (empty($args)) {
+		if (file_exists(DOC_ROOT.'/'.javascript_path('application')))
+			$out .= "<script src=\"".javascript_path('application')."\" type=\"text/javascript\" /></script>\n";
+			
+		$out .= "<script src=\"".javascript_path('prototype')."\" type=\"text/javascript\" /></script>\n";		
+	} else {
+		foreach($args as $k => $v) {
+			$out .= "<script src=\"".javascript_path($v)."\" type=\"text/javascript\" /></script>\n";
+		}
+	}
+	return $out;
+}
+
+function stylesheet_path($file) {
+	$base = ($file{0} == '/')?'':get_root().STYLESHEET_BASE.'/';	
+	return "$base$file.css";
+}
+
+function stylesheet_link_tag($file, $media='screen') {
+	return "<link href=\"".stylesheet_path($file)."\" media=\"$media\" rel=\"Stylesheet\" type=\"text/css\" />\n";
+}
+
+function media_path($file) {
+	$base = ($file{0} == '/')?'':get_root().MEDIA_BASE.'/';	
+	return "$base$file";
+}
+
+/*
+	options can be a k=v array of image tag attributes
+	if options === false, or options['alt']===false, the alt tag will be derived from the filename
+	if options is a string, it will be used as the value for the alt tag
+	if no alt tag is provided, the tag will have alt=''
+	size should be provided as WidthxHeight, eg: 45x45
+*/
+function image_tag($file, $options=array()) {
+	$out = "<img src=\"".media_path($file)."\"";
+	if (is_string($options)) $options = array('alt'=>$options);
+	if ($options === false)  $options = array('alt'=>false);
+	if (!is_array($options))  $options = array();
+
+	if (array_key_exists("alt", $options) && ($options['alt'] === false)) {
+		$pi = pathinfo($file);
+		$options['alt'] = to_human_name(str_replace('.'.$pi['extension'], '', $pi['basename']));
+	}
+
+	if (!array_key_exists("alt", $options)) $out .= ' alt=""';
+	foreach($options as $k => $v) {
+		if ($k == 'size') {
+			$v = explode('x', $v);
+			$out .= ' width="'.$v[0].'" height="'.$v[0].'" ';
+		} else {
+			$out .= " $k=\"$v\" ";
+		}
+	}
+	
+	$out .= " />\n";
+	return $out;
+}
+
+function content_image_tag($file, $options=array()) {
+	$base = ($file{0} == '/')?'':get_root().CONTENT_BASE.'/';	
+	$file = $base.$file;
+	return image_tag($file, $options);
+}
+
+
+// ===========================================================
+// - FORM HELPERS
+// ===========================================================
 function text_field($obj, $name, $prop) {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
 	# try to determine if the value should be in ' or " since escaping doesn't seem to work.

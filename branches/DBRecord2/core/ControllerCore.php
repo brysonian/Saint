@@ -193,7 +193,7 @@ class ControllerCore
 		$file = array_pop($dirs).'.'.ControllerCore::cache_extension;
 		
 		# new path
-		$mkdir = PROJECT_ROOT.'/public_html';
+		$mkdir = DOC_ROOT;
 		
 		# create path
 		foreach($dirs as $dir) {
@@ -218,7 +218,7 @@ class ControllerCore
 
 
 	function clear_cache($path) {
-		$base = PROJECT_ROOT.'/public_html';
+		$base = DOC_ROOT.'/';
 	
 		# trim trailing /
 		$path = (strrpos($path, '/') == (strlen($path)-1))?substr($path,0, -1):$path;

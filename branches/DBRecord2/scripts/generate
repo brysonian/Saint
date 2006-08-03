@@ -154,8 +154,8 @@
 		write_file("$path/_form.phtml", $form);
 
 		# write the css
-		safe_mkdir("public/_css");
-		safe_copy(SAINT_ROOT."/templates/scaffold/css/scaffold.css", "public/_css/scaffold.css");
+		safe_mkdir(PUBLIC_BASE."/".STYLESHEET_BASE);
+		safe_copy(SAINT_ROOT."/templates/scaffold/css/scaffold.css", PUBLIC_BASE."/".STYLESHEET_BASE."/scaffold.css");
 
 		if ($controller !== false) {
 			$t = str_replace(

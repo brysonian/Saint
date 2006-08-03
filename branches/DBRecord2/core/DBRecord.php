@@ -79,6 +79,9 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if (!DBRecord::is_valid_uid($aUid) && $aUid !== false) throw new InvalidUid("$aUid is not a valid uid.");
 		$this->uid = $aUid; 
 	}
+
+	function get_fields()		{ return $this->fields; }
+
 	
 	# test if a string is a valid uid
 	public static function is_valid_uid($val) {

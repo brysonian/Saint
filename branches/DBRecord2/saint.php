@@ -8,7 +8,11 @@
 	if(!defined('SAINT_ROOT')) define('SAINT_ROOT', realpath(dirname(__FILE__)));
 	if(!defined('PROJECT_ROOT')) define('PROJECT_ROOT', realpath(dirname($_SERVER['SCRIPT_FILENAME']).'/../'));
 	if(!defined('DOC_ROOT')) define('DOC_ROOT', $_SERVER['DOCUMENT_ROOT']);
-
+	if(!defined('PUBLIC_BASE')) {
+		$pi = pathinfo($_SERVER['DOCUMENT_ROOT']);
+		define('PUBLIC_BASE', $pi['basename']);
+	}
+	
 
 	# Add some things to the include path
 	# lib modules
@@ -69,7 +73,7 @@
 
 
 	// ===========================================================
-	// - DEFINE LOCATION CONSTANTS. MAY BE OVERRIDDEN BY config.php
+	// - DEFINE LOCATION CONSTANTS. MAY BE OVERRIDDEN BY environment.php
 	// ===========================================================
 	# define the base url for views (templates)
 	if (!defined('PROJECT_VIEWS'))
@@ -84,7 +88,10 @@
 		define('PROJECT_URI', str_replace(WEBBASE, '', 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']));
 	}
 
-		
+	if (!defined('STYLESHEET_BASE')) 	define('STYLESHEET_BASE', '_css');
+	if (!defined('JAVASCRIPT_BASE')) 	define('JAVASCRIPT_BASE', '_js');
+	if (!defined('MEDIA_BASE')) 			define('MEDIA_BASE', '_media');
+	if (!defined('CONTENT_BASE')) 			define('CONTENT_BASE', '_content');
 
 
 // ===========================================================
