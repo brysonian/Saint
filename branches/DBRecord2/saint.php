@@ -28,14 +28,14 @@
 	# add plugin dirs and include plugin inits
 	$dir = new DirectoryIterator(PROJECT_ROOT.'/plugins');
 	$out = array();
+	$plugin_inits = array();
 	foreach($dir as $file) {
 		$fname = $file->getFilename();
 		if ($fname{0} != '.') {
 			$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/plugins/'.$file->getFilename();
 			if (file_exists(PROJECT_ROOT.'/plugins/'.$file->getFilename().'/init.php'))
-				include_once(PROJECT_ROOT.'/plugins/'.$file->getFilename().'/init.php');
+				$plugin_inits[] = PROJECT_ROOT.'/plugins/'.$file->getFilename().'/init.php';
 		}
-		
 	}
 	
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/plugins';	
@@ -74,30 +74,8 @@
 	// ===========================================================
 	// - GET USER USHER CONFIG.
 	// ===========================================================
-#	__autoload('Usher');
 	require_once (PROJECT_ROOT."/config/urls.php");
 
-
-	// ===========================================================
-	// - DEFINE LOCATION CONSTANTS. MAY BE OVERRIDDEN BY environment.php
-	// ===========================================================
-	# define the base url for views (templates)
-	if (!defined('PROJECT_VIEWS'))
-		define('PROJECT_VIEWS', 		PROJECT_ROOT.'/app/views');
-
-	# define the base url for the html pages if this is web request
-	if (array_key_exists('HTTP_HOST', $_SERVER)) {
-		if (!defined('WEBBASE'))
-			define('WEBBASE', 		'http://'.$_SERVER['HTTP_HOST']);
-
-		# define the translated URI for this request
-		define('PROJECT_URI', str_replace(WEBBASE, '', 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']));
-	}
-
-	if (!defined('STYLESHEET_BASE')) 	define('STYLESHEET_BASE', '_css');
-	if (!defined('JAVASCRIPT_BASE')) 	define('JAVASCRIPT_BASE', '_js');
-	if (!defined('MEDIA_BASE')) 			define('MEDIA_BASE', '_media');
-	if (!defined('CONTENT_BASE')) 			define('CONTENT_BASE', '_content');
 
 
 // ===========================================================
@@ -204,5 +182,36 @@ if (function_exists('date_default_timezone_set')) {
 		error_log("--==--");
 		error_log("");
 	}
+
+
+	// ===========================================================
+	// - LOAD PLUGIN INITS
+	// ===========================================================
+	foreach($plugin_inits as $k => $v) include_once($v);
+
+
+
+
+	// ===========================================================
+	// - DEFINE LOCATION CONSTANTS. MAY BE OVERRIDDEN BY environment.php or plugin inits
+	// ===========================================================
+	# define the base url for views (templates)
+	if (!defined('PROJECT_VIEWS'))
+		define('PROJECT_VIEWS', 		PROJECT_ROOT.'/app/views');
+
+	# define the base url for the html pages if this is web request
+	if (array_key_exists('HTTP_HOST', $_SERVER)) {
+		if (!defined('WEBBASE'))
+			define('WEBBASE', 		'http://'.$_SERVER['HTTP_HOST']);
+
+		# define the translated URI for this request
+		define('PROJECT_URI', str_replace(WEBBASE, '', 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']));
+	}
+
+	if (!defined('STYLESHEET_BASE')) 	define('STYLESHEET_BASE', '_css');
+	if (!defined('JAVASCRIPT_BASE')) 	define('JAVASCRIPT_BASE', '_js');
+	if (!defined('MEDIA_BASE')) 			define('MEDIA_BASE', '_media');
+	if (!defined('CONTENT_BASE')) 		define('CONTENT_BASE', '_content');
+
 
 ?>
