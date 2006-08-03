@@ -25,11 +25,17 @@
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/controllers';	
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/helpers';	
 	
+	# add plugin dirs and include plugin inits
 	$dir = new DirectoryIterator(PROJECT_ROOT.'/plugins');
 	$out = array();
 	foreach($dir as $file) {
 		$fname = $file->getFilename();
-		if ($fname{0} != '.') $inc .= PATH_SEPARATOR.PROJECT_ROOT.'/plugins/'.$file->getFilename();
+		if ($fname{0} != '.') {
+			$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/plugins/'.$file->getFilename();
+			if (file_exists(PROJECT_ROOT.'/plugins/'.$file->getFilename().'/init.php'))
+				include_once(PROJECT_ROOT.'/plugins/'.$file->getFilename().'/init.php');
+		}
+		
 	}
 	
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/plugins';	
