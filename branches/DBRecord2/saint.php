@@ -8,11 +8,6 @@
 	if(!defined('SAINT_ROOT')) define('SAINT_ROOT', realpath(dirname(__FILE__)));
 	if(!defined('PROJECT_ROOT')) define('PROJECT_ROOT', realpath(dirname($_SERVER['SCRIPT_FILENAME']).'/../'));
 	if(!defined('DOC_ROOT')) define('DOC_ROOT', $_SERVER['DOCUMENT_ROOT']);
-	if(!defined('PUBLIC_BASE')) {
-		$pi = pathinfo($_SERVER['DOCUMENT_ROOT']);
-		define('PUBLIC_BASE', $pi['basename']);
-	}
-	
 
 	# Add some things to the include path
 	# lib modules
@@ -212,6 +207,7 @@ if (function_exists('date_default_timezone_set')) {
 	if (!defined('JAVASCRIPT_BASE')) 	define('JAVASCRIPT_BASE', '_js');
 	if (!defined('MEDIA_BASE')) 			define('MEDIA_BASE', '_media');
 	if (!defined('CONTENT_BASE')) 		define('CONTENT_BASE', '_content');
+	if (!defined('PUBLIC_BASE')) 			define('PUBLIC_BASE', 'public');
 
 
 ?>
