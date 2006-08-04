@@ -397,7 +397,7 @@ function to_human_name($str, $is_class=false) {
 	if ((preg_match('|[A_Z]|', $str) == 0) || $is_class) {
 		return preg_replace('/([a-zA-Z])([A-Z])/', '\\1 \\2', $str);
 	} else {
-		return ucwords(str_replace('_', ' ', $str));
+		return str_replace('_', ' ', $str);
 	}
 }
 
