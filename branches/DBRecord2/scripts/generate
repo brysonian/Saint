@@ -110,7 +110,7 @@
 // - FUNCTIONS
 // ===========================================================
 	function create_model($name) {
-		$cname = ucfirst($name);
+		$cname = to_class_name($name);
 		$code = "<?php\n\nclass $cname extends DBRecord \n{\n\tfunction init() {\n\t\t\n\t}\n}\n\n?>";
 		echo "\tcreate model\n";
 		write_script('app/models', $cname, $code);
@@ -118,7 +118,7 @@
 	}
 
 	function create_controller($name, $scafolding=false) {
-		$mname = ucfirst($name);
+		$mname = to_class_name($name);
 		$cname = $mname.'Controller';
 		$code = "<?php\n\nclass $cname extends AppController\n{\n\t\n}\n\n?>";
 		echo "\tcreate controller\n";
@@ -126,11 +126,11 @@
 	}
 	
 	function create_view_folder($name) {
-		safe_mkdir(strtolower("app/views/".to_url_name($name)));
+		safe_mkdir("app/views/".to_url_name($name));
 	}
 	
 	function create_scaffold($name, $controller=false) {
-		$view_base = (($controller===false)?to_url_name(strtolower($name)):to_url_name($controller));
+		$view_base = (($controller===false)?to_url_name($name):to_url_name($controller));
 		$path = "app/views/$view_base";
 				
 		#layout
@@ -150,7 +150,7 @@
 		write_scaffold_template('new', $name, $path);
 		
 		# make the form
-		$form = create_scaffold_form(strtolower($name));
+		$form = create_scaffold_form($name);
 		write_file("$path/_form.phtml", $form);
 
 		# write the css
@@ -160,18 +160,18 @@
 		if ($controller !== false) {
 			$t = str_replace(
 				array(':hname_object', ':object',':Object', ':Controller'),
-				array(to_human_name($name), strtolower($name), ucfirst($name), ucfirst($controller)),
+				array(to_human_name($name), to_url_name($name), to_class_name($name), to_class_name($controller)),
 				file_get_contents(SAINT_ROOT."/templates/scaffold/controllers/Controller.php"));
 			echo "\tcreate controller\n";
-			write_file("app/controllers/".ucfirst($controller)."Controller.php", $t);
+			write_file("app/controllers/".to_class_name($controller)."Controller.php", $t);
 		}
 	}
 	
 	function write_scaffold_template($template, $name, $path, $layout=false) {
 		if (!$layout) {
-			$src = str_replace(':object', strtolower($name), file_get_contents(SAINT_ROOT."/templates/scaffold/views/$template.phtml"));
+			$src = str_replace(':object', to_url_name($name), file_get_contents(SAINT_ROOT."/templates/scaffold/views/$template.phtml"));
 		} else {
-			$src = str_replace(':object', strtolower($name), file_get_contents(SAINT_ROOT."/templates/scaffold/views/layout.phtml"));
+			$src = str_replace(':object', to_url_name($name), file_get_contents(SAINT_ROOT."/templates/scaffold/views/layout.phtml"));
 		}
 		$src = str_replace(':php_open',	OPEN_TAG, $src);
 		$src = str_replace(':php_echo',	OPEN_ECHO_TAG, $src);
@@ -182,7 +182,7 @@
 
 
 	function create_scaffold_form($name) {
-		$mname = ucfirst($name);
+		$mname = to_class_name($name);
 		
 		$obj = new $mname;
 		$info = $obj->table_info(false, true);
@@ -202,9 +202,10 @@
 				
 				# fk relationships
 				case (strpos($field, '_uid') !== false):
+					$field_name = str_replace('_uid','',$field);
 					echo str_replace(
-						array(':field', ':Field', ':object'), 
-						array($field, str_replace('_uid','',ucfirst($field)), strtolower($name)),
+						array(':field', ':Field', ':Object', ':object'), 
+						array($field, to_human_name($field_name), to_class_name($field_name), to_url_name($name)),
 						file_get_contents(SAINT_ROOT."/templates/scaffold/views/__toone.phtml"));
 					break;
 				
@@ -216,7 +217,7 @@
 					
 					echo str_replace(
 						array(':field', ':Field', ':object'), 
-						array($field, str_replace('_', ' ', ucfirst($field)), strtolower($name)),
+						array($field, to_human_name($field), to_url_name($name)),
 						file_get_contents(SAINT_ROOT."/templates/scaffold/views/$temp.phtml"));
 					break;
 					
@@ -226,7 +227,7 @@
 				case ($type == 'time'):
 					echo str_replace(
 						array(':field', ':Field', ':object'), 
-						array($field, str_replace('_', ' ', ucfirst($field)), strtolower($name)),
+						array($field, to_human_name($field), to_url_name($name)),
 						file_get_contents(SAINT_ROOT."/templates/scaffold/views/__".strtolower($type).".phtml"));
 					break;
 											

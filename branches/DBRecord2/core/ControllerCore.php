@@ -30,7 +30,6 @@ class ControllerCore
 // ===========================================================
 	function ControllerCore() {		
 		# set the template base
-#		$this->set_template_base(str_replace('controller', '', strtolower(get_class($this))));
 		$this->set_template_base(to_url_name(str_replace('Controller', '', get_class($this))));
 		$this->data = array();
 
