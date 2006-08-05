@@ -310,6 +310,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 		$sql = "UPDATE `".$this->get_table()."` SET ";
 		$props = array();
+		$rel = false;
 		foreach ($this->data as $k=>$v) {
 			# see if there is a t-o or t-m
 			if (strpos($k, '_') !== false) {
