@@ -355,16 +355,16 @@ class ControllerCore
 		if ($except !== false) {
 			# get the right exceptions array
 			if ($type = 'before') {
-				$earray = $this->get_before_filter_exceptions();
+				$earray =& $this->get_before_filter_exceptions();
 			} else {
-				$earray = $this->get_after_filter_exceptions();
+				$earray =& $this->get_after_filter_exceptions();
 			}			
 
 			if (is_array($except)) {
 				foreach ($except as $method) {
 					# check that there isn't already a filter
 					# if there is add this one on
-					if (!is_array($earray[$method])) $earray[$method] = array();
+					if (array_key_exists($method, $earray) && !is_array($earray[$method])) $earray[$method] = array();
 					$earray[$method][] = $filter;
 				}
 			} else {
@@ -372,14 +372,13 @@ class ControllerCore
 				$earray[$except][] = $filter;
 			}
 		}
-		
 	}
 
 	function  &get_before_filters() { return $this->beforefilters; }
 	function  &get_after_filters() { return $this->afterfilters; }
 
-	function  get_before_filter_exceptions() { return $this->before_filter_exceptions; }
-	function  get_after_filter_exceptions() { return $this->after_filter_exceptions; }
+	function  &get_before_filter_exceptions() { return $this->before_filter_exceptions; }
+	function  &get_after_filter_exceptions() { return $this->after_filter_exceptions; }
 	
 	
 	// ===========================================================
