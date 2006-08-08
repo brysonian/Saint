@@ -176,7 +176,7 @@
 		$src = str_replace(':php_open',	OPEN_TAG, $src);
 		$src = str_replace(':php_echo',	OPEN_ECHO_TAG, $src);
 		$src = str_replace(':php_close',	CLOSE_TAG, $src);
-		$src = str_replace(':hname_object', to_human_name($name), $src);
+		$src = str_replace(':hname_object', ucwords(to_human_name($name)), $src);
 		write_file("$path/$template.phtml", $src);
 	}
 
@@ -205,7 +205,7 @@
 					$field_name = str_replace('_uid','',$field);
 					echo str_replace(
 						array(':field', ':Field', ':Object', ':object'), 
-						array($field, to_human_name($field_name), to_class_name($field_name), to_url_name($name)),
+						array($field, ucwords(to_human_name($field_name)), to_class_name($field_name), to_url_name($name)),
 						file_get_contents(SAINT_ROOT."/templates/scaffold/views/__toone.phtml"));
 					break;
 				
@@ -217,8 +217,15 @@
 					
 					echo str_replace(
 						array(':field', ':Field', ':object'), 
-						array($field, to_human_name($field), to_url_name($name)),
+						array($field, ucwords(to_human_name($field)), to_url_name($name)),
 						file_get_contents(SAINT_ROOT."/templates/scaffold/views/$temp.phtml"));
+					break;
+
+				case (strpos($type, 'int')!==false):
+					echo str_replace(
+						array(':field', ':Field', ':object'), 
+						array($field, ucwords(to_human_name($field)), to_url_name($name)),
+						file_get_contents(SAINT_ROOT."/templates/scaffold/views/__int.phtml"));
 					break;
 					
 				case ($type == 'text'):
@@ -227,7 +234,7 @@
 				case ($type == 'time'):
 					echo str_replace(
 						array(':field', ':Field', ':object'), 
-						array($field, to_human_name($field), to_url_name($name)),
+						array($field, ucwords(to_human_name($field)), to_url_name($name)),
 						file_get_contents(SAINT_ROOT."/templates/scaffold/views/__".strtolower($type).".phtml"));
 					break;
 											

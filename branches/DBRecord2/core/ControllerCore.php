@@ -393,7 +393,7 @@ class ControllerCore
 	}
 
 	function rescue_in_public($e) {
-		header('Location:http://'.$_SERVER['HTTP_HOST'].'/404.html');
+		header('Location:http://'.$_SERVER['HTTP_HOST'].'/500.html');
 	}
 
 	function local_request() {
