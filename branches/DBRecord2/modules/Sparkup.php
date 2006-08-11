@@ -369,16 +369,12 @@ class Sparkup
 	
 	function format_plain($str, $pat) {
 		$output = $this->parse_tags($str);
-		#$output = $this->parse_tags(preg_replace('/(?!#)/', '&amp;', $str));
 
 		
 		# replace typography stuff
 		$output = preg_replace('/\'/', '&#39;', $output);
 		$output = preg_replace('/--/', '&#151;', $output);
 		
-		# silly ie
-#		$output = str_replace('&apos;', '&#39;', $str);
-
 		$matches =array();
 		preg_match_all('/"/', $output, $matches, PREG_OFFSET_CAPTURE);
 		$flipper = 0;
@@ -395,6 +391,16 @@ class Sparkup
 			$output = $pre.$q.$post;
 			$offset += 6;
 		}
+		
+		# fix things in tags
+		$tags = array();
+		preg_match_all('/<[^>]+>/', $output, $tags, PREG_OFFSET_CAPTURE);
+		foreach($tags[0] as $k => $v) {
+			if (empty($v)) continue;
+			$p = str_replace(array('&rdquo;','&ldquo;','&#39;','&#151;'), array('"', '"', "'", '--'), $v[0]);
+			$output = str_replace($v[0], $p, $output);
+		}
+		
 		return $output;
 	}
 		
