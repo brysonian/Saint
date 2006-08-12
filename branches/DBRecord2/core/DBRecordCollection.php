@@ -168,6 +168,7 @@ class DBRecordCollection implements Iterator, Countable, ArrayAccess
 	}
 	
 	public function offsetGet($offset) {
+		if ($offset == 0) return $this->first();
 		return $this->item($offset);
 	}
 
