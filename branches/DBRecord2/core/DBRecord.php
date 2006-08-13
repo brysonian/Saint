@@ -251,6 +251,10 @@ class DBRecord implements Iterator, Serviceable, Countable
 		} else {
 			$this->create();
 		}
+		# save all the fields for this model
+		$this->fields = array_keys($this->data);
+		if (is_array($this->to_one)) $this->fields = array_merge($this->fields, array_keys($this->to_one));
+		if (is_array($this->to_many)) $this->fields = array_merge($this->fields, array_keys($this->to_many));
 	}
 
 	function create() {
