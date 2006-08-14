@@ -82,7 +82,7 @@
 	if (!DBService::has_connection('DBRecord') && isset($db_name, $user, $pass, $host)) {
 		# DB SERVICE
 		DBService::add_connection(
-			'DBRecord', 'mysqli', $db_name, $user, $pass, $host, isset($db_options)?$db_options:array());
+			'DBRecord', isset($db_type)?$db_type:'mysqli', $db_name, $user, $pass, $host, isset($db_options)?$db_options:array());
 	}
 
 	# clear DB setup vars
