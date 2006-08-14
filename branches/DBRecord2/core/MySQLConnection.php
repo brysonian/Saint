@@ -1,7 +1,8 @@
 <?php
 
 
-class MySQLConnection {
+class MySQLConnection
+{
 
 	protected $db;
 	protected $host;
@@ -9,26 +10,24 @@ class MySQLConnection {
 	protected $pass;
 	protected $dbname;
 	protected $persistent;
-	public $last_query;
+	protected $options;
+	
+	protected static $query_count = 0;
+
 
 	// ===========================================================
 	// - CONSTRUCTOR
 	// ===========================================================
-	function MySQLConnection($host, $user, $pass, $dbname, $persistent=false) {
+	function MySQLConnection($host, $user, $pass, $dbname, $options=array()) {
 		$this->db			= false;
 		$this->host			= $host;
 		$this->user			= $user;
 		$this->pass			= $pass;
 		$this->dbname		= $dbname;
-		$this->persistent	= $persistent;
-		
+		$this->persistent	= array_key_exists("persistent", $options)?$options['persistent']:false;		
 		$this->open();
 	}
-	
-	function set_autorelease($val) {
-		$this->autorelease = $val;
-	}
-	
+		
 	function open() {
 		if ($this->persistent) {
 			$this->db = @mysql_pconnect($this->host, $this->user, $this->pass);			
@@ -52,10 +51,13 @@ class MySQLConnection {
 	// - INTERFACE
 	// ===========================================================	
 	function escape_string($str) {
+		if(!$this->db) $this->open();
 		return mysql_real_escape_string($str);
 	}
 	
 	function  query($sql) {
+		MySQLConnection::$query_count++;
+
 		# open db connection if there isn't open
 		if(!$this->db) $this->open();
 		
@@ -81,19 +83,23 @@ class MySQLConnection {
 	function table_info($table, $full=false) {
 		if(!$this->db) $this->open();
 
+		MySQLConnection::$query_count++;
+
 		$sql = "SHOW COLUMNS FROM `$table`";
 		$result = $this->db->query($sql);
 		if(defined('MYSQLI_DEBUG') && MYSQLI_DEBUG > 1 && !SHELL) error_log($sql);
 
 		$output = array();
 		$i=0;
-		while ($row = $result->fetch_assoc()) {
-			if ($full) {
-				$output[] = $row;
-			} else {
-				$output[$i] = $row['Field'];
+		if ($result) {
+			while ($row = $result->fetch_assoc()) {
+				if ($full) {
+					$output[] = $row;
+				} else {
+					$output[$i] = $row['Field'];
+				}
+				$i++;
 			}
-			$i++;
 		}
 		return $output;
 	}
