@@ -86,7 +86,7 @@
 	}
 
 	# clear DB setup vars
-	unset($db_name, $user, $pass, $host, $db_options);
+	unset($db_name, $user, $pass, $host, $db_options, $db_type);
 
 
 
