@@ -138,7 +138,7 @@ class ControllerCore
 		# if we cache, do that
 		if ($this->cache_page && empty($_GET) && empty($_POST)) {
 			$output = $view->parse($this->get_layout());
-			$this->save_cache($_SERVER['REQUEST_URI'], $output);
+			$this->save_cache($_SERVER['PHP_SELF'], $output);
 		}
 		$view->render(to_url_name(str_replace('Controller', '', get_class($this))), $this->get_layout());
 	}
@@ -154,7 +154,7 @@ class ControllerCore
 		$view = new ViewCore('');
 		# if we cache, do that
 		if ($this->cache_page && empty($_GET) && empty($_POST)) {
-			$this->save_cache($_SERVER['REQUEST_URI'], $text);
+			$this->save_cache($_SERVER['PHP_SELF'], $text);
 		}
 		if ($isxml) {
 			if ($text == false) $view->set_all_props($this->data);
