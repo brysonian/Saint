@@ -200,7 +200,7 @@ if (function_exists('date_default_timezone_set')) {
 			define('WEBBASE', 		'http://'.$_SERVER['HTTP_HOST']);
 
 		# define the translated URI for this request
-		define('PROJECT_URI', str_replace(WEBBASE, '', 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']));
+		define('PROJECT_URI', str_replace(WEBBASE, '', 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF']));
 	}
 
 	if (!defined('STYLESHEET_BASE')) 	define('STYLESHEET_BASE', '_css');
