@@ -42,13 +42,11 @@ class SaintException extends Exception
 				break;
 
 			case 'html':
-				$out = $this->get_html();
+				$out = $this->to_html();
 				break;
 			
 			case 'xml':
-				$out .= "<error code='".$this->get_code()."'>";
-				$out .= $this->get_message();
-				$out .= "</error>";
+				$out .= $this->to_xml();
 				break;
 			
 			case 'silent':
@@ -74,9 +72,9 @@ class SaintException extends Exception
 
 
 // ===========================================================
-// - ERROR HTML
+// - ERROR FORMATTING
 // ===========================================================
-	function get_html() {
+	function to_html() {
 		$type = get_class($this);
 		$msg = nl2br($this->get_message());
 		$file = $this->get_file();
@@ -88,8 +86,28 @@ class SaintException extends Exception
 		
 		return ob_get_clean();
 	}
-
 }
+
+	function to_xml() {
+		// $out = "<error code='".$this->get_code()."'>";
+		// $out .= $this->get_message();
+		// $out .= "</error>";
+		// return $out;
+
+		$type = get_class($this);
+		$msg = nl2br($this->get_message());
+		$file = $this->get_file();
+		$line = $this->get_line();
+		$code = $this->get_code();
+		$trace = $this->get_trace_as_string();
+
+		ob_start();
+		include SAINT_ROOT.'/templates/exception.pxml';
+		
+		return ob_get_clean();
+
+
+	}
 
 class InvalidStatement extends SaintException {}
 
