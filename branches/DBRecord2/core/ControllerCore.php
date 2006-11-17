@@ -294,11 +294,15 @@ class ControllerCore
 	}
 
 
-
+
 
 	# get/set the template base
 	function get_template_base() { return $this->templatebase;}
 	function set_template_base($v) { $this->templatebase = $v; }
+
+	function set_view($template) {
+		$this->set_template($template);
+	}
 
 	function set_template($template) {
 		$this->template = $template;
