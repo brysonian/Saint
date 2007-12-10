@@ -213,7 +213,6 @@ function link_to($name, $args=false, $confirm=false, $options=array()) {
 		}
 		$url = url_for($args);
 	}
-		
 
 	ob_start();
 	echo "<a href='$url'";
@@ -343,7 +342,6 @@ function url_for($args=false) {
 	
 	#replace all :foo placeholders
 	$url = preg_replace('|:[a-zA-Z_0-9]*|', '', $url);
-
 
 	# clear out //
 	$url = str_replace("//", '', $url);
@@ -479,6 +477,9 @@ class UsherMap
 	
 	// see if this map matches a url
  function match($url) {
+		# add defaults
+		$out = $this->defaults;
+
 		# grab out the query string if there is one
 		if (strpos($url, '?') > -1) {
 			$query = explode('?', $url);
@@ -495,10 +496,18 @@ class UsherMap
 		# make sure they match
 		$urlparts = array();
 
-		if (!preg_match($this->regex, $url, $urlparts)) return false;
+		if (!preg_match($this->regex, $url, $urlparts)) {
+			# if we're at / return defaults
+			if ($url == '/') {
+				if (!array_key_exists('controller', $out)) $out['controller'] = 'index';		
+				return $out;
+			}
+			return false;
+		}
 
+		# moved this up
 		# add defaults
-		$out = $this->defaults;
+		#$out = $this->defaults;
 
 		# map it
 		$parts = explode('/', $this->usermap);

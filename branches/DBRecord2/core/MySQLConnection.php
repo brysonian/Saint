@@ -55,7 +55,7 @@ class MySQLConnection
 		return mysql_real_escape_string($str);
 	}
 	
-	function  query($sql) {
+	function query($sql) {
 		MySQLConnection::$query_count++;
 
 		# open db connection if there isn't open

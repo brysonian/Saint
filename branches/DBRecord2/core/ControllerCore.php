@@ -33,18 +33,17 @@ class ControllerCore
 		$this->set_template_base(to_url_name(str_replace('Controller', '', get_class($this))));
 		$this->data = array();
 
-		# call if there is an init() method in the App class
-		#$m = get_class_methods('AppController');
-		#if (in_array('init', $m)) AppController::init();
-		AppController::init();
+		// TODO: not sure about all the stuff really...
+		# call app controller's setup
+#		AppController::setup();
 		
-		# if there is an init method, call it		
-		#if (method_exists($this, 'init')) $this->init();
-		$this->init();
+		# call controller's init method
+#		$this->init();
 	}
 	
 	# just overridden
-	function init() {}
+#	function init() {}
+#	static function setup() {}
 	
 
 // ===========================================================
@@ -294,14 +293,14 @@ class ControllerCore
 	}
 
 
-
+
 
 	# get/set the template base
 	function get_template_base() { return $this->templatebase;}
 	function set_template_base($v) { $this->templatebase = $v; }
 
 	function set_view($template) {
-		$this->set_template($template);
+		$this->set_template($template);
 	}
 
 	function set_template($template) {
