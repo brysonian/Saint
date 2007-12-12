@@ -11,38 +11,44 @@
 class ControllerCore
 {
 	
-	protected $viewname;
-	protected $layout		= false;
-	protected $templatebase;
-	protected $template;
-	protected $beforefilters;
-	protected $afterfilters;
-	protected $before_filter_exceptions = array();
-	protected $after_filter_exceptions = array();
-	protected $cache_page = false;
-	protected static $cache_extension = 'cache';
-	protected $data;
-	protected $rendered = false;
+	protected $_viewname;
+	protected $_layout		= false;
+	protected $_templatebase;
+	protected $_template;
+	protected $_beforefilters;
+	protected $_afterfilters;
+	protected $_before_filter_exceptions = array();
+	protected $_after_filter_exceptions = array();
+	protected $_cache_page = false;
+	protected static $_cache_extension = 'cache';
+	protected $_data;
+	protected $_rendered = false;
 	
 	
 // ===========================================================
 // - CONSTRUCTOR
 // ===========================================================
-	function ControllerCore() {		
+	function __construct() {		
 		# set the template base
 		$this->set_template_base(to_url_name(str_replace('Controller', '', get_class($this))));
-		$this->data = array();
-
-		// TODO: not sure about all the stuff really...
-		# call app controller's setup
-#		AppController::setup();
+		$this->_data = array();
 		
 		# call controller's init method
-#		$this->init();
+		$this->init();
+
+		# gather all ivars not preceded with _
+		$cname = get_class($this);
+		foreach($this as $k => $v) {
+			if ($k{0} != '_') {
+				$prop = new ReflectionProperty($cname, $k);
+				if ($prop->isPublic()) $this->__set(substr($k, 0), $v);
+			}
+		}
+
 	}
 	
 	# just overridden
-#	function init() {}
+	function init() {}
 #	static function setup() {}
 	
 
@@ -114,7 +120,7 @@ class ControllerCore
 		}
 		
 		# set the template
-		if (!$this->template) $this->set_template(substr($the_method,1));
+		if (!$this->_template) $this->set_template(substr($the_method,1));
 		
 		# render the view
 		$this->render_view(false, true);
@@ -124,18 +130,18 @@ class ControllerCore
 // ===========================================================
 // - RENDER
 // ===========================================================
-	function render_view($viewname=false, $final=false) {
-		if ($this->rendered && $final) return;
-		if ($viewname !== false) $this->set_template($viewname);
+	function render_view($_viewname=false, $final=false) {
+		if ($this->_rendered && $final) return;
+		if ($_viewname !== false) $this->set_template($_viewname);
 
 		if (!$final) return;
-		$this->rendered = true;
-		$view = $this->get_view_for_action($this->template);
+		$this->_rendered = true;
+		$view = $this->get_view_for_action($this->_template);
 
-		$view->set_all_props($this->data);
+		$view->set_all_props($this->_data);
 
 		# if we cache, do that
-		if ($this->cache_page && empty($_GET) && empty($_POST)) {
+		if ($this->_cache_page && empty($_GET) && empty($_POST)) {
 			$output = $view->parse($this->get_layout());
 			$this->save_cache($_SERVER['PHP_SELF'], $output);
 		}
@@ -149,14 +155,14 @@ class ControllerCore
 	}
 
 	function render_text($text, $isxml=false) {
-		$this->rendered = true;
+		$this->_rendered = true;
 		$view = new ViewCore('');
 		# if we cache, do that
-		if ($this->cache_page && empty($_GET) && empty($_POST)) {
+		if ($this->_cache_page && empty($_GET) && empty($_POST)) {
 			$this->save_cache($_SERVER['PHP_SELF'], $text);
 		}
 		if ($isxml) {
-			if ($text == false) $view->set_all_props($this->data);
+			if ($text == false) $view->set_all_props($this->_data);
 			$view->render_xml($text);
 		} else {
 			$view->render_text($text);
@@ -188,7 +194,7 @@ class ControllerCore
 		$dirs = explode('/', $path);
 
 		# pop filename
-		$file = array_pop($dirs).'.'.ControllerCore::cache_extension;
+		$file = array_pop($dirs).'.'.ControllerCore::_cache_extension;
 		
 		# new path
 		$mkdir = DOC_ROOT;
@@ -232,7 +238,7 @@ class ControllerCore
 				$dirhandle=opendir($base.$targetpath);
 				while (($file = readdir($dirhandle))!==false) {
 					$pi = pathinfo($file);
-					if ($pi['extension'] == ControllerCore::cache_extension) {
+					if ($pi['extension'] == ControllerCore::_cache_extension) {
 						unlink($base.$targetpath.'/'.$file);
 					} else if ($file{0} != '.' && is_dir($base.$targetpath.'/'.$file)) {
 						ControllerCore::clear_cache($targetpath.'/'.$file.'/*');
@@ -242,12 +248,12 @@ class ControllerCore
 			}
 		
 			# also delete the cache file for the dir
-			if (file_exists($base.$targetpath.'.'.ControllerCore::cache_extension)) {
-				unlink($base.$targetpath.'.'.ControllerCore::cache_extension);
+			if (file_exists($base.$targetpath.'.'.ControllerCore::_cache_extension)) {
+				unlink($base.$targetpath.'.'.ControllerCore::_cache_extension);
 			}
 		
 		} else {
-			unlink($base.$path.'.'.ControllerCore::cache_extension);
+			unlink($base.$path.'.'.ControllerCore::_cache_extension);
 		}
 		
 	}
@@ -265,7 +271,7 @@ class ControllerCore
 
 	// get a view object using the specified action
 	function  get_view_for_action($action) {
-		$template = $this->get_template_base().'/'.$this->template;
+		$template = $this->get_template_base().'/'.$this->_template;
 		return $this->get_view($template);
 	}
 
@@ -278,7 +284,7 @@ class ControllerCore
 // ===========================================================
 	function __get($prop) {
 		# check in data
-		if (isset($this->data[$prop])) return $this->data[$prop];
+		if (isset($this->_data[$prop])) return $this->_data[$prop];
 				
 		return false;
 	}
@@ -286,9 +292,9 @@ class ControllerCore
 	// set
 	function __set($prop, $val) {
 		if (is_null($val)) {
-			unset($this->data[$prop]);
+			unset($this->_data[$prop]);
 		} else {
-			$this->data[$prop] = $val;
+			$this->_data[$prop] = $val;
 		}
 	}
 
@@ -296,23 +302,23 @@ class ControllerCore
 
 
 	# get/set the template base
-	function get_template_base() { return $this->templatebase;}
-	function set_template_base($v) { $this->templatebase = $v; }
+	function get_template_base() { return $this->_templatebase;}
+	function set_template_base($v) { $this->_templatebase = $v; }
 
 	function set_view($template) {
 		$this->set_template($template);
 	}
 
 	function set_template($template) {
-		$this->template = $template;
+		$this->_template = $template;
 	}
 
 	function set_layout($x) {
-		$this->layout = $x;
+		$this->_layout = $x;
 	}
 
 	function get_layout() {
-		if ($this->layout) return PROJECT_VIEWS.'/layouts/'.$this->layout;
+		if ($this->_layout) return PROJECT_VIEWS.'/layouts/'.$this->_layout;
 		return PROJECT_VIEWS.'/layouts/'.$this->get_template_base();
 	}
 
@@ -377,11 +383,11 @@ class ControllerCore
 		}
 	}
 
-	function  &get_before_filters() { return $this->beforefilters; }
-	function  &get_after_filters() { return $this->afterfilters; }
+	function  &get_before_filters() { return $this->_beforefilters; }
+	function  &get_after_filters() { return $this->_afterfilters; }
 
-	function  &get_before_filter_exceptions() { return $this->before_filter_exceptions; }
-	function  &get_after_filter_exceptions() { return $this->after_filter_exceptions; }
+	function  &get_before_filter_exceptions() { return $this->_before_filter_exceptions; }
+	function  &get_after_filter_exceptions() { return $this->_after_filter_exceptions; }
 	
 	
 	// ===========================================================

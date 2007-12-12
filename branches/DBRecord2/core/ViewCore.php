@@ -117,15 +117,16 @@ class ViewCore
 		render_partial(false, 'partial')
 	*/
 	// TODO: abs path with leading /
-	function render_partial($action, $object=false, $collect=false) {
+	function render_partial($action, $object=false, $collect=false, $controller=false) {
 		#if the controller is an array, use it and ignore the rest
 		if (is_array($action)) {
-			if (array_key_exists('object', $action))	$object = $action['object'];
-			if (array_key_exists('action', $action))	$action = $action['action'];
-			if (array_key_exists('collect', $action))	$collect = $action['collect'];			
+			if (array_key_exists('object', $action))			$object = $action['object'];
+			if (array_key_exists('collect', $action))			$collect = $action['collect'];			
+			if (array_key_exists('controller', $action))	$controller = $action['controller'];			
+			if (array_key_exists('action', $action))			$action = $action['action'];
+		} else {
+			if ($controller == false)	$controller = params('controller');
 		}
-
-		$controller = params('controller');
 
 		# set the template and object name
 		$slashloc = strrpos($action, '/');

@@ -540,7 +540,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$m = new $class;
 		$m->set_options($options);
 		
-		# disabiguate the field 
+		# disambiguate the field 
 		if (strpos($field, '.') === false) $field = '`'.$m->get_table()."`.$field";		
 		$m->set_where("$field = '".$m->escape_string($value)."'");
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
@@ -553,9 +553,10 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$m = new $class;
 		$m->set_options($options);
 		
-		# disabiguate the field 
+		# disambiguate the field 
 		if (strpos($field, '.') === false) $field = '`'.$m->get_table()."`.$field";
 		$m->set_where("$field LIKE '".$m->escape_string($value)."'");
+
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
 		return $sibs;
 	}

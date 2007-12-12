@@ -123,7 +123,7 @@ function image_tag($file, $options=array()) {
 	foreach($options as $k => $v) {
 		if ($k == 'size') {
 			$v = explode('x', $v);
-			$out .= ' width="'.$v[0].'" height="'.$v[0].'" ';
+			$out .= ' width="'.$v[0].'" height="'.$v[1].'" ';
 		} else {
 			$out .= " $k=\"$v\" ";
 		}
@@ -163,7 +163,7 @@ function text_area($obj, $name, $prop, $size=2000) {
 	return "<textarea name='{$name}[{$prop}]' id='{$name}_$prop' rows='$rows' cols='40'$ku>$v</textarea>\n";
 }
 
-function select($obj, $name, $prop, $collection, $key, $value, $options=array()) {
+function select($obj, $name, $prop, $collection, $key=false, $value=false, $options=array()) {
 	$html = "<select ";
 	if (array_key_exists("attributes", $options)) {
 		foreach($options['attributes'] as $k => $v) {
@@ -331,8 +331,8 @@ function checkbox($obj, $name, $prop, $value=1) {
 	return $out;
 }
 
-function hidden_field($obj, $name, $prop) {
-	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
+function hidden_field($obj, $name, $prop, $v=false) {
+	if ($v == false) $v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
 	# try to determine if the value should be in ' or " since escaping doesn't seem to work.
 	$v = (substr_count($v, "'") > substr_count($v, '"'))?'"'.$v.'"':"'".$v."'";
 	return "<input type='hidden' name='{$name}[{$prop}]' value=$v id='{$name}_$prop' />\n";

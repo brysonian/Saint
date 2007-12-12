@@ -496,14 +496,12 @@ class UsherMap
 		# make sure they match
 		$urlparts = array();
 
-		if (!preg_match($this->regex, $url, $urlparts)) {
+		if (!preg_match($this->regex, $url, $urlparts)) return false;
 			# if we're at / return defaults
-			if ($url == '/') {
-				if (!array_key_exists('controller', $out)) $out['controller'] = 'index';		
-				return $out;
-			}
-			return false;
-		}
+			// if ($url == '/') {
+			// 	if (!array_key_exists('controller', $out)) $out['controller'] = 'index';		
+			// 	return $out;
+			// }
 
 		# moved this up
 		# add defaults
