@@ -86,7 +86,6 @@ class SaintException extends Exception
 		
 		return ob_get_clean();
 	}
-}
 
 	function to_xml() {
 		// $out = "<error code='".$this->get_code()."'>";
@@ -108,6 +107,7 @@ class SaintException extends Exception
 
 
 	}
+}
 
 class InvalidStatement extends SaintException {}
 
