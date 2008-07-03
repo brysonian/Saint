@@ -1,0 +1,155 @@
+/* GENERAL */
+*
+{
+	padding: 0px;
+	margin: 0px;
+}
+
+body
+{
+	font-family: Trebuchet MS, Arial, San-Serif;
+	font-size: .9em;
+	margin: 10px;
+}
+
+a:link,
+a:visited,
+a:hover,
+a:active
+{
+	color: #222;
+}
+
+h1
+{
+	margin-bottom: 10px;
+	border-bottom: 1px solid #a1a1a1;
+	color: #333;
+	font-size: 1.8em;
+}
+
+#pages
+{
+	margin-top: 15px;
+	width: 600px;
+	text-align: center;
+}
+
+#footer
+{
+	margin-top: 50px;
+	margin-bottom: 10px;
+}
+
+.error
+{
+	border: 2px solid red;
+	background-color: #e1e1e1;
+	color: #333;
+	width: 500px;
+	padding-bottom: 10px;
+}
+
+.error h2
+{
+	background-color: #c00;
+	color: white;
+	font-size: 1em;
+	padding: 5px;
+	margin-bottom: 5px;
+	text-align: center;
+}
+
+.error ul
+{
+	list-style-type: disc;
+	margin: 0px auto 0px auto;
+	width: 300px;
+}
+
+.tip a:link,
+.tip a:visited,
+.tip a:hover,
+.tip a:active
+{
+	color: #1EB136;
+	font-size: .8em;
+}
+
+/* LIST */
+ul#listing
+{
+	list-style: none;
+	width: 600px;
+}
+
+ul#listing li
+{
+	padding: 1px 3px 1px 3px;
+	margin-bottom: 1px;
+}
+
+li.row1
+{
+	background-color: #EDF2FF;
+}
+
+.controls
+{
+	font-size: .8em;
+	padding-left: 20px;
+	float: right;
+}
+
+
+/* SHOW */
+dl
+{
+	width: 550px;
+}
+
+dt
+{
+	padding-left: 2px;
+}
+
+dd
+{
+	margin: 1px 0px 20px 5px;
+}
+
+dd ul
+{
+	margin-left: 20px;
+}
+
+/* EDIT */
+form ul
+{
+	list-style: none; padding: 0px;
+}
+
+form label
+{
+	display: block;
+	margin-top: 10px;
+	font-weight: bold;
+}
+
+fieldset
+{
+	margin-top: 10px;
+	padding: 10px;
+	width: 500px;
+	border: 1px solid #989898;
+}
+
+legend
+{
+	font-weight: bold;
+}
+
+p
+{
+	margin-bottom: 10px;
+}

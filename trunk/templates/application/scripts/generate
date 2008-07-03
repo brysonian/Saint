@@ -1,0 +1,7 @@
+#!/usr/bin/php
+<?php
+
+	include SAINT_ROOT."/scripts/generate";
+
+?>
+
