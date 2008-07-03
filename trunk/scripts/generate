@@ -1,0 +1,252 @@
+<?php
+
+	require_once (SAINT_ROOT."/saint.php");
+
+
+// ===========================================================
+// - LIB
+// ===========================================================
+	require_once (SAINT_ROOT."/scripts/shell_lib");
+
+	# set the exception format
+	SaintException::set_log_format('text');
+
+
+// ===========================================================
+// - MAIN
+// ===========================================================
+	$argv = $_SERVER['argv'];
+	array_shift($argv);
+
+	# see how many args there are
+	if (count($argv) == 0) {
+		error("Please specify the name of what you would like to generate. Or a name and object type.", true);
+	}
+
+	# get the tag type
+	if(array_key_exists('PHP_TAG', $_SERVER)) {
+		$open_tag_setting = $_SERVER['PHP_TAG'];
+	} else {
+		if (((int) ini_get('asp_tags'))) {
+			$open_tag_setting = 'asp';
+		} else if (((int) ini_get('short_open_tag'))) {
+			$open_tag_setting = 'short';
+		} else {
+			$open_tag_setting = 'full';
+		}
+	}
+	
+	switch($open_tag_setting) {
+		case 'short':
+			define('OPEN_TAG',		'<'.'?');
+			define('CLOSE_TAG',		'?'.'>');
+			define('OPEN_ECHO_TAG',	'<'.'?=');
+			break;
+
+		case 'asp':
+			define('OPEN_TAG',		'<%');
+			define('CLOSE_TAG',		'%>');
+			define('OPEN_ECHO_TAG',	'<%=');
+			break;
+
+		default:
+			define('OPEN_TAG',		'<'.'?php');
+			define('CLOSE_TAG',		'?'.'>');
+			define('OPEN_ECHO_TAG',	'<'.'?php echo ');
+			break;
+	}
+
+	# if there's only one, generate the model
+	# and controller using the arg as the base name
+	# see what we are generating
+	switch($argv[0]) {
+		case 'model':
+			if (count($argv) == 1)
+				error("Please specify the name of the model you would like to generate.");
+			else
+				create_model($argv[1]);
+			break;
+
+		case 'controller':
+			if (count($argv) == 1)
+				error("Please specify the name of the controller you would like to generate.");
+			else
+				create_controller($argv[1]);
+			break;
+
+		case 'scaffold':
+			if (count($argv) == 1)
+				error("Please specify the name of the scaffold you would like to generate.");
+			else
+				create_model($argv[1]);
+				#create_controller($argv[1], true);
+				create_view_folder(array_key_exists(2, $argv)?$argv[2]:$argv[1]);
+				create_scaffold($argv[1], array_key_exists(2, $argv)?$argv[2]:$argv[1]);
+			break;
+
+		case 'view':
+			if (count($argv) == 1)
+				error("Please specify the name of the scaffold you would like to generate.");
+			else
+				create_scaffold($argv[1], false);
+			break;
+
+		default:
+			if (count($argv) == 1) {
+				create_model($argv[0]);
+				create_controller($argv[0]);
+				create_view_folder($argv[0]);
+			}
+			break;
+	}
+
+	display_errors();
+
+
+
+
+
+// ===========================================================
+// - FUNCTIONS
+// ===========================================================
+	function create_model($name) {
+		$cname = to_class_name($name);
+		$code = "<?php\n\nclass $cname extends DBRecord \n{\n\tfunction init() {\n\t\t\n\t}\n}\n\n?>";
+		echo "\tcreate model\n";
+		write_script('app/models', $cname, $code);
+		
+	}
+
+	function create_controller($name, $scafolding=false) {
+		$mname = to_class_name($name);
+		$cname = $mname.'Controller';
+		$code = "<?php\n\nclass $cname extends AppController\n{\n\t\n}\n\n?>";
+		echo "\tcreate controller\n";
+		write_script('app/controllers', $cname, $code);
+	}
+	
+	function create_view_folder($name) {
+		safe_mkdir("app/views/".to_url_name($name));
+	}
+	
+	function create_scaffold($name, $controller=false) {
+		$view_base = (($controller===false)?to_url_name($name):to_url_name($controller));
+		$path = "app/views/$view_base";
+				
+		#layout
+		echo "\tcreate view\n";
+		write_scaffold_template($view_base, $name, "app/views/layouts", true);
+		
+		#list
+		write_scaffold_template('list', $name, $path);
+		
+		#show
+		write_scaffold_template('show', $name, $path);
+		
+		#edit
+		write_scaffold_template('edit', $name, $path);
+		
+		#new
+		write_scaffold_template('new', $name, $path);
+		
+		# make the form
+		$form = create_scaffold_form($name);
+		write_file("$path/_form.phtml", $form);
+
+		# write the css
+		safe_mkdir(PUBLIC_BASE."/".STYLESHEET_BASE);
+		safe_copy(SAINT_ROOT."/templates/scaffold/css/scaffold.css", PUBLIC_BASE."/".STYLESHEET_BASE."/scaffold.css");
+
+		if ($controller !== false) {
+			$t = str_replace(
+				array(':hname_object', ':object',':Object', ':Controller'),
+				array(to_human_name($name), to_url_name($name), to_class_name($name), to_class_name($controller)),
+				file_get_contents(SAINT_ROOT."/templates/scaffold/controllers/Controller.php"));
+			echo "\tcreate controller\n";
+			write_file("app/controllers/".to_class_name($controller)."Controller.php", $t);
+		}
+	}
+	
+	function write_scaffold_template($template, $name, $path, $layout=false) {
+		if (!$layout) {
+			$src = str_replace(':object', to_url_name($name), file_get_contents(SAINT_ROOT."/templates/scaffold/views/$template.phtml"));
+		} else {
+			$src = str_replace(':object', to_url_name($name), file_get_contents(SAINT_ROOT."/templates/scaffold/views/layout.phtml"));
+		}
+		$src = str_replace(':php_open',	OPEN_TAG, $src);
+		$src = str_replace(':php_echo',	OPEN_ECHO_TAG, $src);
+		$src = str_replace(':php_close',	CLOSE_TAG, $src);
+		$src = str_replace(':hname_object', ucwords(to_human_name($name)), $src);
+		write_file("$path/$template.phtml", $src);
+	}
+
+
+	function create_scaffold_form($name) {
+		$mname = to_class_name($name);
+		
+		$obj = new $mname;
+		$info = $obj->table_info(false, true);
+
+		# get the html for each element
+		ob_start();
+		echo '<'.'?'.'php'." echo \$form"."->errors(); ?".'>'."\n<ul>\n";
+
+		foreach($info as $k => $v) {
+			$type = $v['Type'];
+			$field = $v['Field'];
+			
+			switch (true) {
+				case ($field == 'id'):
+				case ($field == 'uid'):
+					break;
+				
+				# fk relationships
+				case (strpos($field, '_uid') !== false):
+					$field_name = str_replace('_uid','',$field);
+					echo str_replace(
+						array(':field', ':Field', ':Object', ':object'), 
+						array($field, ucwords(to_human_name($field_name)), to_class_name($field_name), to_url_name($name)),
+						file_get_contents(SAINT_ROOT."/templates/scaffold/views/__toone.phtml"));
+					break;
+				
+				case (strpos($type, 'varchar')!==false):
+					# if it's less than 100 use a line, otherwise use a small textarea
+					$m = array();
+					preg_match('/varchar\(([0-9]+)\)/', $type, $m);
+					$temp = ($m[1]>100)?'__varchar255':'__varchar100';
+					
+					echo str_replace(
+						array(':field', ':Field', ':object'), 
+						array($field, ucwords(to_human_name($field)), to_url_name($name)),
+						file_get_contents(SAINT_ROOT."/templates/scaffold/views/$temp.phtml"));
+					break;
+
+				case (strpos($type, 'int')!==false):
+					echo str_replace(
+						array(':field', ':Field', ':object'), 
+						array($field, ucwords(to_human_name($field)), to_url_name($name)),
+						file_get_contents(SAINT_ROOT."/templates/scaffold/views/__int.phtml"));
+					break;
+					
+				case ($type == 'text'):
+				case ($type == 'date'):
+				case ($type == 'datetime'):
+				case ($type == 'time'):
+					echo str_replace(
+						array(':field', ':Field', ':object'), 
+						array($field, ucwords(to_human_name($field)), to_url_name($name)),
+						file_get_contents(SAINT_ROOT."/templates/scaffold/views/__".strtolower($type).".phtml"));
+					break;
+											
+			}
+		}
+		echo "\n</ul>";
+		$src = ob_get_clean();
+		$src = str_replace(':php_open',	OPEN_TAG, $src);
+		$src = str_replace(':php_echo',	OPEN_ECHO_TAG, $src);
+		$src = str_replace(':php_close',	CLOSE_TAG, $src);
+		return $src;
+	}
+		
+?>
+
