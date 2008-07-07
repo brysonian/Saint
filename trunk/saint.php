@@ -44,8 +44,8 @@
 	// ===========================================================
 	# core
 	require_once (SAINT_ROOT.'/core/DBRecord.php');
-	require_once (SAINT_ROOT.'/core/ViewCore.php');
-	require_once (SAINT_ROOT.'/core/ControllerCore.php');
+	require_once (SAINT_ROOT.'/core/View.php');
+	require_once (SAINT_ROOT.'/core/AbstractController.php');
 	require_once (SAINT_ROOT.'/core/ViewFactory.php');
 	require_once (SAINT_ROOT.'/core/SaintException.php');
 

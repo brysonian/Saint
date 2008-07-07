@@ -3,14 +3,14 @@
 /**
 * Base view for XML and XSL
 **/
-class XSLTView extends ViewCore
+class XSLTView extends View
 {
 	
 	protected $params = array();
 
 
 	function XSLTView($template) {
-		parent::ViewCore($template);
+		parent::View($template);
 		
 		# see if we're running sablo on PHP 4
 		if (!class_exists('DomDocument')) {

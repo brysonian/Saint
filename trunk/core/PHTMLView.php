@@ -1,10 +1,10 @@
 <?php
 
-class PHTMLView extends ViewCore
+class PHTMLView extends View
 {
 	
 	function PHTMLView($template) {
-		parent::ViewCore($template);
+		parent::View($template);
 	}
 	
 	function parse($layout_template=false) {

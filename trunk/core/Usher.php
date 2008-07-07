@@ -34,7 +34,7 @@ class Usher
 
 	/**
 		get the controller used in the current request
-		@return (ControllerCore) 
+		@return (AbstractController) 
 	**/
 	static public function controller() {
 		return self::$controller;

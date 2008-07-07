@@ -8,7 +8,7 @@
 	@version 2006-03-22
 */
 
-class ControllerCore
+class AbstractController
 {
 	
 	protected $_viewname;
@@ -161,7 +161,7 @@ class ControllerCore
 
 	function render_text($text, $isxml=false) {
 		$this->_rendered = true;
-		$view = new ViewCore('');
+		$view = new View('');
 		# if we cache, do that
 		if ($this->_cache_page && empty($_GET) && empty($_POST)) {
 			$this->save_cache($_SERVER['PHP_SELF'], $text);
@@ -199,7 +199,7 @@ class ControllerCore
 		$dirs = explode('/', $path);
 
 		# pop filename
-		$file = array_pop($dirs).'.'.ControllerCore::_cache_extension;
+		$file = array_pop($dirs).'.'.AbstractController::_cache_extension;
 		
 		# new path
 		$mkdir = DOC_ROOT;
@@ -243,22 +243,22 @@ class ControllerCore
 				$dirhandle=opendir($base.$targetpath);
 				while (($file = readdir($dirhandle))!==false) {
 					$pi = pathinfo($file);
-					if ($pi['extension'] == ControllerCore::_cache_extension) {
+					if ($pi['extension'] == AbstractController::_cache_extension) {
 						unlink($base.$targetpath.'/'.$file);
 					} else if ($file{0} != '.' && is_dir($base.$targetpath.'/'.$file)) {
-						ControllerCore::clear_cache($targetpath.'/'.$file.'/*');
+						AbstractController::clear_cache($targetpath.'/'.$file.'/*');
 					}
 				}
 				closedir($dirhandle);
 			}
 		
 			# also delete the cache file for the dir
-			if (file_exists($base.$targetpath.'.'.ControllerCore::_cache_extension)) {
-				unlink($base.$targetpath.'.'.ControllerCore::_cache_extension);
+			if (file_exists($base.$targetpath.'.'.AbstractController::_cache_extension)) {
+				unlink($base.$targetpath.'.'.AbstractController::_cache_extension);
 			}
 		
 		} else {
-			unlink($base.$path.'.'.ControllerCore::_cache_extension);
+			unlink($base.$path.'.'.AbstractController::_cache_extension);
 		}
 		
 	}

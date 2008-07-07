@@ -1,7 +1,7 @@
 <?php
 
 
-class ViewCore
+class View
 {
 
 	protected $template = false;
@@ -11,7 +11,7 @@ class ViewCore
 	protected $header		= false;
 
 
-	function ViewCore($template) {
+	function View($template) {
 		$this->template = $template;
 	}
 
