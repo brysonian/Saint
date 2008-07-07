@@ -2,41 +2,37 @@
 
 class :ControllerController extends AppController
 {
-	function _index() {
-		$this->render_action('list');
-	}
-
-	function _list() {
+	function index() {
 		$this->:objects = :Object::find_all();
 	}
 
-	function _show() {
+	function show() {
 		if (!params('uid')) redirect_to();
 		$this->:object = :Object::find(params('uid'));
 	}
 
-	function _new() {
+	function add() {
 		$this->:object = new :Object();
 	}
 
-	function _create() {
-		if (!params(':object')) redirect_to('new');
+	function create() {
+		if (!params(':object')) redirect_to('add');
 		$this->:object = new :Object(params(':object'));
 
 		try {
 			$this->:object->save();
 			redirect_to();
 		} catch (ValidationFailure $e) {
-			$this->render_view('new');
+			$this->render_view('add');
 		}
 	}
 
-	function _edit() {
+	function edit() {
 		if (!params('uid')) redirect_to();
 		$this->:object = :Object::find(params('uid'));
 	}
 	
-	function _update() {
+	function update() {
 		if (!params(':object')) redirect_to(array('controller' => params('controller'), 'action' => 'edit', 'uid' => params('uid')));
 		if (!params('uid')) redirect_to();
 		$this->:object = :Object::find(params('uid'));
@@ -49,7 +45,7 @@ class :ControllerController extends AppController
 		}
 	}
 	
-	function _delete() {
+	function delete() {
 		if (!params('uid')) redirect_to();
 		$:object = :Object::find(params('uid'));
 		$:object->delete();

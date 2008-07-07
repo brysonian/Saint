@@ -138,7 +138,7 @@
 		write_scaffold_template($view_base, $name, "app/views/layouts", true);
 		
 		#list
-		write_scaffold_template('list', $name, $path);
+		write_scaffold_template('list_all', $name, $path);
 		
 		#show
 		write_scaffold_template('show', $name, $path);
@@ -146,8 +146,8 @@
 		#edit
 		write_scaffold_template('edit', $name, $path);
 		
-		#new
-		write_scaffold_template('new', $name, $path);
+		#add
+		write_scaffold_template('add', $name, $path);
 		
 		# make the form
 		$form = create_scaffold_form($name);

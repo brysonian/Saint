@@ -21,9 +21,10 @@
 		<h1><?php echo $type; ?> Error</h1>
 		
 		<p>
-			<b><?php echo $msg; ?></b><br />
-			<!--Occurred in <?php echo $file; ?> on line <?php echo $line; ?>-->
+			<b><?php echo $msg; ?></b><br /><br />
+			Occurred in <b><?php echo str_replace(PROJECT_ROOT.'/', '', $file); ?></b> on line <b><?php echo $line; ?></b>.
 		</p>
+
 		<h2>Trace</h2>
 		<ul>
 			<?php echo $trace; ?>

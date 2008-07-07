@@ -67,7 +67,8 @@ class Usher
 		}
 		
 		$u = Usher::get_instance();
-
+		
+		# routing is here
 		$params = $u->match_url($url);
 
 		# if no match was found, show the error
@@ -125,8 +126,9 @@ class Usher
 		self::$controller = new $cname;
 
 		# set the method name
-		$action = '_'.$params['action'];
-
+		#$action = '_'.$params['action'];
+		$action = $params['action'];
+		
 		# tell the controller to execute the action
 		self::$controller->execute($action);
 		

@@ -76,9 +76,9 @@ class SaintException extends Exception
 // ===========================================================
 	function to_html() {
 		$type = get_class($this);
-		$msg = nl2br($this->get_message());
 		$file = $this->get_file();
 		$line = $this->get_line();
+		$msg = nl2br($this->get_message());
 		$trace = "<li>".str_replace("\n", "</li>\n<li>", $this->get_trace_as_string())."</li>\n</ul>";
 
 		ob_start();

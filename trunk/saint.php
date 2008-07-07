@@ -11,7 +11,7 @@
 
 	# Add some things to the include path
 	# lib modules
-	$inc = get_include_path().PATH_SEPARATOR.SAINT_ROOT.'/modules';
+	$inc = SAINT_ROOT.PATH_SEPARATOR.get_include_path().PATH_SEPARATOR.SAINT_ROOT.'/modules';
 	$inc .= PATH_SEPARATOR.SAINT_ROOT.'/core';
 
 	
@@ -19,7 +19,8 @@
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/models';
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/controllers';	
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/helpers';	
-	
+
+/*	
 	# add plugin dirs and include plugin inits
 	$dir = new DirectoryIterator(PROJECT_ROOT.'/plugins');
 	$out = array();
@@ -34,6 +35,7 @@
 	}
 	
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/plugins';	
+*/
 	set_include_path($inc);
 
 
@@ -42,7 +44,6 @@
 	// ===========================================================
 	# core
 	require_once (SAINT_ROOT.'/core/DBRecord.php');
-	require_once (SAINT_ROOT.'/core/Usher.php');
 	require_once (SAINT_ROOT.'/core/ViewCore.php');
 	require_once (SAINT_ROOT.'/core/ControllerCore.php');
 	require_once (SAINT_ROOT.'/core/ViewFactory.php');
@@ -182,7 +183,7 @@ if (function_exists('date_default_timezone_set')) {
 	// ===========================================================
 	// - LOAD PLUGIN INITS
 	// ===========================================================
-	foreach($plugin_inits as $k => $v) include_once($v);
+#	foreach($plugin_inits as $k => $v) include_once($v);
 
 
 

@@ -59,12 +59,14 @@ class ControllerCore
 		# make sure the method exists
 		if (!method_exists($this, $the_method)) {
 			# if it doesn't, look for default
-			if (false && method_exists($this, '_index')) {
-				$the_method = '_index';
+#			if (false && method_exists($this, '_index')) {
+			if (false && method_exists($this, 'index')) {
+#				$the_method = '_index';
+				$the_method = 'index';
 			} else {
 				# if that's no good
 				# throw an error
-				throw new InvalidAction(ucfirst(get_class($this))." does not have an action named ".substr($the_method,1).".", 0);
+				throw new InvalidAction(ucfirst(get_class($this))." does not have an action named $the_method.", 0);
 			}
 		}
 		
@@ -72,7 +74,8 @@ class ControllerCore
 		$bf = $this->get_before_filters();
 		$bfe = $this->get_before_filter_exceptions();
 		$ok = true;
-		$test_method = substr($the_method,1);
+#		$test_method = substr($the_method,1);
+		$test_method = $the_method;
 		if ($bf) {
 			foreach ($bf as $method => $filters) {
 				# if it's excepted, skip
@@ -120,7 +123,8 @@ class ControllerCore
 		}
 		
 		# set the template
-		if (!$this->_template) $this->set_template(substr($the_method,1));
+		#if (!$this->_template) $this->set_template(substr($the_method,1));
+		if (!$this->_template) $this->set_template($the_method);
 		
 		# render the view
 		$this->render_view(false, true);
@@ -151,7 +155,8 @@ class ControllerCore
 	function render_action($action) {
 		$this->render_view($action);
 		$a = "_{$action}";
-		$this->$a();
+		#$this->$a();
+		$this->$action();
 	}
 
 	function render_text($text, $isxml=false) {
