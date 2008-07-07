@@ -114,9 +114,9 @@
 		fclose($fp);
 	}
 
-	function write_script($dir, $cname, $code) {
+	function write_script($dir, $cname, $code, $extension='php') {
 		safe_mkdir($dir);
-		write_file("$dir/$cname.php", $code);
+		write_file("$dir/$cname.".$extension, $code);
 	}
 
 // ===========================================================

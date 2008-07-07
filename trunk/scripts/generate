@@ -115,6 +115,16 @@
 		echo "\tcreate model\n";
 		write_script('app/models', $cname, $code);
 		
+		$sql = "CREATE TABLE ".strtolower($cname)." (
+	id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+	uid CHAR(32) NOT NULL,
+	
+
+	PRIMARY KEY  (id),
+	INDEX (uid)
+) ENGINE=INNODB;
+";
+		write_script('db', strtolower($cname), $sql, 'sql');
 	}
 
 	function create_controller($name, $scafolding=false) {
