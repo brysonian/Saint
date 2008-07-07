@@ -1,10 +1,10 @@
 <?php
 
-class PHTMLView extends View
+class PHTMLView extends AbstractView
 {
 	
 	function PHTMLView($template) {
-		parent::View($template);
+		parent::AbstractView($template);
 	}
 	
 	function parse($layout_template=false) {

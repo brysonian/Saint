@@ -1,7 +1,7 @@
 <?php
 
 
-class View
+class AbstractView
 {
 
 	protected $template = false;
@@ -11,7 +11,7 @@ class View
 	protected $header		= false;
 
 
-	function View($template) {
+	function AbstractView($template) {
 		$this->template = $template;
 	}
 
