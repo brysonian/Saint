@@ -3,7 +3,7 @@
 class ViewFactory
 {
 	
-	function ViewFactory() {}
+	function __construct() {}
 	
 	static function  make_view($template, $layout=false) {
 		# get the template type

@@ -18,7 +18,7 @@ class MySQLConnection
 	// ===========================================================
 	// - CONSTRUCTOR
 	// ===========================================================
-	function MySQLConnection($host, $user, $pass, $dbname, $options=array()) {
+	function __construct($host, $user, $pass, $dbname, $options=array()) {
 		$this->db			= false;
 		$this->host			= $host;
 		$this->user			= $user;

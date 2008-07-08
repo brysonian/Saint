@@ -431,7 +431,7 @@ class UsherMap
 	public $defaults		= array();
 	public $requirements	= array();
 	
- function UsherMap($map, $defaults=false, $requirements=false) {
+ function __construct($map, $defaults=false, $requirements=false) {
 		$this->usermap			= $map;
 		if (is_array($defaults)) $this->defaults = $defaults;
 		if (is_array($requirements)) $this->requirements = $requirements;

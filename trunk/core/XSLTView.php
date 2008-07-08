@@ -9,8 +9,8 @@ class XSLTView extends AbstractView
 	protected $params = array();
 
 
-	function XSLTView($template) {
-		parent::AbstractView($template);
+	function __construct($template) {
+		parent::__construct($template);
 		
 		# see if we're running sablo on PHP 4
 		if (!class_exists('DomDocument')) {

@@ -6,12 +6,12 @@ class MySQLResult implements Countable
 	protected $result;
 	protected $parent;
 	
-	function MySQLResult($result, $parent) {
+	function __construct($result, $parent) {
 		$this->result = $result;
 		$this->parent = $parent;		
 	}
 	
-	function  fetch_assoc() {
+	function fetch_assoc() {
 		$r = mysql_fetch_assoc($this->result);
 		return $r;
 	}

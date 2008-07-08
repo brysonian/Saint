@@ -5,7 +5,7 @@ class MySQLiResult implements Countable
 
 	protected $result;
 	
-	function MySQLiResult($result) {
+	function __construct($result) {
 		$this->result = $result;
 	}
 	
