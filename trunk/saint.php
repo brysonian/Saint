@@ -16,6 +16,7 @@
 
 	
 	# user locations
+	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/lib';
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/models';
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/controllers';	
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/helpers';	
@@ -85,6 +86,23 @@
 		DBService::add_connection(
 			'DBRecord', isset($db_type)?$db_type:'mysqli', $db_name, $user, $pass, $host, isset($db_options)?$db_options:array());
 	}
+	
+	# lets try zend's db stuff
+	/*
+	require_once 'Zend/Db.php';
+	require_once 'Zend/Db/Table/Abstract.php';
+	require_once 'Zend/Db/Table/Row/Abstract.php';
+
+	$zend_db = Zend_Db::factory('PDO_MYSQL',
+		array(
+			'host' => $host,
+			'dbname' => $db_name,
+			'username' => $user,
+			'password' => $pass
+		)
+	);
+	Zend_Db_Table_Abstract::setDefaultAdapter($zend_db);
+	*/
 
 	# clear DB setup vars
 	unset($db_name, $user, $pass, $host, $db_options, $db_type);
@@ -168,6 +186,7 @@ if (function_exists('date_default_timezone_set')) {
 				return;
 			}
 		}
+
 		require_once("$class_name.php");
 	}
 

@@ -8,7 +8,7 @@
 	@version 2006-03-22
 */
 
-class AbstractController
+abstract class AbstractController
 {
 	
 	protected $_viewname;
@@ -34,7 +34,7 @@ class AbstractController
 		$this->_data = array();
 		
 		# call controller's init method
-		$this->init();
+		#$this->init();
 
 		# gather all ivars not preceded with _
 		$cname = get_class($this);
@@ -48,8 +48,7 @@ class AbstractController
 	}
 	
 	# just overridden
-	function init() {}
-#	static function setup() {}
+	#function init() {}
 	
 
 // ===========================================================
@@ -59,9 +58,7 @@ class AbstractController
 		# make sure the method exists
 		if (!method_exists($this, $the_method)) {
 			# if it doesn't, look for default
-#			if (false && method_exists($this, '_index')) {
 			if (false && method_exists($this, 'index')) {
-#				$the_method = '_index';
 				$the_method = 'index';
 			} else {
 				# if that's no good
@@ -74,7 +71,6 @@ class AbstractController
 		$bf = $this->get_before_filters();
 		$bfe = $this->get_before_filter_exceptions();
 		$ok = true;
-#		$test_method = substr($the_method,1);
 		$test_method = $the_method;
 		if ($bf) {
 			foreach ($bf as $method => $filters) {
@@ -123,7 +119,6 @@ class AbstractController
 		}
 		
 		# set the template
-		#if (!$this->_template) $this->set_template(substr($the_method,1));
 		if (!$this->_template) $this->set_template($the_method);
 		
 		# render the view
@@ -290,7 +285,6 @@ class AbstractController
 	function __get($prop) {
 		# check in data
 		if (isset($this->_data[$prop])) return $this->_data[$prop];
-				
 		return false;
 	}
 	

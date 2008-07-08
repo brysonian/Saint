@@ -215,7 +215,6 @@ function link_to($name, $args=false, $confirm=false, $options=array()) {
 		}
 		$url = url_for($args);
 	}
-
 	ob_start();
 	echo "<a href='$url'";
 	if ($confirm) {
@@ -230,7 +229,7 @@ function link_to($name, $args=false, $confirm=false, $options=array()) {
 		echo " $k=\"$v\"";
 	}
 	echo ">";
-	echo $name;
+	echo ($name instanceof MyRow)?$name->to_s():$name;
 	echo "</a>";
 	return ob_get_clean();
 }

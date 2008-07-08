@@ -1,9 +1,9 @@
-		<h1>Edit :hname_object: :php_echo $:object;:php_close</h1>
+		<h1>Edit :hname_object: :php_echo $this->:object;:php_close</h1>
 		<form enctype="multipart/form-data" action=":php_echo url_for(array('action'=>'update', 'uid'=>params("uid")));:php_close" method="post">
-			:php_open render_partial('form', $:object); :php_close
+			:php_open render_partial('form', $this->:object); :php_close
 			
 			<div id="footer">
 				:php_echo submit_to('Edit');:php_close
-				:php_echo button_to('Cancel', array('action'=>'show', 'uid'=>$:object->uid));:php_close
+				:php_echo button_to('Cancel', array('action'=>'show', 'uid'=>$this->:object->uid));:php_close
 			</div>
 		</form>

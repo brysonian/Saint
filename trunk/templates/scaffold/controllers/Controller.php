@@ -2,20 +2,20 @@
 
 class :ControllerController extends AppController
 {
-	function index() {
+	public function index() {
 		$this->:objects = :Object::find_all();
 	}
 
-	function show() {
+	public function show() {
 		if (!params('uid')) redirect_to();
 		$this->:object = :Object::find(params('uid'));
 	}
 
-	function add() {
+	public function add() {
 		$this->:object = new :Object();
 	}
 
-	function create() {
+	public function create() {
 		if (!params(':object')) redirect_to('add');
 		$this->:object = new :Object(params(':object'));
 
@@ -27,12 +27,12 @@ class :ControllerController extends AppController
 		}
 	}
 
-	function edit() {
+	public function edit() {
 		if (!params('uid')) redirect_to();
 		$this->:object = :Object::find(params('uid'));
 	}
 	
-	function update() {
+	public function update() {
 		if (!params(':object')) redirect_to(array('controller' => params('controller'), 'action' => 'edit', 'uid' => params('uid')));
 		if (!params('uid')) redirect_to();
 		$this->:object = :Object::find(params('uid'));
@@ -45,7 +45,7 @@ class :ControllerController extends AppController
 		}
 	}
 	
-	function delete() {
+	public function delete() {
 		if (!params('uid')) redirect_to();
 		$:object = :Object::find(params('uid'));
 		$:object->delete();

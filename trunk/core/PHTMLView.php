@@ -3,15 +3,15 @@
 class PHTMLView extends AbstractView
 {
 	
-	function PHTMLView($template) {
-		parent::AbstractView($template);
+	function __construct($template) {
+		parent::__construct($template);
 	}
 	
 	function parse($layout_template=false) {
 		parent::parse($layout_template);
 				
 		# unpack the props
-		extract($this->props);
+		#extract($this->props);
 		
 		# trap the buffer
 		ob_start();

@@ -1,7 +1,7 @@
 <?php
 
 
-class AbstractView
+abstract class AbstractView
 {
 
 	protected $template = false;
@@ -11,19 +11,29 @@ class AbstractView
 	protected $header		= false;
 
 
-	function AbstractView($template) {
+	function __construct($template) {
 		$this->template = $template;
 	}
 
 	// accessors for properties
+	/*
 	function add_prop($k, $v) {
 		$this->props[$k] = $v;
 	}
 	
 	function get_prop($k) {
 		return $this->props[$k];
+	}*/
+	
+	function __set($k, $v) {
+		$this->props[$k] = $v;
 	}
-
+	
+	function __get($k) {
+		if (isset($this->props[$k])) return $this->props[$k];
+		return false;
+	}
+	
 	function set_all_props($p) {
 		return $this->props = $p;
 	}
@@ -93,7 +103,8 @@ class AbstractView
 	
 	function parse_partial($var=false, $obj=false) {
 		if ($var) {
-			$$var = $obj;
+			#$$var = $obj;
+			$this->$var = $obj;
 		}
 
 		# trap the buffer
