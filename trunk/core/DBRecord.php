@@ -32,9 +32,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 	protected $modified = false;
 
 	protected $validator = array();
-	protected $acts_as;
-	protected	$acts_as_methods;
-	protected	$getters;
+#	protected $acts_as;
+#	protected	$acts_as_methods;
 	
 	protected static $table_info = array();
 
@@ -121,10 +120,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if (isset($this->data[$prop])) {
 			$val = $this->data[$prop];
 			
-			# if there is a method with this name, call it and pass the value
-			if (method_exists($this, $prop)) $val = $this->$prop($val);
-						
-			return $this->getter_mixin($prop, $val);
+			return $this->getters($prop, $val);
 		}
 
 		# then the to_one's
@@ -133,13 +129,13 @@ class DBRecord implements Iterator, Serviceable, Countable
 			if (isset($this->to_one_obj[$prop])) {
 				$this->to_one_obj[$prop]->include = $this->include;
 				$this->to_one_obj[$prop]->load();
-				return $this->getter_mixin($prop, $this->to_one_obj[$prop]);
+				return $this->getters($prop, $this->to_one_obj[$prop]);
 			} else if (array_key_exists($prop.'_uid', $this->data) && !empty($this->data[$prop.'_uid'])) {
 				$this->to_one_obj[$prop] = new $this->to_one[$prop]['class'];
 				$this->to_one_obj[$prop]->set_uid($this->data[$prop.'_uid']);
 				$this->to_one_obj[$prop]->include = $this->include;
 				$this->to_one_obj[$prop]->load();
-				return $this->getter_mixin($prop, $this->to_one_obj[$prop]);
+				return $this->getters($prop, $this->to_one_obj[$prop]);
 			}
 		}
 		
@@ -154,7 +150,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 				foreach ($this->to_many_obj[$prop] as $obj) {
 					$out[] = $obj;
 				}
-				return $this->getter_mixin($prop, $out);
+				return $this->getters($prop, $out);
 				
 			} else {
 				// TODO: see about this include stuff
@@ -178,14 +174,19 @@ class DBRecord implements Iterator, Serviceable, Countable
 				foreach($a as $k => $v) {
 					$this->to_many_obj[$prop][$v->get_uid()] = $v;
 				}
-				return $this->getter_mixin($prop, $a);
+				return $this->getters($prop, $a);
 			}
 		}
 		
 		return false;
 	}
 	
-	private function getter_mixin($prop, $val) {
+	private function getters($prop, $val) {
+		# if there is a get method with this name, call it and pass the value
+		$meth = "get_{$prop}";
+		if (method_exists($this, $meth)) $val = $this->$meth($val);
+		return $val;
+		/*
 		if (is_array($this->getters)) {
 			if (array_key_exists($prop, $this->getters)) {
 				$method = "get_$prop";
@@ -201,8 +202,15 @@ class DBRecord implements Iterator, Serviceable, Countable
 			}
 		}
 		return $val;		
+		*/
 	}
 
+	private function setters($prop, $val) {
+		# if there is a set method with this name, call it and pass the value
+		$meth = "set_{$prop}";
+		if (method_exists($this, $meth)) $val = $this->$meth($val);
+		return $val;
+	}
 	
 	// set
 	function set($prop, $val) { $this->__set($prop, $val); }
@@ -222,12 +230,12 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 		} else {
 			if (!array_key_exists($prop, $this->data)) {
-				$this->data[$prop] = $val;						
+				$this->data[$prop] = $this->setters($prop, $val);						
 				$this->modified = true;
 
 
 			} else if ($this->data[$prop] !== $val) {
-				$this->data[$prop] = $val;
+				$this->data[$prop] = $this->setters($prop, $val);
 				$this->modified = true;
 			}
 		}
@@ -242,8 +250,14 @@ class DBRecord implements Iterator, Serviceable, Countable
 // ===========================================================
 // - CRUD
 // ===========================================================
+	// callbacks
+	function	before_save() {}
+	function	before_create() {}
+	function	before_update() {}
+
 	// save to the db
 	function save($force=false) {
+		$this->before_save();
 		if (!$this->modified && !$force) return;
 		# if no id or uid, then insert a new item, otherwise update
 		if ($this->get_id() || $this->get_uid()) {
@@ -264,6 +278,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if ($this->validation_errors()) throw $this->validation_errors();
 		if ($validates === false) return;
 
+		$this->before_create();
 
 		$sql = "INSERT INTO `".$this->get_table()."` ";
 
@@ -280,6 +295,15 @@ class DBRecord implements Iterator, Serviceable, Countable
 				$values[$k] = "NULL";
 			} else {
 				$values[$k] = $this->escape_string($v);
+			}
+		}
+		
+		# touch updated_at/on and created_at/on
+		# get table info
+		$info = $this->table_info();
+		foreach(array('created_on', 'created_at', 'updated_on', 'updated_at') as $v) {
+			if (in_array($v, $info)) {
+				$values[$v] = date("Y-m-d H:i:s");
 			}
 		}
 		
@@ -311,6 +335,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if ($this->validation_errors()) throw $this->validation_errors();
 		if ($validates === false) return;
 
+		$this->before_update();
 
 		$sql = "UPDATE `".$this->get_table()."` SET ";
 		$props = array();
@@ -353,6 +378,12 @@ class DBRecord implements Iterator, Serviceable, Countable
 				$props[] = "$k='".$this->escape_string($v)."'";
 			}
 		}	
+
+		# touch updated_at/on and created_at/on
+		# get table info
+		$info = $this->table_info();
+		if (in_array('updated_on', $info)) $props[] = "updated_on='".date("Y-m-d H:i:s")."'";
+		if (in_array('updated_at', $info)) $props[] = "updated_at='".date("Y-m-d H:i:s")."'";
 		
 		$sql .= join(',',$props)." WHERE id=".$this->escape_string($this->get_id());		
 
@@ -392,7 +423,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		} else if (strpos($method, 'add_') !== false) {
 			$this->add_to_many_object(str_replace('add_', '', $method), $args);
 
-
+		/*
 		} else if (strpos($method, 'acts_as_') !== false) {
 			if (!is_array($this->acts_as)) {
 				$this->acts_as = array();
@@ -428,7 +459,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		} else if (is_array($this->acts_as_methods) && array_key_exists($method, $this->acts_as_methods)) {
 			return call_user_func_array(array($this->acts_as[$this->acts_as_methods[$method]], $method), $args);
 			
-			
+		*/
 		} else {
 			throw new UndefinedMethod(get_class($this).' does not have a method named '.$method.'().');
 		}
@@ -1048,7 +1079,6 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$this->set_uid($uid);
 		return $this->get_uid();
 	}
-
 
 // ===========================================================
 // - ITERATOR INTERFACE

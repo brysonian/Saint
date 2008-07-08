@@ -121,12 +121,13 @@ class Usher
 		if ((preg_match('|[^a-zA-Z_]|', $cname) > 0) || (preg_match('|^[^a-zA-Z_]|', $cname) > 0)) {
 			 throw new UnknownController("$cname is not a valid controller.");
 		}
+
+		if (defined('DEBUG') && DEBUG) error_log("Controller found in ".(microtime(true)-$start)." seconds.");
 		
 		# make an instance of the controller class
 		self::$controller = new $cname;
 
 		# set the method name
-		#$action = '_'.$params['action'];
 		$action = $params['action'];
 		
 		# tell the controller to execute the action

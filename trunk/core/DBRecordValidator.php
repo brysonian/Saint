@@ -119,7 +119,13 @@ class DBRecordValidator {
 // - PRESENCE
 // ===========================================================
 	public function validates_presence_of($args) {
+		
+		#$args = func_get_args();
 		if (!is_array($args) && $args !== false) $args = func_get_args();
+		// $fargs = func_get_args();
+		// if (!is_array($args) && $args !== false || (count($fargs) > 1)) {
+		// 	$args = $fargs;
+		// }
 		$this->validates_x_of($this->validate_presence_of, $args, VALIDATION_EMPTY);
 	}
 
@@ -130,7 +136,6 @@ class DBRecordValidator {
 		$this->add_error($prop, $msg, VALIDATION_EMPTY);
 		return false;
 	}
-	
 
 
 // ===========================================================
@@ -220,10 +225,12 @@ class DBRecordValidator {
 		if ($prop === false) {
 			$this->validate_format_of = array();
 		} else {
-			# add the error message if there isn't one
-			$message = $message?$message:get_error_message(VALIDATION_FORMAT, $prop);
-
-			$this->validate_format_of[strtolower($prop)] = array($format, $message);
+			if (!is_array($prop)) $prop = array($prop);
+			foreach($prop as $k => $p) {
+				# add the error message if there isn't one
+				$message = $message?$message:get_error_message(VALIDATION_FORMAT, $p);
+				$this->validate_format_of[strtolower($p)] = array($format, $message);
+			}
 		}
 	}
 

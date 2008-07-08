@@ -67,6 +67,17 @@
 	// ===========================================================
 	require_once (PROJECT_ROOT."/config/environment.php");
 
+	// ===========================================================
+	// - SET THE TIMEZONE
+	// ===========================================================
+	if (function_exists('date_default_timezone_set')) {
+		if(!defined('TIME_ZONE')) {
+			date_default_timezone_set(date_default_timezone_get());
+		} else {
+			date_default_timezone_set(TIME_ZONE);
+		}
+	}
+
 
 	// ===========================================================
 	// - GET USER USHER CONFIG.
@@ -158,16 +169,6 @@
 	}
 
 
-// ===========================================================
-// - SET THE TIMEZONE
-// ===========================================================
-if (function_exists('date_default_timezone_set')) {
-	if(!defined('TIME_ZONE')) {
-		date_default_timezone_set('America/New_York');
-	} else {
-		date_default_timezone_set(TIME_ZONE);
-	}
-}
 
 // ===========================================================
 // - AUTOLOAD
