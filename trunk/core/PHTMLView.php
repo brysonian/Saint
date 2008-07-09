@@ -350,12 +350,7 @@ function submit_to($name, $confirm=false) {
 }
 
 
-function button_to($name, $args=false, $confirm=false, $options=array()) {
-	if (!is_array($args)) {
-		$args = func_get_args();
-		array_shift($args);
-	}
-	
+function button_to($name, $loc='', $confirm=false, $options=array()) {
 	ob_start();
 	echo "<input type='button' onclick=\"";
 	if ($confirm && array_key_exists("onclick", $options)) {
@@ -363,7 +358,7 @@ function button_to($name, $args=false, $confirm=false, $options=array()) {
 		unset($options['onclick']);			
 	} else {
 		echo 'if (confirm(\'Are You Sure?\')) ';
-		echo "document.location.href='".url_for($args)."';\" ";
+		echo "document.location.href='$loc';\" ";
 	}
 	foreach($options as $k => $v) {
 		echo " $k=\"$v\"";

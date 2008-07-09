@@ -1,4 +1,6 @@
 <?php
+	# start session
+	session_start();
 
 	// ===========================================================
 	// - GET THE SAINT ROOT

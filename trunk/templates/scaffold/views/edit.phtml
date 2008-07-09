@@ -1,5 +1,5 @@
 		<h1>Edit :hname_object: :php_echo $this->:object;:php_close</h1>
-		<form enctype="multipart/form-data" action=":php_echo url_for(array('action'=>'update', 'uid'=>params("uid")));:php_close" method="post">
+		<form enctype="multipart/form-data" action=":php_echo '/:object/update/'.params("uid");:php_close" method="post">
 			:php_open render_partial('form', $this->:object); :php_close
 			
 			<div id="footer">

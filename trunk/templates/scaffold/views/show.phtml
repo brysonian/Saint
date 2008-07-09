@@ -7,6 +7,6 @@
 		</dl>
 		
 		<div id="footer">
-			:php_echo link_to('Back', false);:php_close | 
-			:php_echo link_to('Edit', array('action'=>'edit', 'uid'=>$this->:object->uid));:php_close
+			:php_echo link_to('Back', '/:object');:php_close | 
+			:php_echo link_to('Edit', '/:object/edit/'.$this->:object->uid);:php_close
 		</div>

@@ -6,15 +6,15 @@
 			
 				<li class="row:php_echo $alt; :php_close">
 					<span class="controls">
-						:php_echo link_to("Edit", array('action'=>'edit', 'uid'=>$:object->uid));:php_close |
-						:php_echo link_to("Delete", array('action'=>'delete', 'uid'=>$:object->uid), true);:php_close
+						:php_echo link_to("Edit", '/:object/edit/'.$:object->uid);:php_close |
+						:php_echo link_to("Delete", '/:object/delete/'.$:object->uid, true);:php_close
 					</span>
-					:php_echo link_to($:object, array('action'=>'show', 'uid'=>$:object->uid));:php_close
+					:php_echo link_to($:object, '/:object/show/'.$:object->uid);:php_close
 				</li>
 			:php_open $alt = 1 - $alt;	:php_close
 			:php_open endforeach :php_close
 		</ul>
 		
 		<div id="footer">
-			:php_echo link_to('New :hname_object', array('action'=>'new'));:php_close
+			:php_echo link_to('New :hname_object', '/:object/new');:php_close
 		</div>

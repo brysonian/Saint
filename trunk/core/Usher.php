@@ -132,12 +132,13 @@ class Usher
 		
 		# tell the controller to execute the action
 		self::$controller->execute($action);
-		
+
 		# log exec time
 		if (defined('DEBUG') && DEBUG) {
 			$end = microtime(true);
 			error_log("Executed in ".($end-$start)." seconds.");
 		}
+		
 	}
 	
 	/**
@@ -155,9 +156,10 @@ class Usher
 	* Return a value for a param
 	*/
 	static function get_param($p=false) {
-		if ($p === false) return self::$params;
+		if ($p === false) return is_null(self::$params)?self::$params:new Params(self::$params);
 		if (is_array(self::$params) && array_key_exists($p, self::$params)) {
-			return self::$params[$p];
+			#return self::$params[$p];
+			return is_array(self::$params[$p])?new Params(self::$params[$p]):self::$params[$p];
 		} else {
 			return false;
 		}
@@ -203,6 +205,39 @@ function get_root() {
 	return $u->get_base();
 }
 
+function link_to($name, $url='', $confirm=false, $options=array()) {
+	if (!is_array($options)) $options = array();
+	
+	// # if there is only one arg, and it's an object, make a link to it
+	// if (is_object($name) && func_num_args() == 1) {
+	// 	$url = url_for($name);
+	// } else {
+	// 	if (!is_object($args) && !is_array($args)) {
+	// 		$args = func_get_args();
+	// 		array_shift($args);		
+	// 	}
+	// 	$url = url_for($args);
+	// }
+	ob_start();
+	echo "<a href='$url'";
+	if ($confirm) {
+		if (array_key_exists("onclick", $options)) {
+			echo ' onclick="if (confirm(\'Are You Sure?\')) {'.$options['onclick'].'} else {return false;}"';
+			unset($options['onclick']);			
+		} else {
+			echo ' onclick="return confirm(\'Are You Sure?\');"';
+		}
+	}
+	foreach($options as $k => $v) {
+		echo " $k=\"$v\"";
+	}
+	echo ">";
+	echo $name;
+	echo "</a>";
+	return ob_get_clean();
+}
+
+/*
 function link_to($name, $args=false, $confirm=false, $options=array()) {
 	if (!is_array($options)) $options = array();
 	
@@ -230,14 +265,16 @@ function link_to($name, $args=false, $confirm=false, $options=array()) {
 		echo " $k=\"$v\"";
 	}
 	echo ">";
-	echo ($name instanceof MyRow)?$name->to_s():$name;
+	echo $name;
 	echo "</a>";
 	return ob_get_clean();
 }
+*/
 
 // construct a url using the maps
 # call using either an array, or in this order:
 # controller, action, uid, params
+
 function url_for($args=false) {
 	if (is_object($args)) {
 		if (method_exists($args, 'to_url')) {
@@ -368,6 +405,7 @@ function url_for($args=false) {
 // ===========================================================
 // - REDIRECT TO A NEW LOCATION
 // ===========================================================
+/*
 function redirect_to($args=false) {
 	if (!is_array($args) && $args !== false) {
 		$args = func_get_args();
@@ -375,7 +413,13 @@ function redirect_to($args=false) {
 	$url = url_for($args);
 	header("Location: $url");	
 }
+*/
 
+function redirect_to($loc=false) {
+	if ($loc == false) $loc = '/'.params('controller');
+	if (strpos($loc, 'http') < 0) $loc = get_root().$loc;
+	header("Location: $loc");	
+}
 
 // ===========================================================
 // - TRANSLATE BETWEEN THE COMMON STRINGS FOR CLASSES
@@ -563,6 +607,52 @@ class UsherMap
 	}
 }
 
+
+class Params implements ArrayAccess
+{
+	function __construct($params) {
+		foreach($params as $k => $v) {
+			if (is_array($v)) {
+				$this->$k = new Params($v);
+			} else {
+				$this->$k = $v;
+			}
+		}
+	}
+
+// ===========================================================
+// - ARRAYACCESS INTERFACE
+// ===========================================================
+	public function offsetExists($offset) {
+		return property_exists($this, $offset);
+	}
+	
+	public function offsetGet($offset) {
+		return $this->$offset;
+	}
+
+	public function offsetSet($offset, $value) {
+		throw new ReadOnlyAccess('Param properties are read only.');
+	}
+
+	public function offsetUnset($offset) {
+		throw new ReadOnlyAccess('Param properties items are read only.');
+	}
+	
+	public function __toString() {
+		$s = '';
+		foreach($this as $k => $v) {
+			if ($k == 'propmap') continue;
+			if ($v instanceof Params) {
+					$s .= " $k => ".$v->__toString()."\n";
+			} else {
+				$s .= "$k => $v\n";
+			}
+		}
+		return $s;
+	}
+
+}
 
 // ===========================================================
 // - EXCEPTIONS

@@ -55,6 +55,10 @@ class DBRecord implements Iterator, Serviceable, Countable
 			foreach($props as $k => $v) {
 				$this->$k = $v;
 			}
+		}	else if ($props instanceof Params) {
+			foreach($props as $k => $v) {
+				$this->$k = $v;
+			}
 		}
 	}
 
@@ -257,7 +261,6 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 	// save to the db
 	function save($force=false) {
-		$this->before_save();
 		if (!$this->modified && !$force) return;
 		# if no id or uid, then insert a new item, otherwise update
 		if ($this->get_id() || $this->get_uid()) {
@@ -277,6 +280,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$validates = $this->validate();
 		if ($this->validation_errors()) throw $this->validation_errors();
 		if ($validates === false) return;
+
+		$this->before_save();
 
 		$this->before_create();
 
@@ -335,6 +340,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if ($this->validation_errors()) throw $this->validation_errors();
 		if ($validates === false) return;
 
+		$this->before_save();
 		$this->before_update();
 
 		$sql = "UPDATE `".$this->get_table()."` SET ";
@@ -1331,10 +1337,10 @@ class DBRecord implements Iterator, Serviceable, Countable
 		return str_replace('Object id ', '', 'Instance '.$this.' of class '.get_class($this));
 	}
 
-	function to_url() {
-		return url_for($this->to_param());
-	}
-
+	// function to_url() {
+	// 	return url_for($this->to_param());
+	// }
+	// 
 	function to_param() {
 		return array(
 			'controller' => to_url_name(get_class($this)),
