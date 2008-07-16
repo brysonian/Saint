@@ -111,7 +111,7 @@
 // ===========================================================
 	function create_model($name) {
 		$cname = to_class_name($name);
-		$code = "<?php\n\nclass $cname extends DBRecord \n{\n\tfunction init() {\n\t\t\n\t}\n}\n\n?>";
+		$code = "<?php\n\nclass $cname extends DBRecord \n{\n\tfunction __construct(\$args=false) {\n\t\tparent::__construct(\$args);\n\t}\n}\n\n?>";
 		echo "\tcreate model\n";
 		write_script('app/models', $cname, $code);
 		
