@@ -40,7 +40,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 // ===========================================================
 // - CONSTRUCTOR
 // ===========================================================
-	function __construct($props=false) {
+	public function __construct($props=false) {
 		# set table name
 		$table = get_class($this);
 		
@@ -48,7 +48,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$table = to_table_name($table);
 		$this->set_table($table);
 		
-		if (method_exists($this, 'init')) $this->init();
+		#if (method_exists($this, 'init')) $this->init();
 		
 		# if props, add them all
 		if (is_array($props)) {
@@ -70,20 +70,20 @@ class DBRecord implements Iterator, Serviceable, Countable
 // - ACCESSORS
 // ===========================================================
 	// for id
-	function get_id()		{ return isset($this->id)?$this->id:false; }
-	function set_id($anId)	{ 
+	public function get_id()		{ return isset($this->id)?$this->id:false; }
+	public function set_id($anId)	{ 
 		if (!is_numeric($anId)  && $anId !== false) throw new InvalidId("$anId is not a valid id.");
 		$this->id = $anId; 
 	}
 
 	// for uid
-	function get_uid()		{ return isset($this->uid)?$this->uid:false; }
-	function set_uid($aUid)	{
+	public function get_uid()		{ return isset($this->uid)?$this->uid:false; }
+	public function set_uid($aUid)	{
 		if (!DBRecord::is_valid_uid($aUid) && $aUid !== false) throw new InvalidUid("$aUid is not a valid uid.");
 		$this->uid = $aUid; 
 	}
 
-	function get_fields()		{ return $this->fields; }
+	public function get_fields()		{ return $this->fields; }
 
 	
 	# test if a string is a valid uid
@@ -93,7 +93,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 	
 	// db
-	function db() {
+	public function db() {
 		if (!$this->db) 
 			$this->db = DBService::get_connection($this->get_service_id());
 		return $this->db;
@@ -101,11 +101,11 @@ class DBRecord implements Iterator, Serviceable, Countable
 	
 
 	// for table
-	function get_table()		{ return $this->table; }
-	function set_table($t)	{ $this->table = $t; }
+	public function get_table()		{ return $this->table; }
+	public function set_table($t)	{ $this->table = $t; }
 	
 		
-	function is_empty($idcheck=false) {
+	public function is_empty($idcheck=false) {
 		# see if there is anything in data
 		$v = join('', $this->data);
 		$v = empty($v);
@@ -114,8 +114,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 	
 	// get
-	function get($prop) { return $this->__get($prop); }	
-	function __get($prop) {
+	public function get($prop) { return $this->__get($prop); }	
+	public function __get($prop) {
 		# allow id and uid
 		if ($prop == 'id') return $this->get_id();
 		if ($prop == 'uid') return $this->get_uid();
@@ -217,8 +217,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 	
 	// set
-	function set($prop, $val) { $this->__set($prop, $val); }
-	function __set($prop, $val) {
+	public function set($prop, $val) { $this->__set($prop, $val); }
+	public function __set($prop, $val) {
 		# allow id and uid
 		if ($prop == 'id') return $this->set_id($val);
 		if ($prop == 'uid') return $this->set_uid($val);
@@ -255,12 +255,13 @@ class DBRecord implements Iterator, Serviceable, Countable
 // - CRUD
 // ===========================================================
 	// callbacks
-	function	before_save() {}
-	function	before_create() {}
-	function	before_update() {}
+	protected function before_save() {}
+	protected function before_create() {}
+	protected function before_update() {}
+	protected function before_validation() {}
 
 	// save to the db
-	function save($force=false) {
+	public function save($force=false) {
 		if (!$this->modified && !$force) return;
 		# if no id or uid, then insert a new item, otherwise update
 		if ($this->get_id() || $this->get_uid()) {
@@ -274,7 +275,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if (is_array($this->to_many)) $this->fields = array_merge($this->fields, array_keys($this->to_many));
 	}
 
-	function create() {
+	public function create() {
 		# validate the data
 		$this->validate_builtins();
 		$validates = $this->validate();
@@ -289,8 +290,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 		# generate values statement
 		$values = array();
-		$values['id'] = 'NULL';
-		$values['uid'] = $this->gen_uid();
+		$values['id'] = $this->get_id()?$this->get_id():'NULL';
+		$values['uid'] = $this->get_uid()?$this->get_uid():$this->gen_uid();
 				
 		# add each key/val to the sql
 		foreach ($this->data as $k=>$v) {
@@ -329,7 +330,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 	
 	
-	function update($args=array()) {
+	public function update($args=array()) {
 		foreach($args as $k => $v) {
 			$this->$k = $v;
 		}
@@ -401,7 +402,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 
 
-	function delete() {
+	public function delete() {
 		if (!($this->get_id() || $this->get_uid())) {
 			throw new MissingIdentifier("You must define an id or uid to delete an item.");			
 		}
@@ -419,7 +420,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 // ===========================================================
 // - MIXINS
 // ===========================================================
-	function __call($method, $args) {
+	public function __call($method, $args) {
 		# validation
 		if (strpos($method, 'validates_') !== false) {
 			if (!$this->validator) $this->validator = new DBRecordValidator($this);
@@ -493,6 +494,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	
 	# does the actual validation
 	protected function validate_builtins() {
+		$this->before_validation();
 		if ($this->validator) $this->validator->validate($this->data);
 		return true;
 	}
@@ -543,7 +545,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 // - FIND
 // ===========================================================
 	// return an a single item by uid
-	static function find($uid, $options=array()) {
+	public static function find($uid, $options=array()) {
 		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);
@@ -553,7 +555,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 
 	// return an array of all objects of this type
-	static function find_all($options=array()) {
+	public static function find_all($options=array()) {
 		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);
@@ -562,7 +564,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 	
 	// return an array of all objects using this where clause
-	static function find_where($where, $options=array()) {
+	public static function find_where($where, $options=array()) {
 		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);
@@ -572,7 +574,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 	
 	// handy shortcut to find_where for use on a specific field
-	static function find_by($field, $value, $options=array()) {
+	public static function find_by($field, $value, $options=array()) {
 		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);
@@ -585,7 +587,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 
 	// handy shortcut to find_where for use on a specific field
-	static function find_like_by($field, $value, $options=array()) {
+	public static function find_like_by($field, $value, $options=array()) {
 		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);
@@ -599,7 +601,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 
 	// handy shortcut to find_where for use on all searchable fields
-	static function find_by_all($value, $options=array()) {
+	public static function find_by_all($value, $options=array()) {
 		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);
@@ -615,7 +617,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 		
 	// find an item by id
-	static function find_id($id, $options=array()) {
+	public static function find_id($id, $options=array()) {
 		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_id($id);
@@ -625,7 +627,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 
 	// return an array of all objects using this query
-	static function find_sql($sql, $options=array()) {
+	public static function find_sql($sql, $options=array()) {
 		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
 		$m->set_options($options);

@@ -101,12 +101,12 @@ class DBRecordValidator {
 			$type = array();
 			return;
 		}
-		
+
 		# add the error message if there isn't one
 		if (!array_key_exists('message', $args)) {
 			$args['message'] = get_error_message($code, '');
 		}
-		
+
 		# add each prop as a key to the array
 		foreach($args as $k => $v) {
 			if (is_numeric($k)) {

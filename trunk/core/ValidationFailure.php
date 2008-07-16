@@ -27,7 +27,7 @@ class ValidationFailure extends SaintException
 	public function get_message_from_errors($html=true) {
 		$msg = ($html)?'<ul>':'';
 		foreach($this->errors as $err) {
-			if (strpos($err[2], ':property') === false) $err[2] = ":property ".$err[2];
+			#if (strpos($err[2], ':property') === false) $err[2] = ":property ".$err[2];
 			if ($html) $msg .= '<li>';
 			$msg .= ucfirst(trim(str_replace(':property', $err[0], $err[2])));
 			$msg .= ($html)?'</li>':"\n";

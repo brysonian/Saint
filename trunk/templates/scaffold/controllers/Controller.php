@@ -2,6 +2,11 @@
 
 class :ControllerController extends AppController
 {
+	
+	public function __construct() {
+		parent::__construct();
+	}
+
 	public function index() {
 		$this->:objects = :Object::find_all();
 	}

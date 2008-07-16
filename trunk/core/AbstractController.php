@@ -34,7 +34,7 @@ abstract class AbstractController
 		$this->_data = array();
 		
 		# call controller's init method
-		$this->init();
+		#$this->init();
 
 		# gather all ivars not preceded with _
 		$cname = get_class($this);

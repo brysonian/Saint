@@ -6,7 +6,7 @@
 	// - GET THE SAINT ROOT
 	// ===========================================================
 	(php_sapi_name() == 'cli')?define('SHELL', 1):define('SHELL', 0);
-	
+
 	if(!defined('SAINT_ROOT')) define('SAINT_ROOT', realpath(dirname(__FILE__)));
 	if(!defined('PROJECT_ROOT')) define('PROJECT_ROOT', realpath(dirname($_SERVER['SCRIPT_FILENAME']).'/../'));
 	if(!defined('DOC_ROOT')) define('DOC_ROOT', $_SERVER['DOCUMENT_ROOT']);
@@ -22,6 +22,7 @@
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/models';
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/controllers';	
 	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/helpers';	
+	$inc .= PATH_SEPARATOR.PROJECT_ROOT.'/app/plugins';	
 
 /*	
 	# add plugin dirs and include plugin inits
@@ -68,6 +69,11 @@
 	// - GET USER CONFIG VALUES.
 	// ===========================================================
 	require_once (PROJECT_ROOT."/config/environment.php");
+	if(!defined('DISABLE_DEBUG') && SAINT_ENV == 'development') {
+		define('DEBUG', 1);
+		define('MYSQLI_DEBUG', 2);
+	}
+
 
 	// ===========================================================
 	// - SET THE TIMEZONE
@@ -92,33 +98,25 @@
 // - SETUP THE DB CONNECTION
 // ===========================================================
 	# get the DB config params
-	require_once (PROJECT_ROOT."/config/database.php");
+	$database_config = parse_ini_file(PROJECT_ROOT."/config/database.ini", true);
+
+	$db_name		= $database_config[SAINT_ENV]['database'];
+	$user				= $database_config[SAINT_ENV]['username'];
+	$pass				= $database_config[SAINT_ENV]['password'];
+	$host				= $database_config[SAINT_ENV]['host'];
+	$db_options = array_key_exists('options', $database_config[SAINT_ENV]) ? $database_config[SAINT_ENV]['options']	: array();
+	$db_type		= array_key_exists('type',		$database_config[SAINT_ENV]) ? $database_config[SAINT_ENV]['type']		: 'mysqli';
+	
+#	require_once (PROJECT_ROOT."/config/database.php");
 	
 	if (!DBService::has_connection('DBRecord') && isset($db_name, $user, $pass, $host)) {
 		# DB SERVICE
 		DBService::add_connection(
-			'DBRecord', isset($db_type)?$db_type:'mysqli', $db_name, $user, $pass, $host, isset($db_options)?$db_options:array());
+			'DBRecord', $db_type, $db_name, $user, $pass, $host, $db_options);
 	}
-	
-	# lets try zend's db stuff
-	/*
-	require_once 'Zend/Db.php';
-	require_once 'Zend/Db/Table/Abstract.php';
-	require_once 'Zend/Db/Table/Row/Abstract.php';
-
-	$zend_db = Zend_Db::factory('PDO_MYSQL',
-		array(
-			'host' => $host,
-			'dbname' => $db_name,
-			'username' => $user,
-			'password' => $pass
-		)
-	);
-	Zend_Db_Table_Abstract::setDefaultAdapter($zend_db);
-	*/
 
 	# clear DB setup vars
-	unset($db_name, $user, $pass, $host, $db_options, $db_type);
+	unset($database_config, $db_name, $user, $pass, $host, $db_options, $db_type);
 
 
 
@@ -189,8 +187,10 @@
 				return;
 			}
 		}
-
-		require_once("$class_name.php");
+		
+	#	$ext = pathinfo($class_name, PATHINFO_EXTENSION) == 'php'?'':'.php';
+	#	require_once("$class_name{$ext}");
+	require_once("$class_name.php");
 	}
 
 	# mark out debug section in log
