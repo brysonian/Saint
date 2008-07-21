@@ -1,5 +1,5 @@
 <?php
 	
-	define('DEBUG', 1);
+	if (!defined('SAINT_ENV')) define('SAINT_ENV', 'development');
 
 ?>

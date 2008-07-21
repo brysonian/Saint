@@ -114,7 +114,8 @@ class Usher
 		self::$params = $params;
 
 		# get the controller name
-		$cname = preg_replace('/(?:^|_)([a-zA-Z])/e', "strtoupper('\\1')", $params['controller']);
+		#$cname = preg_replace('/(?:^|_)([a-zA-Z])/e', "strtoupper('\\1')", $params['controller']);
+		$cname = to_class_name($params['controller']);
 		$cname = ucfirst($cname.'Controller');
 		
 		# make sure the name is a valid class name
@@ -424,13 +425,20 @@ function redirect_to($loc=false) {
 // ===========================================================
 // - TRANSLATE BETWEEN THE COMMON STRINGS FOR CLASSES
 // ===========================================================
-// parse a tablename/urlname into a classname
 function to_class_name($str) {
-	return preg_replace('/(?:^|_)([a-zA-Z])/e', "strtoupper('\\1')", $str);
+	return preg_replace('/(?:^|-)([a-zA-Z])/e', "strtoupper('\\1')", $str);
 }
 
+function to_var_name($class) {
+	return to_table_name($class);
+}
+
+
 // parse a classname into a tablename
-function to_url_name($class) { return to_table_name($class); }
+function to_url_name($class) { 
+	return strtolower(preg_replace('/([a-zA-Z])([A-Z])/', '\\1-\\2', $class));
+}
+
 function to_table_name($class) {
 	return strtolower(preg_replace('/([a-zA-Z])([A-Z])/', '\\1_\\2', $class));
 }
@@ -438,10 +446,10 @@ function to_table_name($class) {
 // make a classname or tablename into a human friendly name
 function to_human_name($str, $is_class=false) {
 	# best bet is to see if it has a cap, if so it's a classname
-	if ((preg_match('|[A_Z]|', $str) == 0) || $is_class) {
+	if ((preg_match('|[A\-Z]|', $str) == 0) || $is_class) {
 		return preg_replace('/([a-zA-Z])([A-Z])/', '\\1 \\2', $str);
 	} else {
-		return str_replace('_', ' ', $str);
+		return str_replace('-', ' ', $str);
 	}
 }
 

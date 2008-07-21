@@ -161,7 +161,7 @@ class UploadedFile
 		if ($newname == false) $newname = $this->get_filename();
 
 		# make sure the filename is kosher by killing non alpanum chars
-		$newname =  preg_replace("/[^a-zA-Z0-9_.]/i", '_', stripslashes($newname));
+		$newname =  preg_replace("/[^a-zA-Z0-9_.]/i", '-', stripslashes($newname));
 		
 		# check for trailing slash
 		if (substr($path, -1) != '/') $path .= '/';
