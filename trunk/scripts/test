@@ -1,0 +1,20 @@
+<?php
+	
+	$dirname = PROJECT_ROOT.'/test/unit';
+	chdir($dirname);
+	$dir = new DirectoryIterator($dirname);
+	$out = array();
+	$plugin_inits = array();
+	foreach($dir as $file) {
+		$fname = $file->getFilename();
+		if ($fname{0} != '.') {
+			$test = pathinfo($fname, PATHINFO_FILENAME);
+			$cmd = "/usr/local/php5/bin/phpunit '$test'";
+			$out = shell_exec($cmd);
+			echo "$cmd\n$out\n";
+		}
+	}
+
+
+?>
+
