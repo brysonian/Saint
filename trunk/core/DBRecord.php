@@ -6,7 +6,6 @@ class DBRecord implements Iterator, Serviceable, Countable
 	protected $data = array();
 	
 	public $id;
-	public $uid;
 	
 	protected $table;
 	protected $db;
@@ -76,22 +75,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$this->id = $anId; 
 	}
 
-	// for uid
-	public function get_uid()		{ return isset($this->uid)?$this->uid:false; }
-	public function set_uid($aUid)	{
-		if (!DBRecord::is_valid_uid($aUid) && $aUid !== false) throw new InvalidUid("$aUid is not a valid uid.");
-		$this->uid = $aUid; 
-	}
-
 	public function get_fields()		{ return $this->fields; }
 
-	
-	# test if a string is a valid uid
-	public static function is_valid_uid($val) {
-		if (!is_string($val)) return false;
-		return (strlen($val) == 32) && (preg_match('|[^0-9a-z]|', $val) == 0);
-	}
-	
 	// db
 	public function db() {
 		if (!$this->db) 
@@ -109,16 +94,15 @@ class DBRecord implements Iterator, Serviceable, Countable
 		# see if there is anything in data
 		$v = join('', $this->data);
 		$v = empty($v);
-		if ($idcheck) $v &= (!$this->get_uid() && !$this->get_id());
+		if ($idcheck) $v &= !$this->get_id();
 		return $v;
 	}
 	
 	// get
 	public function get($prop) { return $this->__get($prop); }	
 	public function __get($prop) {
-		# allow id and uid
+		# allow id
 		if ($prop == 'id') return $this->get_id();
-		if ($prop == 'uid') return $this->get_uid();
 
 		# first check in data
 		if (isset($this->data[$prop])) {
@@ -134,9 +118,9 @@ class DBRecord implements Iterator, Serviceable, Countable
 				$this->to_one_obj[$prop]->include = $this->include;
 				$this->to_one_obj[$prop]->load();
 				return $this->getters($prop, $this->to_one_obj[$prop]);
-			} else if (array_key_exists($prop.'_uid', $this->data) && !empty($this->data[$prop.'_uid'])) {
+			} else if (array_key_exists($prop.'_id', $this->data) && !empty($this->data[$prop.'_id'])) {
 				$this->to_one_obj[$prop] = new $this->to_one[$prop]['class'];
-				$this->to_one_obj[$prop]->set_uid($this->data[$prop.'_uid']);
+				$this->to_one_obj[$prop]->set_id($this->data[$prop.'_id']);
 				$this->to_one_obj[$prop]->include = $this->include;
 				$this->to_one_obj[$prop]->load();
 				return $this->getters($prop, $this->to_one_obj[$prop]);
@@ -164,19 +148,19 @@ class DBRecord implements Iterator, Serviceable, Countable
 					$other_table = $this->habtm[$prop]['other_table'];
 					$table = $this->habtm[$prop]['table'];
 					$props = DBRecord::find_sql(
-						"SELECT * from `$other_table` LEFT JOIN `$table` ON `$table`.{$other_table}_uid=`$other_table`.uid WHERE `$table`.".$this->get_table()."_uid = '".$this->get_uid()."'",
+						"SELECT * from `$other_table` LEFT JOIN `$table` ON `$table`.{$other_table}_id=`$other_table`.id WHERE `$table`.".$this->get_table()."_id = '".$this->get_id()."'",
 						array('class'=>$this->habtm[$prop]['class'], 'include'=>$this->include)						
 					);						
 				} else {
-					$props = DBRecord::find_by($this->get_table().'_uid', $this->get_uid(), array('class'=>$this->to_many[$prop]['class'], 'include'=>$this->include));
+					$props = DBRecord::find_by($this->get_table().'_id', $this->get_id(), array('class'=>$this->to_many[$prop]['class'], 'include'=>$this->include));
 				}
 				
-				# tmobj is indexed by uid, until tmcollection
+				# tmobj is indexed by id, until tmcollection
 				// TODO: another point for a to-many collection
 				$a = $props->to_a(false);
 				$this->to_many_obj[$prop] = array();
 				foreach($a as $k => $v) {
-					$this->to_many_obj[$prop][$v->get_uid()] = $v;
+					$this->to_many_obj[$prop][$v->get_id()] = $v;
 				}
 				return $this->getters($prop, $a);
 			}
@@ -219,17 +203,16 @@ class DBRecord implements Iterator, Serviceable, Countable
 	// set
 	public function set($prop, $val) { $this->__set($prop, $val); }
 	public function __set($prop, $val) {
-		# allow id and uid
+		# allow id
 		if ($prop == 'id') return $this->set_id($val);
-		if ($prop == 'uid') return $this->set_uid($val);
 
 		# make sure it isn't in the to-ones
 		if (is_null($val)) {
 			unset($this->data[$prop]);
 
 		} else if ($this->has_relationship($prop, 'to-one') && is_object($val)) {
-			if (!$val->get_uid()) $val->save();
-			$this->data[$prop.'_uid'] = $val->get_uid();
+			if (!$val->get_id()) $val->save();
+			$this->data[$prop.'_id'] = $val->get_id();
 			$this->modified = true;
 
 		} else {
@@ -263,8 +246,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 	// save to the db
 	public function save($force=false) {
 		if (!$this->modified && !$force) return;
-		# if no id or uid, then insert a new item, otherwise update
-		if ($this->get_id() || $this->get_uid()) {
+		# if no id, then insert a new item, otherwise update
+		if ($this->get_id()) {
 			$this->update();
 		} else {
 			$this->create();
@@ -291,13 +274,12 @@ class DBRecord implements Iterator, Serviceable, Countable
 		# generate values statement
 		$values = array();
 		$values['id'] = $this->get_id()?$this->get_id():'NULL';
-		$values['uid'] = $this->get_uid()?$this->get_uid():$this->gen_uid();
 				
 		# add each key/val to the sql
 		foreach ($this->data as $k=>$v) {
 			if (is_null($v)) {
 				$values[$k] = "NULL";
-			} else if ((strpos($k, '_uid') !== false) && empty($v)) {
+			} else if ((strpos($k, '_id') !== false) && empty($v)) {
 				$values[$k] = "NULL";
 			} else {
 				$values[$k] = $this->escape_string($v);
@@ -379,7 +361,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 			if (is_null($v)) {
 				$props[] = "$k=NULL";
 			# check of a foreign key, which needs to be NULL not ''
-			} else if ((strpos($k, '_uid') !== false) && empty($v)) {
+			} else if ((strpos($k, '_id') !== false) && empty($v)) {
 				$props[] = "$k=NULL";
 			} else {
 				$props[] = "$k='".$this->escape_string($v)."'";
@@ -403,12 +385,12 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 
 	public function delete() {
-		if (!($this->get_id() || $this->get_uid())) {
-			throw new MissingIdentifier("You must define an id or uid to delete an item.");			
+		if (!($this->get_id())) {
+			throw new MissingIdentifier("You must define an id to delete an item.");			
 		}
 			
 		$sql = "DELETE FROM `".$this->get_table()."` WHERE ";
-		$sql .= $this->get_id()?"id=".$this->get_id():"uid = '".$this->get_uid()."'";
+		$sql .= "id=".$this->get_id();
 		
 		$result = $this->db()->query($sql);
 		if (!$result) {
@@ -544,14 +526,15 @@ class DBRecord implements Iterator, Serviceable, Countable
 // ===========================================================
 // - FIND
 // ===========================================================
-	// return an a single item by uid
-	public static function find($uid, $options=array()) {
+	// return an a single item by id
+	public static function find($id, $options=array()) {
 		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
 		$m = new $class;
+		$m->set_id($id);
 		$m->set_options($options);
-		$m->set_uid($uid);
 		$m->load();
 		return $m;
+
 	}
 
 	// return an array of all objects of this type
@@ -616,15 +599,6 @@ class DBRecord implements Iterator, Serviceable, Countable
 		return $sibs;
 	}
 		
-	// find an item by id
-	public static function find_id($id, $options=array()) {
-		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
-		$m = new $class;
-		$m->set_id($id);
-		$m->set_options($options);
-		$m->load();
-		return $m;
-	}
 
 	// return an array of all objects using this query
 	public static function find_sql($sql, $options=array()) {
@@ -674,14 +648,12 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$where = $this->get_where();
 		$where .= $this->get_where()?' AND ':' ';
 		
-		# if ID, use that in where, otherwise try UID
+		# if ID, use that in where
 		# if neither one, error
 		if ($this->get_id()) {
 			$where .= '`'.$this->get_table().'`.id='.$this->get_id();
-		} else if ($this->get_uid()) {
-			$where .= '`'.$this->get_table()."`.uid='".$this->get_uid()."'";
 		} else {
-			throw new MissingIdentifier("You must define an id or uid to load an object.");
+			throw new MissingIdentifier("You must define an id to load an object.");
 		}
 
 		# set the where clause
@@ -703,7 +675,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 				} while ($row = $result->fetch_assoc());
 				$result->free();
 			} else {
-				throw new RecordNotFound('Nothing found with '.($this->get_uid()?'a uid of'.$this->get_uid():'an id of'.$this->get_id()).'.');
+				throw new RecordNotFound('Nothing found with an id of '.$this->get_id().'.');
 			}
 		}
 		$this->loaded = true;
@@ -831,21 +803,21 @@ class DBRecord implements Iterator, Serviceable, Countable
 				switch ($type) {	
 					case 'to-one':
 						$table = $this->to_one[$v]['table'];
-						$sql .= " LEFT JOIN `{$table}` ON {$table}.uid = `".$this->get_table()."`.{$table}_uid ";
+						$sql .= " LEFT JOIN `{$table}` ON {$table}.id = `".$this->get_table()."`.{$table}_id ";
 						break;
 
 					case 'habtm':
 						$table = $this->habtm[$v]['table'];
 						$other_table = $this->habtm[$v]['other_table'];
-						$sql .= " LEFT JOIN `$table` ON `".$table."`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
-						$sql .= " LEFT JOIN `".$other_table."` ON `".$table."`.".$other_table."_uid = `$other_table`.uid ";
+						$sql .= " LEFT JOIN `$table` ON `".$table."`.".$this->get_table()."_id = `".$this->get_table()."`.id ";
+						$sql .= " LEFT JOIN `".$other_table."` ON `".$table."`.".$other_table."_id = `$other_table`.id ";
 						break;
 					
 
 					# to-many
 					case 'to-many':
 						$table = $this->to_many[$v]['table'];
-						$sql .= " LEFT JOIN `$table` ON `$table`.".$this->get_table()."_uid = `".$this->get_table()."`.uid ";
+						$sql .= " LEFT JOIN `$table` ON `$table`.".$this->get_table()."_id = `".$this->get_table()."`.id ";
 						break;
 				}
 			}
@@ -891,7 +863,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 				# check to-one
 				if (is_array($this->to_one)) {
 					foreach($this->to_one as $tkey => $tname) {
-						if ((strpos($k, $tkey.'_') === 0) && array_key_exists($tkey.'_uid', $row) && !empty($row[$tkey.'_uid'])) {
+						if ((strpos($k, $tkey.'_') === 0) && array_key_exists($tkey.'_id', $row) && !empty($row[$tkey.'_id'])) {
 							$to = $tkey;
 							break;
 						}
@@ -923,8 +895,6 @@ class DBRecord implements Iterator, Serviceable, Countable
 				}
 				if ($prop == 'id') {
 					if (!empty($v)) $this->to_one_obj[$to]->set_id($v);
-				} else if ($prop == 'uid') {
-					if (!empty($v)) $this->to_one_obj[$to]->set_uid($v);
 				} else {
 					$this->to_one_obj[$to]->$prop = stripslashes($v);
 					$this->to_one_obj[$to]->modified = false;
@@ -933,12 +903,10 @@ class DBRecord implements Iterator, Serviceable, Countable
 			# to_many
 			} else if ($tm !== false) {
 
-				# skip ones without a uid
-				if (empty($row[$tm.'_uid'])) continue;
-				$tm_index = $row[$tm.'_uid'];
+				$tm_index = $row[$tm.'_id'];
 
 				# if the obj doesn't exist yet, make it
-				# objs are in the to_many_obj[name] array indexed by uid
+				# objs are in the to_many_obj[name] array indexed by id
 				if (!isset($this->to_many_obj[$tm][$tm_index])) {
 					$this->to_many_obj[$tm][$tm_index] = new $this->to_many[$tm]['class'];
 				}
@@ -948,8 +916,6 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 				if ($prop == 'id') {
 					$this->to_many_obj[$tm][$tm_index]->set_id($v);
-				} else if ($prop == 'uid') {
-					$this->to_many_obj[$tm][$tm_index]->set_uid($v);
 				} else {
 					$this->to_many_obj[$tm][$tm_index]->$prop = stripslashes($v);
 					$this->to_many_obj[$tm][$tm_index]->modified = false;
@@ -1056,36 +1022,17 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if ($this->has_relationship($table, 'habtm')) {
 			$table = $this->habtm[$table]['table'];
 			foreach($value as $k => $v) {
-				$this->exec("INSERT INTO $table (".$this->get_table()."_uid, ".$v->get_table()."_uid) VALUES('".$this->get_uid()."', '".$v->get_uid()."')");
+				$this->exec("INSERT INTO $table (".$this->get_table()."_id, ".$v->get_table()."_id) VALUES('".$this->get_id()."', '".$v->get_id()."')");
 			}
 		} else if ($this->has_relationship($table, 'to-many')) {
 			$class = $this->to_many[$table]['class'];
-			$uidprop = $this->get_table().'_uid';
-			$uid = $this->get_uid();
+			$idprop = $this->get_table().'_id';
+			$id = $this->get_id();
 			foreach($value as $k => $v) {
-				$v->$uidprop = $uid;
+				$v->$idprop = $id;
 				$v->save();
 			}
 		}
-	}
-
-
-// ===========================================================
-// - UTILITIES
-// ===========================================================
-	// initalize UID
-	function gen_uid() {
-		// make sure this UID isn't taken already
-		do {
-			$uid = md5(uniqid(rand(), true));
-			$sql = "SELECT uid from `".$this->get_table()."` WHERE uid='$uid'";
-			$result = $this->db()->query($sql);
-
-			# if nothing is found, break the loop
-			if (count($result) == 0) break;
-		} while(true);
-		$this->set_uid($uid);
-		return $this->get_uid();
 	}
 
 // ===========================================================
@@ -1192,9 +1139,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$root = $dom->createElement($this->get_table());
 		$root = $dom->appendChild($root);
 		
-		# add id and uid
+		# add id
 		if ($this->get_id()) $root->setAttribute('id', $this->get_id());
-		if ($this->get_uid()) $root->setAttribute('uid', $this->get_uid());
 
 		# add node for each prop
 		foreach ($this->data as $k=>$v) {
@@ -1250,9 +1196,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 		$out = array();
 
-		# add id and uid
+		# add id
 		$out['id'] = $this->get_id();
-		$out['uid'] = $this->get_uid();
 		
 		# add each prop
 		foreach ($this->data as $k=>$v) {
@@ -1292,9 +1237,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 		$out = array();
 
-		# add id and uid
+		# add id
 		$out[] = 'id: "'.$this->get_id().'"';
-		$out[] = 'uid: "'.$this->get_uid().'"';
 		
 		# add each prop
 		foreach ($this->data as $k=>$v) {
@@ -1330,7 +1274,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if ($this->title) return $this->title;
 		if ($this->name) return $this->name;
 		if ($this->label) return $this->label;
-		if ($this->get_uid()) return $this->get_uid();
+		if ($this->get_id()) return $this->get_id();
 		
 		# if there isn't any data for this object, return an empty string
 		if (empty($this->fields)) return '';
@@ -1347,7 +1291,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		return array(
 			'controller' => to_url_name(get_class($this)),
 			'action' => 'show',
-			'uid' => $this->get_uid()
+			'id' => $this->get_id()
 		);
 	}
 }
@@ -1356,8 +1300,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 // - SOME THINGS NEED TO BE EASIER TO GET TO
 // ===========================================================
 // TODO: reinstate this!
-function is_uid($val=false) {
-	if (!DBRecord::is_valid_uid($val)) return false;
+function is_id($val=false) {
+	if (!DBRecord::is_valid_id($val)) return false;
 	return true;
 }
 
@@ -1367,7 +1311,6 @@ function is_uid($val=false) {
 // - EXCEPTIONS
 // ===========================================================
 class InvalidId extends SaintException {}
-class InvalidUid extends SaintException {}
 class MissingIdentifier extends SaintException {}
 class RecordNotFound extends SaintException {}
 class AmbiguousClass extends SaintException {}

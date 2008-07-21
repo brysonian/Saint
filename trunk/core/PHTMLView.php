@@ -179,7 +179,7 @@ function select($obj, $name, $prop, $collection, $key=false, $value=false, $opti
 	$default = false;
 	if ($obj) {
 		if (is_object($obj)) {
-			$p = (strpos($prop, '_uid') > 0)?str_replace('_uid','',$prop):$prop;
+			$p = (strpos($prop, '_id') > 0)?str_replace('_id','',$prop):$prop;
 			if ($obj->$p) $default = $obj->$p;
 		} else {
 			if ($obj[$p]) $default = $obj[$p];
@@ -190,7 +190,7 @@ function select($obj, $name, $prop, $collection, $key=false, $value=false, $opti
 		$default = $options['default'];
 	}
 	
-	if (is_object($default)) $default = $default->get_uid();
+	if (is_object($default)) $default = $default->get_id();
 
 	# add blank
 	if (array_key_exists('include_blank', $options)) {

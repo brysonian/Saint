@@ -273,7 +273,7 @@ function link_to($name, $args=false, $confirm=false, $options=array()) {
 
 // construct a url using the maps
 # call using either an array, or in this order:
-# controller, action, uid, params
+# controller, action, id, params
 
 function url_for($args=false) {
 	if (is_object($args)) {
@@ -312,7 +312,7 @@ function url_for($args=false) {
 		unset($args[1]);
 	}
 	if (array_key_exists(2, $args)) {
-		$args['uid']				= $args[2];
+		$args['id']				= $args[2];
 		unset($args[2]);
 	}
 	if (array_key_exists(3, $args)) {

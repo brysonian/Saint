@@ -117,11 +117,9 @@
 		
 		$sql = "CREATE TABLE ".strtolower($cname)." (
 	id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-	uid CHAR(32) NOT NULL,
 	
 
 	PRIMARY KEY  (id),
-	INDEX (uid)
 ) ENGINE=INNODB;
 ";
 		write_script('db', strtolower($cname), $sql, 'sql');
@@ -207,12 +205,11 @@
 			
 			switch (true) {
 				case ($field == 'id'):
-				case ($field == 'uid'):
 					break;
 				
 				# fk relationships
-				case (strpos($field, '_uid') !== false):
-					$field_name = str_replace('_uid','',$field);
+				case (strpos($field, '_id') !== false):
+					$field_name = str_replace('_id','',$field);
 					echo str_replace(
 						array(':field', ':Field', ':Object', ':object'), 
 						array($field, ucwords(to_human_name($field_name)), to_class_name($field_name), to_url_name($name)),

@@ -12,8 +12,8 @@ class :ControllerController extends AppController
 	}
 
 	public function show() {
-		if (!params('uid')) redirect_to();
-		$this->:object = :Object::find(params('uid'));
+		if (!params('id')) redirect_to();
+		$this->:object = :Object::find(params('id'));
 	}
 
 	public function add() {
@@ -33,26 +33,26 @@ class :ControllerController extends AppController
 	}
 
 	public function edit() {
-		if (!params('uid')) redirect_to();
-		$this->:object = :Object::find(params('uid'));
+		if (!params('id')) redirect_to();
+		$this->:object = :Object::find(params('id'));
 	}
 	
 	public function update() {
-		if (!params(':object')) redirect_to(array('controller' => params('controller'), 'action' => 'edit', 'uid' => params('uid')));
-		if (!params('uid')) redirect_to();
-		$this->:object = :Object::find(params('uid'));
+		if (!params(':object')) redirect_to(array('controller' => params('controller'), 'action' => 'edit', 'id' => params('id')));
+		if (!params('id')) redirect_to();
+		$this->:object = :Object::find(params('id'));
 
 		try {
 			$this->:object->update(params(':object'));
-			redirect_to(array('action' => 'show', 'uid' => $this->:object->get_uid()));
+			redirect_to(array('action' => 'show', 'id' => $this->:object->get_id()));
 		} catch (ValidationFailure $e) {
 			$this->render_view('edit');
 		}
 	}
 	
 	public function delete() {
-		if (!params('uid')) redirect_to();
-		$:object = :Object::find(params('uid'));
+		if (!params('id')) redirect_to();
+		$:object = :Object::find(params('id'));
 		$:object->delete();
 		redirect_to();
 	}
