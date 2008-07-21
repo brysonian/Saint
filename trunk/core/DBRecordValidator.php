@@ -15,6 +15,8 @@ class DBRecordValidator {
 
 	protected $validate_presence_of			= array();
 	protected $validate_numericality_of	= array();
+	protected $validate_truth_of				= array();
+	protected $validate_falsity_of			= array();
 	protected $validate_date_of					= array();
 	protected $validate_uniqueness_of		= array();
 	protected $validate_format_of				= array();
@@ -65,6 +67,15 @@ class DBRecordValidator {
 		# numericality
 		foreach($this->validate_numericality_of as $prop => $msg) {
 			$noErr = $this->test_numericality_of($prop, $msg);
+		}
+
+		# truth
+		foreach($this->validate_truth_of as $prop => $msg) {
+			$noErr = $this->test_truth_of($prop, $msg);
+		}
+
+		foreach($this->validate_falsity_of as $prop => $msg) {
+			$noErr = $this->test_falsity_of($prop, $msg);
 		}
 
 		# date
@@ -153,6 +164,39 @@ class DBRecordValidator {
 			return true;
 
 		$this->add_error($prop, $msg, VALIDATION_NUMERIC);
+		return false;
+	}
+	
+
+// ===========================================================
+// - TRUTH
+// ===========================================================
+	public function validates_truth_of($args) {
+		if (!is_array($args) && $args !== false) $args = func_get_args();
+		$this->validates_x_of($this->validate_truth_of, $args, VALIDATION_TRUTH);
+	}
+	
+	protected function test_truth_of($prop, $msg) {
+		if (array_key_exists($prop, $this->data) && is_numeric($this->data[$prop]) && $this->data[$prop] == 1)
+			return true;
+
+		$this->add_error($prop, $msg, VALIDATION_TRUTH);
+		return false;
+	}
+
+	
+	public function validates_falsity_of($args) {
+		if (!is_array($args) && $args !== false) $args = func_get_args();
+		$this->validates_x_of($this->validate_falsity_of, $args, VALIDATION_FALSITY);
+	}
+	
+	protected function test_falsity_of($prop, $msg) {
+		if (!array_key_exists($prop, $this->data)) return true;
+
+		if (is_numeric($this->data[$prop]) && $this->data[$prop] == 0)
+			return true;
+
+		$this->add_error($prop, $msg, VALIDATION_FALSITY);
 		return false;
 	}
 	

@@ -21,6 +21,8 @@ $SAINT_ERROR_MESSAGES[VALIDATION_FORMAT]	= ':property is invalid.';
 $SAINT_ERROR_MESSAGES[VALIDATION_EMAIL]		= ':property must be a valid email address.';
 $SAINT_ERROR_MESSAGES[VALIDATION_URL]			= ':property must be a a valid web address.';
 $SAINT_ERROR_MESSAGES[VALIDATION_CURSE]		= ':property cannot contain curse words.';
+$SAINT_ERROR_MESSAGES[VALIDATION_FALSITY] = ':property must be false.';
+$SAINT_ERROR_MESSAGES[VALIDATION_TRUTH] 	= ':property must be true.';
 
 
 

@@ -469,7 +469,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		return false;
 	}
 
-	protected function add_error($name, $message, $code=0) {
+	public function add_error($name, $message, $code=0) {
 		if (!$this->validator) $this->validator = new DBRecordValidator($this);
 		return $this->validator->add_error($name, $message, $code);
 	}
@@ -1274,7 +1274,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if ($this->title) return $this->title;
 		if ($this->name) return $this->name;
 		if ($this->label) return $this->label;
-		if ($this->get_id()) return $this->get_id();
+		if ($this->get_id()) return ''.$this->get_id();
 		
 		# if there isn't any data for this object, return an empty string
 		if (empty($this->fields)) return '';
@@ -1336,6 +1336,8 @@ define('VALIDATION_FORMAT',			2005);
 define('VALIDATION_EMAIL',			2006);
 define('VALIDATION_CURSE',			2007);
 define('VALIDATION_URL',				2008);
+define('VALIDATION_FALSITY',		2009);
+define('VALIDATION_TRUTH',			2010);
 
 
 

@@ -294,6 +294,10 @@ function file_upload($obj, $name, $prop, $preview=false) {
 }
 
 
+function date_select($obj, $name, $prop) {
+	return date_field($obj, $name, $prop);
+}
+
 
 function date_field($obj, $name, $prop) {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
@@ -324,12 +328,26 @@ function time_field($obj, $name, $prop) {
 
 function checkbox($obj, $name, $prop, $value=1) {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
-	$out = "<input type='checkbox' value='$value' id='{$name}_{$prop}_box'";
+	$out = "<input type='checkbox' value='$value' id='{$name}_{$prop}_box' name='{$name}[{$prop}]'";
 	if ($value == $v)	$out .= " checked='checked' ";
-	$out .= " onclick='document.getElementById(\"{$name}_$prop\").value = this.checked?this.value:0;' />";
-	$out .= "<input type='hidden' id='{$name}_$prop' name='{$name}[{$prop}]' value='".(($value == $v)?$value:0)."' />\n";
+	$out .= " />";
+#	$out .= " onclick='document.getElementById(\"{$name}_$prop\").value = this.checked?this.value:0;' />";
+#	$out .= "<input type='hidden' id='{$name}_$prop' name='{$name}[{$prop}]' value='".(($value == $v)?$value:0)."' />\n";
 	return $out;
 }
+
+function radio($obj, $name, $prop, $values) {
+	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
+	if (empty($v)) $v = $values[0];
+	$out = "";
+	foreach($values as $k => $value) {
+		$out .= "<input type='radio' value='$value' id='{$name}_{$prop}' name='{$name}[{$prop}]'";
+		if ($value == $v)	$out .= " checked='checked' ";
+		$out .= " /> $value<br />";
+	}
+	return $out;
+}
+
 
 function hidden_field($obj, $name, $prop, $v=false) {
 	if ($v == false) $v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
