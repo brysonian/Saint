@@ -119,7 +119,7 @@
 	id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 	
 
-	PRIMARY KEY  (id),
+	PRIMARY KEY  (id)
 ) ENGINE=INNODB;
 ";
 		write_script('db', strtolower($cname), $sql, 'sql');
@@ -197,7 +197,7 @@
 
 		# get the html for each element
 		ob_start();
-		echo '<'.'?'.'php'." echo \$form"."->errors(); ?".'>'."\n<ul>\n";
+		echo '<'.'?'.'php'." echo \$this->form"."->errors(); ?".'>'."\n<ul>\n";
 
 		foreach($info as $k => $v) {
 			$type = $v['Type'];
