@@ -446,11 +446,12 @@ function to_table_name($class) {
 // make a classname or tablename into a human friendly name
 function to_human_name($str, $is_class=false) {
 	# best bet is to see if it has a cap, if so it's a classname
+	$out = $str;
 	if ((preg_match('|[A\-Z]|', $str) == 0) || $is_class) {
-		return preg_replace('/([a-zA-Z])([A-Z])/', '\\1 \\2', $str);
-	} else {
-		return str_replace('-', ' ', $str);
+		$out = preg_replace('/([a-zA-Z])([A-Z])/', '\\1 \\2', $str);
 	}
+	$out = str_replace('_', ' ', str_replace('-', ' ', $str));
+	return $out;
 }
 
 
