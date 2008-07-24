@@ -146,8 +146,9 @@ function content_image_tag($file, $options=array()) {
 function text_field($obj, $name, $prop, $size=40, $maxlength=100) {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
 	# try to determine if the value should be in ' or " since escaping doesn't seem to work.
-	$v = (substr_count($v, "'") > substr_count($v, '"'))?'"'.$v.'"':"'".$v."'";
-	return "<input type='text' name='{$name}[{$prop}]' value=$v id='{$name}_$prop' size='$size' maxlength='$maxlength' />\n";
+	#$v = (substr_count($v, "'") > substr_count($v, '"'))?'"'.$v.'"':"'".$v."'";
+	$v = htmlspecialchars($v);
+	return "<input type=\"text\" name=\"{$name}[{$prop}]\" value=\"$v\" id=\"{$name}_$prop\" size=\"$size\" maxlength=\"$maxlength\" />\n";
 }
 
 function text_area($obj, $name, $prop, $size=2000) {
@@ -262,7 +263,8 @@ function select($obj, $name, $prop, $collection, $key=false, $value=false, $opti
 }
 
 function file_select($obj, $name, $prop, $dir, $options=array(), $abs=false) {
-	if (!$abs) $dir = $_SERVER['DOCUMENT_ROOT'].$dir;
+	#if (!$abs) $dir = $_SERVER['DOCUMENT_ROOT'].$dir;
+	if (!file_exists($dir)) $dir = $_SERVER['DOCUMENT_ROOT'].$dir;
 	$dir = new DirectoryIterator($dir);
 	$out = array();
 	foreach($dir as $file) {
@@ -272,11 +274,10 @@ function file_select($obj, $name, $prop, $dir, $options=array(), $abs=false) {
 			$out[] = array('pathname' => $pn, 'path' => $file->getPath(), 'filename' => $file->getFilename());
 		}
 	}
+	$upload = false;
 	if (array_key_exists('upload',$options)) {
 		$upload = $options['upload'];
 		unset($options['upload']);
-	} else {
-		false;
 	}
 	$out = select($obj, $name, $prop, $out, 'pathname', 'filename', $options);
 	

@@ -1090,6 +1090,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 // ===========================================================
 	function escape_string($v) {
 		if (is_numeric($v)) return $v;
+		if (!is_string($v)) return $v;
 		return $this->db()->escape_string($this->utf8_to_entities($v));
 	}
 
