@@ -173,6 +173,7 @@ abstract class AbstractView
 
 
 	// TODO: FINISH THE COMPONENTS
+	/*
 	function render_component($controller, $action=false, $object=false, $collect=false) {
 		#if the controller is an array, use it and ignore the rest
 		if (is_array($controller)) {
@@ -201,7 +202,7 @@ abstract class AbstractView
 		$theController = new $conname;
 
 		# set the method name
-		$theMethod = '_'.$action;
+		$theMethod = $action;
 		
 		# see if there is a method with this name, if not just use the template
 		$me = method_exists($theController, $theMethod);
@@ -235,6 +236,6 @@ abstract class AbstractView
 				echo $view->parse_partial($controller, $object);				
 			}
 		}
-	}
+	}*/
 
 ?>
