@@ -976,7 +976,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	function has_many($class, $options=false) {
 		# parse options
 		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:to_table_name($class);
-		$propname = (is_array($options) && array_key_exists("propname", $options))?($options['propname']):(is_string($options)?$options:to_url_name($class));
+		$propname = (is_array($options) && array_key_exists("propname", $options))?($options['propname']):(is_string($options)?$options:to_table_name($class));
 
 		# if to_many are empty make an array
 		if (empty($this->to_many)) {
@@ -994,7 +994,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	function has_and_belongs_to_many($class, $options=false) {
 		$table = (is_array($options) && array_key_exists("table", $options))?$options['table']:false;
 		$other_table = (is_array($options) && array_key_exists("other_table", $options))?$options['other_table']:to_table_name($class);
-		$propname = (is_array($options) && array_key_exists("propname", $options))?($options['propname']):(is_string($options)?$options:to_url_name($class));
+		$propname = (is_array($options) && array_key_exists("propname", $options))?($options['propname']):(is_string($options)?$options:to_table_name($class));
 
 		# if no table, try to get the tablename
 		if ($table == false) {

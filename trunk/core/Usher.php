@@ -436,7 +436,7 @@ function to_var_name($class) {
 
 // parse a classname into a tablename
 function to_url_name($class) { 
-	return strtolower(preg_replace('/([a-zA-Z])([A-Z])/', '\\1-\\2', $class));
+	return preg_replace('/[^a-zA-Z0-9\-]/', '-', strtolower(preg_replace('/([a-zA-Z])([A-Z])/', '\\1-\\2', $class)));
 }
 
 function to_table_name($class) {
