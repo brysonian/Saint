@@ -206,6 +206,11 @@ function get_root() {
 	return $u->get_base();
 }
 
+function get_absolute_root() {
+	$u = Usher::get_instance();
+	return WEBBASE.$u->get_base();
+}
+
 function link_to($name, $url='', $confirm=false, $options=array()) {
 	if (!is_array($options)) $options = array();
 	
