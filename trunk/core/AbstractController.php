@@ -30,7 +30,7 @@ abstract class AbstractController
 // ===========================================================
 	function __construct() {		
 		# set the template base
-		$this->set_template_base(to_url_name(str_replace('Controller', '', get_class($this))));
+		$this->set_template_base(url_name(str_replace('Controller', '', get_class($this))));
 		$this->_data = array();
 		
 		# call controller's init method
@@ -144,7 +144,7 @@ abstract class AbstractController
 			$output = $view->parse($this->get_layout());
 			$this->save_cache($_SERVER['PHP_SELF'], $output);
 		}
-		$view->render(to_url_name(str_replace('Controller', '', get_class($this))), $this->get_layout());
+		$view->render(url_name(str_replace('Controller', '', get_class($this))), $this->get_layout());
 	}
 
 	function render_action($action) {

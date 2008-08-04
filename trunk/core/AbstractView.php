@@ -198,7 +198,7 @@ abstract class AbstractView
 		}
 
 		# make an instance of the controller class
-		$conname = to_class_name($controller).'Controller';
+		$conname = class_name($controller).'Controller';
 		$theController = new $conname;
 
 		# set the method name

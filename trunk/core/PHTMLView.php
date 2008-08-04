@@ -116,7 +116,7 @@ function image_tag($file, $options=array()) {
 
 	if (array_key_exists("alt", $options) && ($options['alt'] === false)) {
 		$pi = pathinfo($file);
-		$options['alt'] = to_human_name(str_replace('.'.$pi['extension'], '', $pi['basename']));
+		$options['alt'] = human_name(str_replace('.'.$pi['extension'], '', $pi['basename']));
 	}
 
 	if (!array_key_exists("alt", $options)) $out .= ' alt=""';
