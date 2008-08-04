@@ -491,7 +491,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 // - PHP is retarded
 // ===========================================================
 // this is one way to find the class name
-	static function get_class_from_backtrace() {
+	static function get_class_name() {
 		$db = debug_backtrace();
 		# if the last item is a call_user_func call, then this is easy
 		if ($db[2]['function'] == 'call_user_func') {
@@ -528,7 +528,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 // ===========================================================
 	// return an a single item by id
 	public static function find($id, $options=array()) {
-		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_name();
 		$m = new $class;
 		$m->set_id($id);
 		$m->set_options($options);
@@ -539,7 +539,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 	// return an array of all objects of this type
 	public static function find_all($options=array()) {
-		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_name();
 		$m = new $class;
 		$m->set_options($options);
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
@@ -548,7 +548,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	
 	// return an array of all objects using this where clause
 	public static function find_where($where, $options=array()) {
-		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_name();
 		$m = new $class;
 		$m->set_options($options);
 		$m->set_where($where);
@@ -558,7 +558,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	
 	// handy shortcut to find_where for use on a specific field
 	public static function find_by($field, $value, $options=array()) {
-		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_name();
 		$m = new $class;
 		$m->set_options($options);
 		
@@ -571,7 +571,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 	// handy shortcut to find_where for use on a specific field
 	public static function find_like_by($field, $value, $options=array()) {
-		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_name();
 		$m = new $class;
 		$m->set_options($options);
 		
@@ -585,7 +585,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 	// handy shortcut to find_where for use on all searchable fields
 	public static function find_by_all($value, $options=array()) {
-		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_name();
 		$m = new $class;
 		$m->set_options($options);
 		$o = $m->table_info();
@@ -602,7 +602,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 	// return an array of all objects using this query
 	public static function find_sql($sql, $options=array()) {
-		$class = array_key_exists("class", $options)?$options['class']:self::get_class_from_backtrace();
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_name();
 		$m = new $class;
 		$m->set_options($options);
 		$sibs = new DBRecordCollection($m, $sql, $m->db());
