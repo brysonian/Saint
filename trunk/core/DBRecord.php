@@ -203,6 +203,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	// set
 	public function set($prop, $val) { $this->__set($prop, $val); }
 	public function __set($prop, $val) {
+
 		# allow id
 		if ($prop == 'id') return $this->set_id($val);
 
@@ -316,7 +317,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		foreach($args as $k => $v) {
 			$this->$k = $v;
 		}
-		
+
 		# validate the data
 		$this->validate_builtins();
 		$validates = $this->validate();
@@ -331,8 +332,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$rel = false;
 		foreach ($this->data as $k=>$v) {
 			# see if there is a t-o or t-m
-			if (strpos($k, '_') !== false) {
-
+			if (strpos($k, '_') !== false && strpos($k, '_id') === false) {
 				# check to-one
 				if (is_array($this->to_one)) {
 					foreach($this->to_one as $tkey => $tname) {
