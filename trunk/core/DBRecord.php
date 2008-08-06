@@ -543,6 +543,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$m = new $class;
 		$m->set_options($options);
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
+		if (is_array($options) && array_key_exists('first', $options)) return $sibs->first();
 		return $sibs;
 	}
 	
@@ -553,6 +554,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$m->set_options($options);
 		$m->set_where($where);
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
+		if (is_array($options) && array_key_exists('first', $options)) return $sibs->first();
 		return $sibs;
 	}
 	
@@ -566,6 +568,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if (strpos($field, '.') === false) $field = '`'.$m->get_table()."`.$field";		
 		$m->set_where("$field = '".$m->escape_string($value)."'");
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
+		if (is_array($options) && array_key_exists('first', $options)) return $sibs->first();
 		return $sibs;
 	}
 
@@ -580,6 +583,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$m->set_where("$field LIKE '".$m->escape_string($value)."'");
 
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
+		if (is_array($options) && array_key_exists('first', $options)) return $sibs->first();
 		return $sibs;
 	}
 
@@ -596,6 +600,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		}
 		$m->set_where(join(' OR ', $sql));
 		$sibs = new DBRecordCollection($m, $m->get_query(), $m->db());
+		if (is_array($options) && array_key_exists('first', $options)) return $sibs->first();
 		return $sibs;
 	}
 		
@@ -606,12 +611,14 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$m = new $class;
 		$m->set_options($options);
 		$sibs = new DBRecordCollection($m, $sql, $m->db());
+		if (is_array($options) && array_key_exists('first', $options)) return $sibs->first();
 		return $sibs;
 	}
 
 
 	// sets query options on an object based on options array
 	public function set_options($options=array()) {
+		if (is_array($options) && array_key_exists('first', $options)) $this->set_limit('1');
 		if (is_array($options) && array_key_exists('order', $options)) $this->set_order($options['order']);
 		if (is_array($options) && array_key_exists('group', $options)) $this->set_group($options['group']);
 		if (is_array($options) && array_key_exists('limit', $options)) $this->set_limit($options['limit']);
