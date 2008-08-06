@@ -38,13 +38,13 @@ class :ControllerController extends AppController
 	}
 	
 	public function update() {
-		if (!params(':object')) redirect_to(array('controller' => params('controller'), 'action' => 'edit', 'id' => params('id')));
+		if (!params(':object')) redirect_to('/:object/edit/'.params('id'));
 		if (!params('id')) redirect_to();
 		$this->:object = :Object::find(params('id'));
 
 		try {
 			$this->:object->update(params(':object'));
-			redirect_to(array('action' => 'show', 'id' => $this->:object->get_id()));
+			redirect_to('/:object/show'.$this->:object->get_id());
 		} catch (ValidationFailure $e) {
 			$this->render_view('edit');
 		}
