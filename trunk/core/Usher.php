@@ -75,7 +75,8 @@ class Usher
 		if (!$params) throw new NoValidMapping("No mapping was found for &quot;$url&quot;.");
 
 		# add request to params and make sure magic quotes are dealt with
-		unset($_REQUEST['MAX_FILE_SIZE']);
+		unset($_POST['MAX_FILE_SIZE']);
+		unset($_GET['MAX_FILE_SIZE']);
 		foreach($_POST as $k => $v) {
 			if (!array_key_exists($k, $params)) {
 				$gpc = (get_magic_quotes_gpc() == 1);
