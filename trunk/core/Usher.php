@@ -157,11 +157,10 @@ class Usher
 	/**
 	* Return a value for a param
 	*/
-	static function get_param($p=false) {
-		if ($p === false) return is_null(self::$params)?self::$params:new Params(self::$params);
+	static function get_param($p=false, $raw=false) {
+		if ($p === false) return (is_null(self::$params) || $raw)?self::$params:new Params(self::$params);
 		if (is_array(self::$params) && array_key_exists($p, self::$params)) {
-			#return self::$params[$p];
-			return is_array(self::$params[$p])?new Params(self::$params[$p]):self::$params[$p];
+			return (is_array(self::$params[$p]) && !$raw)?new Params(self::$params[$p]):self::$params[$p];
 		} else {
 			return false;
 		}
@@ -197,8 +196,8 @@ class Usher
 // ===========================================================
 // - SOME THINGS NEED TO BE EASIER TO GET TO
 // ===========================================================
-function params($name=false) {
-	return Usher::get_param($name);
+function params($name=false, $raw=false) {
+	return Usher::get_param($name, $raw);
 }
 
 // URL STUFF
@@ -627,7 +626,7 @@ class Params implements ArrayAccess
 {
 	function __construct($params) {
 		foreach($params as $k => $v) {
-			if (is_array($v)) {
+			if (is_array($v) && !is_numeric($k)) {
 				$this->$k = new Params($v);
 			} else {
 				$this->$k = $v;
