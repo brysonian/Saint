@@ -145,7 +145,7 @@ abstract class AbstractView
 			$objectname = substr($action, $slashloc+1);
 			$template = substr($action, 0, $slashloc).'/_'.$objectname;
 		} else {
-			$template = strtolower($controller).'/_'.$action;
+			$template = url_name($controller).'/_'.$action;
 			$objectname = $action;
 		}
 
