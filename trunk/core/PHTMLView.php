@@ -219,7 +219,7 @@ function select($obj, $name, $prop, $collection, $key=false, $value=false, $opti
 		}
 	}
 	
-	foreach($collection as $item) {
+	foreach($collection as $item_key => $item) {
 		if (is_object($item)) {
 			$v = ((!$value)?$item->__toString():$item->$value);
 		} else if (is_array($item)) {
@@ -229,6 +229,8 @@ function select($obj, $name, $prop, $collection, $key=false, $value=false, $opti
 		}
 		if ($key === false) {
 			$k = $v;
+		} else if ($key === 'index') {
+				$k = $item_key;
 		} else {
 			$k = is_object($item)?$item->$key:$item[$key];
 		}
