@@ -28,7 +28,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	protected $included = array();
 
 	protected $loaded = false;
-	protected $modified = false;
+	protected $modified = true;
 
 	protected $validator = array();
 #	protected $acts_as;
