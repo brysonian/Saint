@@ -44,7 +44,7 @@ class :ControllerController extends AppController
 
 		try {
 			$this->:object->update(params(':object'));
-			redirect_to('/:object/show'.$this->:object->get_id());
+			redirect_to('/:object/show/'.$this->:object->get_id());
 		} catch (ValidationFailure $e) {
 			$this->render_view('edit');
 		}
