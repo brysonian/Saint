@@ -4,6 +4,6 @@
 			
 			<div id="footer">
 				:php_echo submit_to('Edit');:php_close
-				:php_echo button_to('Cancel', '/'.params('controller').'/show/'.$this->:object->id);:php_close
+				:php_echo button_to('Cancel', '/:object/show/'.$this->:object->id);:php_close
 			</div>
 		</form>
