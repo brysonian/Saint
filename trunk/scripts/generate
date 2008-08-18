@@ -122,7 +122,7 @@
 	PRIMARY KEY  (id)
 ) ENGINE=INNODB;
 ";
-		write_script('db', strtolower($cname), $sql, 'sql');
+		write_script('db', table_name($cname), $sql, 'sql');
 	}
 
 	function create_controller($name, $scafolding=false) {
