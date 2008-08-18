@@ -70,7 +70,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 // ===========================================================
 	// for id
 	public function get_id()		{ return isset($this->id)?$this->id:false; }
-	public function set_id($anId)	{ 
+	public function set_id($anId)	{
 		if (!is_numeric($anId)  && $anId !== false) throw new InvalidId("$anId is not a valid id.");
 		$this->id = $anId; 
 	}
@@ -909,23 +909,25 @@ class DBRecord implements Iterator, Serviceable, Countable
 	
 			# to_many
 			} else if ($tm !== false) {
+				if (!is_null($v)) {
 
-				$tm_index = $row[$tm.'_id'];
+					$tm_index = $row[$tm.'_id'];
 
-				# if the obj doesn't exist yet, make it
-				# objs are in the to_many_obj[name] array indexed by id
-				if (!isset($this->to_many_obj[$tm][$tm_index])) {
-					$this->to_many_obj[$tm][$tm_index] = new $this->to_many[$tm]['class'];
-				}
+					# if the obj doesn't exist yet, make it
+					# objs are in the to_many_obj[name] array indexed by id
+					if (!isset($this->to_many_obj[$tm][$tm_index])) {
+						$this->to_many_obj[$tm][$tm_index] = new $this->to_many[$tm]['class'];
+					}
 				
-				# remove the prefix from the prop names
-				$prop = str_replace($tm.'_', '', $k);
-
-				if ($prop == 'id') {
-					$this->to_many_obj[$tm][$tm_index]->set_id($v);
-				} else {
-					$this->to_many_obj[$tm][$tm_index]->$prop = stripslashes($v);
-					$this->to_many_obj[$tm][$tm_index]->modified = false;
+					# remove the prefix from the prop names
+					$prop = str_replace($tm.'_', '', $k);
+				
+					if ($prop == 'id') {
+						$this->to_many_obj[$tm][$tm_index]->set_id($v);
+					} else {
+						$this->to_many_obj[$tm][$tm_index]->$prop = stripslashes($v);
+						$this->to_many_obj[$tm][$tm_index]->modified = false;
+					}
 				}
 			# normal
 			} else {
