@@ -115,7 +115,7 @@
 		echo "\tcreate model\n";
 		write_script('app/models', $cname, $code);
 		
-		$sql = "CREATE TABLE ".strtolower($cname)." (
+		$sql = "CREATE TABLE ".table_name($cname)." (
 	id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 	
 
