@@ -1012,13 +1012,14 @@ class DBRecord implements Iterator, Serviceable, Countable
 				$this->get_table()
 			);
 			sort($tables);
+			$table = $tables[0].'_'.$tables[1];
 		}
 
 		if (empty($this->habtm)) $this->habtm = array();
-		$this->habtm[$propname] = array('table'=>$tables[0].'_'.$tables[1], 'class'=>$class, 'other_table'=>$other_table);
+		$this->habtm[$propname] = array('table'=>$table, 'class'=>$class, 'other_table'=>$other_table);
 
 		if (!is_array($options)) $options = array();
-		$options['table'] = $tables[0].'_'.$tables[1];
+		$options['table'] = $table;
 		$options['propname'] = $propname;
 		$this->has_many($class, $options);
 	}
