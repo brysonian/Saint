@@ -156,7 +156,7 @@ abstract class AbstractController
 
 	function render_text($text, $isxml=false) {
 		$this->_rendered = true;
-		$view = new AbstractView('');
+		$view = new PTXTView('');
 		# if we cache, do that
 		if ($this->_cache_page && empty($_GET) && empty($_POST)) {
 			$this->save_cache($_SERVER['PHP_SELF'], $text);
