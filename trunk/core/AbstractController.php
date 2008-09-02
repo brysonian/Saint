@@ -405,7 +405,7 @@ abstract class AbstractController
 	}
 
 	function local_request() {
-		return ($_SERVER['REMOTE_ADDR'] == '127.0.0.1');
+		return ($_SERVER['REMOTE_ADDR'] == '127.0.0.1' || $_SERVER['REMOTE_ADDR'] == '::1');
 	}
 }
 
