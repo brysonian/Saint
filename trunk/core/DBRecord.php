@@ -292,7 +292,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$info = $this->table_info();
 		foreach(array('created_on', 'created_at', 'updated_on', 'updated_at') as $v) {
 			if (in_array($v, $info)) {
-				$values[$v] = date("Y-m-d H:i:s");
+				$values[$v] = $this->now();
 			}
 		}
 		
@@ -371,8 +371,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 		# touch updated_at/on and created_at/on
 		# get table info
 		$info = $this->table_info();
-		if (in_array('updated_on', $info)) $props[] = "updated_on='".date("Y-m-d H:i:s")."'";
-		if (in_array('updated_at', $info)) $props[] = "updated_at='".date("Y-m-d H:i:s")."'";
+		if (in_array('updated_on', $info)) $props[] = "updated_on='".$this->now()."'";
+		if (in_array('updated_at', $info)) $props[] = "updated_at='".$this->now()."'";
 		
 		$sql .= join(',',$props)." WHERE id=".$this->escape_string($this->get_id());		
 
@@ -1127,7 +1127,12 @@ class DBRecord implements Iterator, Serviceable, Countable
 		return $entities;
 	}
 
-
+	
+	// handy function for getting current date
+	function now() {
+		return date("Y-m-d H:i:s");
+	}
+	
 // ===========================================================
 // - REPRESENTATIONS
 // ===========================================================
