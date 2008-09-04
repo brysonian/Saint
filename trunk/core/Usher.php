@@ -423,8 +423,12 @@ function redirect_to($args=false) {
 
 function redirect_to($loc=false) {
 	if ($loc == false) $loc = '/'.params('controller');
-	if (strpos($loc, 'http') === false) $loc = get_root().$loc;
+	if (strpos($loc, 'http') === false) {
+		if (strpos($loc, '/') === 0) $loc = substr($loc, 1);
+		$loc = get_absolute_root().$loc;
+	}
 	header("Location: $loc");	
+	exit();
 }
 
 // ===========================================================
