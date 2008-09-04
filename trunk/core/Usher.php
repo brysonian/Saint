@@ -423,7 +423,7 @@ function redirect_to($args=false) {
 
 function redirect_to($loc=false) {
 	if ($loc == false) $loc = '/'.params('controller');
-	if (strpos($loc, 'http') < 0) $loc = get_root().$loc;
+	if (strpos($loc, 'http') === false) $loc = get_root().$loc;
 	header("Location: $loc");	
 }
 
@@ -541,7 +541,7 @@ class UsherMap
 		$out = $this->defaults;
 
 		# grab out the query string if there is one
-		if (strpos($url, '?') > -1) {
+		if (strpos($url, '?') !== false) {
 			$query = explode('?', $url);
 			$url = $query[0];
 			$query = $query[1];
