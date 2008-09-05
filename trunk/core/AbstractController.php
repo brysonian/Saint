@@ -388,6 +388,28 @@ abstract class AbstractController
 	function  &get_before_filter_exceptions() { return $this->_before_filter_exceptions; }
 	function  &get_after_filter_exceptions() { return $this->_after_filter_exceptions; }
 	
+	function remove_before_filter($filter, $methods='all') { $this->remove_filter('before', $filter, $methods); }
+	function remove_after_filter($filter, $methods='all') { $this->remove_filter('after', $filter, $methods); }
+
+	function remove_filter($type, $filter, $methods='all') {
+		if ($type == 'before') {
+			$farray =& $this->get_before_filters();
+		} else {
+			$farray =& $this->get_after_filters();
+		}			
+
+		if (!is_array($farray)) return;
+
+		if (is_array($methods)) {
+			foreach ($methods as $method) {
+				$k = array_search($filter, $farray[$method]);
+				if ($k !== false) unset($farray[$method][$k]);
+			}
+		} else {
+			$k = array_search($filter, $farray[$methods]);
+			if ($k !== false) unset($farray[$methods][$k]);
+		}
+	}
 	
 	// ===========================================================
 	// - ERROR HANDLING
