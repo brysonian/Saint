@@ -244,6 +244,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 	protected function before_update() {}
 	protected function before_validation() {}
 
+	protected function after_save() {}
+
 	// save to the db
 	public function save($force=false) {
 		if (!$this->modified && !$force) return;
@@ -257,6 +259,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$this->fields = array_keys($this->data);
 		if (is_array($this->to_one)) $this->fields = array_merge($this->fields, array_keys($this->to_one));
 		if (is_array($this->to_many)) $this->fields = array_merge($this->fields, array_keys($this->to_many));
+		$this->after_save();
 	}
 
 	public function create() {
