@@ -245,6 +245,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	protected function before_validation() {}
 
 	protected function after_save() {}
+	protected function after_create() {}
 
 	// save to the db
 	public function save($force=false) {
@@ -313,6 +314,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 				throw new DBRecordError("Database error while attempting to create record.\n".$this->db()->error(), $this->db()->errno(), $sql);
 			}
 		}
+		$this->after_create();
+
 	}
 	
 	
