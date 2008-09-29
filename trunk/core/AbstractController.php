@@ -271,7 +271,7 @@ abstract class AbstractController
 
 	// get a view object using the specified action
 	function  get_view_for_action($action) {
-		$template = $this->get_template_base().'/'.$this->_template;
+		$template = $this->get_template_base().'/'.url_name($action);
 		return $this->get_view($template);
 	}
 

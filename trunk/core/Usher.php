@@ -442,6 +442,10 @@ function var_name($class) {
 	return table_name($class);
 }
 
+function action_name($name) { 
+	return str_replace('-', '_', $name);
+}
+
 
 // parse a classname into a tablename
 function url_name($class) { 
@@ -621,6 +625,7 @@ class UsherMap
 		
 		# if no action is set, set it to the default
 		if (!array_key_exists('action', $out)) $out['action'] = $this->defaults['action'];
+		$out['action'] = action_name($out['action']);
 		return $out;
 	}
 }
