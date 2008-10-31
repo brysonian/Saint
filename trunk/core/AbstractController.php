@@ -317,8 +317,8 @@ abstract class AbstractController
 	}
 
 	function get_layout() {
-		if ($this->_layout) return PROJECT_VIEWS.'/layouts/'.$this->_layout;
-		return PROJECT_VIEWS.'/layouts/'.$this->get_template_base();
+		if ($this->_layout) return PROJECT_VIEWS.'/_layouts/'.$this->_layout;
+		return PROJECT_VIEWS.'/_layouts/'.$this->get_template_base();
 	}
 
 
