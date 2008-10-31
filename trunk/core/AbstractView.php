@@ -143,7 +143,11 @@ abstract class AbstractView
 		$slashloc = strrpos($action, '/');
 		if ($slashloc !== false) {			
 			$objectname = substr($action, $slashloc+1);
-			$template = substr($action, 0, $slashloc).'/_'.$objectname;
+			if ($action{0} == '/') {
+				$template = substr(substr($action, 0, $slashloc).'/_'.$objectname, 1);
+			} else {
+				$template = url_name($controller).'/'.substr($action, 0, $slashloc).'/_'.$objectname;
+			}
 		} else {
 			$template = url_name($controller).'/_'.$action;
 			$objectname = $action;
