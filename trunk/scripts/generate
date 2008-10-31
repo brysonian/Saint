@@ -143,7 +143,7 @@
 				
 		#layout
 		echo "\tcreate view\n";
-		write_scaffold_template($view_base, $name, "app/views/layouts", true);
+		write_scaffold_template($view_base, $name, "app/views/_layouts", true);
 		
 		#list
 		write_scaffold_template('index', $name, $path);
