@@ -60,8 +60,6 @@
 	# error codes and messages
 	require_once (SAINT_ROOT.'/locale/en/error_messages.php');
 
-	# always need the AppController
-	require_once (PROJECT_ROOT.'/app/controllers/AppController.php');
 
 
 
@@ -231,6 +229,9 @@
 	if (!defined('MEDIA_BASE')) 			define('MEDIA_BASE', '_media');
 	if (!defined('CONTENT_BASE')) 		define('CONTENT_BASE', '_content');
 	if (!defined('PUBLIC_BASE')) 			define('PUBLIC_BASE', 'public');
+
+	# always need the AppController
+	require_once (PROJECT_ROOT.'/app/controllers/AppController.php');
 
 
 ?>
