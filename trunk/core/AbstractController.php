@@ -33,9 +33,6 @@ abstract class AbstractController
 		$this->set_template_base(url_name(str_replace('Controller', '', get_class($this))));
 		$this->_data = array();
 		
-		# call controller's init method
-		#$this->init();
-
 		# gather all ivars not preceded with _
 		$cname = get_class($this);
 		foreach($this as $k => $v) {
@@ -46,9 +43,6 @@ abstract class AbstractController
 		}
 
 	}
-	
-	# just overridden
-	function init() {}
 	
 
 // ===========================================================
@@ -282,7 +276,7 @@ abstract class AbstractController
 // ===========================================================
 // - ACCESSORS
 // ===========================================================
-	function __get($prop) {
+	function &__get($prop) {
 		# check in data
 		if (isset($this->_data[$prop])) return $this->_data[$prop];
 		return false;
