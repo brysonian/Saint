@@ -38,7 +38,10 @@ abstract class AbstractController
 		foreach($this as $k => $v) {
 			if ($k{0} != '_') {
 				$prop = new ReflectionProperty($cname, $k);
-				if ($prop->isPublic()) $this->__set(substr($k, 0), $v);
+				if ($prop->isPublic()) {
+					$this->__set(substr($k, 0), $v);
+					unset($this->$k);
+				}
 			}
 		}
 
