@@ -140,7 +140,33 @@ class UploadedFile
 	public function is_gif() { return ($this->get_image_type_code() == self::IMG_GIF); }
 	public function is_png() { return ($this->get_image_type_code() == self::IMG_PNG || $this->get_image_type_code() == self::IMG_PNG8); }
 	
-
+	
+	
+// ===========================================================
+// - SHORTCUT FOR HANDLING AN UPLOADED IMAGE
+// ===========================================================
+	/**
+	 * Handle moving an image, setting the right property in the model, and optionally show an error if the file exists
+	 * 
+	 *	@param $model: 				the model object to deal with
+	 *	@param $property: 		the property to set
+	 *  @param $destination: 	where to move the file
+	 *  @param $force:				if true, overwrite the image
+	 */
+	public static function move_and_set_model_property($model, $property, $destination, $force=false) {
+		$ok = true;
+		if ($model->$property instanceof UploadedFile && !$model->errors()) {
+			$ok = $model->$property->move_to($destination, $force);
+			if (!$ok) {
+				$model->add_error($property, 'An :property with the name: '.$model->$property->get_filename().' already exists.');
+				unset($model->$property);
+				$model->$property = '';
+			} else {
+				$model->$property = $model->$property->get_web_path();
+			}
+		}
+		return $ok;
+	}
 
 // ===========================================================
 // - MISC METHODS
