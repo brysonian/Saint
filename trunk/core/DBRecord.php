@@ -637,7 +637,14 @@ class DBRecord implements Iterator, Serviceable, Countable
 			} else if ($options['include'] == 'to-many') {
 				$this->include = array_merge($this->include, array_keys($this->to_many));
 			} else {
-				$this->include = is_array($options['include'])?$options['include']:array($options['include']);
+				if (is_array($options['include'])) {
+					foreach($options['include'] as $v) {
+						$this->include[] = table_name($v);
+					}
+				} else {
+					$this->include[]  = table_name($options['include']);
+				}
+				#$this->include = is_array($options['include'])?$options['include']:array($options['include']);
 			}
 		}
 	}
