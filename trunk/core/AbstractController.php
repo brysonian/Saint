@@ -420,7 +420,7 @@ abstract class AbstractController
 	}
 
 	function rescue_in_public($e) {
-		header('Location:http://'.$_SERVER['HTTP_HOST'].'/500.html');
+		header('Location:http://'.$_SERVER['HTTP_HOST'].'/500.html', true, 500);
 	}
 
 	function local_request() {
