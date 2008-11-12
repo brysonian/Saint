@@ -166,7 +166,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 			}
 		}
 		
-		return false;
+		return $this->getters($prop, false);
 	}
 	
 	private function getters($prop, $val) {
