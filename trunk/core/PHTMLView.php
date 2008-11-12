@@ -360,9 +360,12 @@ function hidden_field($obj, $name, $prop, $v=false) {
 }
 
 
-function submit_to($name, $confirm=false) {
+function submit_to($name, $confirm=false, $attributes=array()) {
 	ob_start();
 	echo "<input type='submit'";
+	foreach($attributes as $k => $v) {
+		echo " $k = \"$v\"";
+	}
 	if ($confirm) echo " onclick='return confirm(\"Are You Sure?\");' ";
 	echo " value='";
 	echo $name;
