@@ -17,8 +17,6 @@ abstract class AbstractController
 	protected $_template;
 	protected $_beforefilters;
 	protected $_afterfilters;
-	protected $_before_filter_exceptions = array();
-	protected $_after_filter_exceptions = array();
 	protected $_cache_page = false;
 	protected static $_cache_extension = 'cache';
 	protected $_data;
@@ -66,21 +64,17 @@ abstract class AbstractController
 		
 		# perform the before filters
 		$bf = $this->get_before_filters();
-		$bfe = $this->get_before_filter_exceptions();
 		$ok = true;
 		$test_method = $the_method;
 		if ($bf) {
 			foreach ($bf as $method => $filters) {
-				# if it's excepted, skip
-				if (array_key_exists($test_method, $bfe)) continue;
-				
 				# if it's a global filter or one for this method
 				if ($method == 'all' || $method == $test_method) {
 
-
 					# loop through all filters and call each
 					foreach($filters as $filter) {
-						$fok = call_user_func($filter);
+						if (in_array($test_method, $filter['exceptions'])) continue;
+						$fok = call_user_func($filter['callback']);
 					
 						# only fail if it's really false not just undef
 						if ($fok === false) $ok = false;
@@ -99,17 +93,13 @@ abstract class AbstractController
 
 		# perform the after filters
 		$af = $this->get_after_filters();
-		$afe = $this->get_after_filter_exceptions();
 		if ($af) {
 			foreach ($af as $method => $filters) {
-				# if it's excepted, skip
-				if (array_key_exists($test_method, $afe)) continue;
-
 				# if it's a global filter or one for this method
 				if ($method == 'all' || $method == $the_method) {
-					# loop through all filters and call each
+					if (in_array($test_method, $filter['exceptions'])) continue;
 					foreach($filters as $filter) {
-						call_user_func($filter);
+						call_user_func($filter['callback']);
 					}
 				}
 			}
@@ -322,14 +312,14 @@ abstract class AbstractController
 // ===========================================================
 // - FILTER METHODS
 // ===========================================================
-	function filter_before($filter, $methods='all', $except=false) { $this->add_filter('before', $filter, $methods, $except); }
-	function filter_after($filter, $methods='all', $except=false) { $this->add_filter('after', $filter, $methods, $except); }
+	function filter_before($filter, $methods='all', $except=array()) { $this->add_filter('before', $filter, $methods, $except); }
+	function filter_after($filter, $methods='all', $except=array()) { $this->add_filter('after', $filter, $methods, $except); }
 
 	function filter_before_except($filter, $except) { $this->add_filter('before', $filter, 'all', $except); }
 	function filter_after_except($filter, $except) { $this->add_filter('after', $filter, 'all', $except); }
 	
 	
-	function add_filter($type, $filter, $methods='all', $except=false) {
+	function add_filter($type, $filter, $methods='all', $except=array()) {
 		# grab the filter array to use
 		if ($type == 'before') {
 			$farray =& $this->get_before_filters();
@@ -337,54 +327,29 @@ abstract class AbstractController
 			$farray =& $this->get_after_filters();
 		}			
 
-		# make sure the arry is set
-		if (!is_array($farray)) $farray = array();
+		# make sure the filter array exists
+		if (!is_array($farray))		$farray = array();
 		
-		# if methods is an array, then add this filter
-		# to each of those methods, otherwise add it to the
+		# force methods and exceptions into an array
+		if (!is_array($methods))	$methods = array($methods);
+		if (!is_array($except))		$except = array($except);
+
+		
+		# then add this filter to each of those methods, otherwise add it to the
 		# specified method
 		# all applies to all methods and is the default
-		if (is_array($methods)) {
-			foreach ($methods as $method) {
-				# check that there isn't already a filter
-				# if there is add this one on
-				if (!array_key_exists($method, $farray)) $farray[$method] = array();
-				$farray[$method][] = $filter;
-			}
-		} else {
-			if (array_key_exists($methods, $farray) && !is_array($farray[$methods])) $farray[$methods] = array();
-			$farray[$methods][] = $filter;
-		}
-		
-		# if except is an array, add those to the skip list
-		if ($except !== false) {
-			# get the right exceptions array
-			if ($type = 'before') {
-				$earray =& $this->get_before_filter_exceptions();
-			} else {
-				$earray =& $this->get_after_filter_exceptions();
-			}			
-
-			if (is_array($except)) {
-				foreach ($except as $method) {
-					# check that there isn't already a filter
-					# if there is add this one on
-					if (array_key_exists($method, $earray) && !is_array($earray[$method])) $earray[$method] = array();
-					$earray[$method][] = $filter;
-				}
-			} else {
-				if (array_key_exists($except, $earray) && !is_array($earray[$except])) $earray[$except] = array();
-				$earray[$except][] = $filter;
-			}
+		foreach ($methods as $method) {
+			# check that there isn't already a filter
+			# if there is add this one on
+			if (!array_key_exists($method, $farray)) $farray[$method] = array();
+			# add filter
+			$farray[$method][] = array('callback' => $filter, 'exceptions' => $except);
 		}
 	}
 
 	function  &get_before_filters() { return $this->_beforefilters; }
 	function  &get_after_filters() { return $this->_afterfilters; }
 
-	function  &get_before_filter_exceptions() { return $this->_before_filter_exceptions; }
-	function  &get_after_filter_exceptions() { return $this->_after_filter_exceptions; }
-	
 	function remove_before_filter($filter, $methods='all') { $this->remove_filter('before', $filter, $methods); }
 	function remove_after_filter($filter, $methods='all') { $this->remove_filter('after', $filter, $methods); }
 
