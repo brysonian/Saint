@@ -339,17 +339,28 @@ function checkbox($obj, $name, $prop, $value=1) {
 	return $out;
 }
 
-function radio($obj, $name, $prop, $values) {
+function radio($obj, $name, $prop, $values , $join_type= '<br />' , $join_type_li_class= '') {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
 	if (empty($v)) $v = $values[0];
-	$out = "";
+	$out = array();
 	foreach($values as $k => $value) {
-		$out .= "<input type='radio' value='$value' id='{$name}_{$prop}' name='{$name}[{$prop}]'";
-		if ($value == $v)	$out .= " checked='checked' ";
-		$out .= " /> $value<br />";
+		$checked = ($value == $v) ? " checked='checked' " : '';
+		$out[] = "<input type='radio' value='$value' id='{$name}_{$prop}' name='{$name}[{$prop}]'$checked/> $value" ;
 	}
+
+	if ( $join_type == 'li' ) {
+		$out_2 = array();
+		foreach ($out as $line) {
+			$class = ($join_type_li_class == '') ? '' : " class='$join_type_li_class'";
+			$out_2[] = "<li$class>$line</li>";
+		}
+		$out = join( "\n" , $out_2 );
+	} else {
+		$out = join($join_type, $out);
+	}	
 	return $out;
 }
+
 
 
 function hidden_field($obj, $name, $prop, $v=false) {
