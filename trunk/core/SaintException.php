@@ -53,7 +53,7 @@ class SaintException extends Exception
 				# do nothing
 				break;
 		}
-		error_log("Exception in ".$this->get_file()." : ".$this->get_message());	
+		error_log("Exception in ".$this->get_file().":".$this->get_line()." - ".$this->get_message());	
 		return $out;
 	}
 
