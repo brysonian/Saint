@@ -335,6 +335,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 		$sql = "UPDATE `".$this->get_table()."` SET ";
 		$props = array();
+		/*
 		$rel = false;
 		foreach ($this->data as $k=>$v) {
 			# see if there is a t-o or t-m
@@ -361,7 +362,10 @@ class DBRecord implements Iterator, Serviceable, Countable
 				}
 				if ($rel) continue;
 			}
-
+			*/
+		# get table info
+		$info = $this->table_info();
+		foreach ($this->data as $k=>$v) {
 
 			# if the value is NULL then use that not empty string
 			if (is_null($v)) {
@@ -375,8 +379,6 @@ class DBRecord implements Iterator, Serviceable, Countable
 		}	
 
 		# touch updated_at/on and created_at/on
-		# get table info
-		$info = $this->table_info();
 		if (in_array('updated_on', $info)) $props[] = "updated_on='".$this->now()."'";
 		if (in_array('updated_at', $info)) $props[] = "updated_at='".$this->now()."'";
 		
