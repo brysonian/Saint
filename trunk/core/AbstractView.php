@@ -106,7 +106,6 @@ abstract class AbstractView
 			#$$var = $obj;
 			$this->$var = $obj;
 		}
-
 		# trap the buffer
 		ob_start();
 
@@ -162,6 +161,7 @@ abstract class AbstractView
 
 
 		# if it's a collection, call it for each item in the obj
+		$objectname = var_name(class_name($objectname));
 		if ($collect === true) {
 			foreach($object as $k => $v) {
 				echo $view->parse_partial($objectname, $v);
