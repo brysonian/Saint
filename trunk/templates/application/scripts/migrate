@@ -10,6 +10,6 @@
 		define('SAINT_ROOT', $_SERVER['SAINT_ROOT']);
 	}
 		
-	include SAINT_ROOT."/scripts/generate";
+	include SAINT_ROOT."/scripts/migrate";
 
 ?>
