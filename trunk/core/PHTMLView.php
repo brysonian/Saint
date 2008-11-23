@@ -266,24 +266,27 @@ function select($obj, $name, $prop, $collection, $key=false, $value=false, $opti
 
 function file_select($obj, $name, $prop, $dir, $options=array(), $abs=false) {
 	#if (!$abs) $dir = $_SERVER['DOCUMENT_ROOT'].$dir;
+	$out = '';
 	if (!file_exists($dir)) $dir = $_SERVER['DOCUMENT_ROOT'].$dir;
-	$dir = new DirectoryIterator($dir);
-	$out = array();
-	foreach($dir as $file) {
-		$fname = $file->getFilename();
-		if (!$file->isDir() && $fname{0} != '.') {
-			$pn = (!$abs)?str_replace($_SERVER['DOCUMENT_ROOT'], '', $file->getPathname()):$file->getPathname();
-			$out[] = array('pathname' => $pn, 'path' => $file->getPath(), 'filename' => $file->getFilename());
+	if (file_exists($dir)) {
+		$dir = new DirectoryIterator($dir);
+		$out = array();
+		foreach($dir as $file) {
+			$fname = $file->getFilename();
+			if (!$file->isDir() && $fname{0} != '.') {
+				$pn = (!$abs)?str_replace($_SERVER['DOCUMENT_ROOT'], '', $file->getPathname()):$file->getPathname();
+				$out[] = array('pathname' => $pn, 'path' => $file->getPath(), 'filename' => $file->getFilename());
+			}
 		}
+		$out = select($obj, $name, $prop, $out, 'pathname', 'filename', $options);
 	}
+	
+	# if upload add the input
 	$upload = false;
 	if (array_key_exists('upload',$options)) {
 		$upload = $options['upload'];
 		unset($options['upload']);
 	}
-	$out = select($obj, $name, $prop, $out, 'pathname', 'filename', $options);
-	
-	# if upload add the input
 	if ($upload) {
 		$out .= " <input type='file' name='{$name}[{$prop}]' id='{$name}_{$prop}' /><input type='hidden' name='MAX_FILE_SIZE' value='300000000' />\n";
 	}	
