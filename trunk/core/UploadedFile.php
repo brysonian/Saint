@@ -153,10 +153,10 @@ class UploadedFile
 	 *  @param $destination: 	where to move the file
 	 *  @param $force:				if true, overwrite the image
 	 */
-	public static function move_and_set_model_property($model, $property, $destination, $force=false) {
+	public static function move_and_set_model_property($model, $property, $destination, $newname=false, $force=false) {
 		$ok = true;
 		if ($model->$property instanceof UploadedFile && !$model->errors()) {
-			$ok = $model->$property->move_to($destination, $force);
+			$ok = $model->$property->move_to($destination, $newname, $force);
 			if (!$ok) {
 				$model->add_error($property, 'An :property with the name: '.$model->$property->get_filename().' already exists.');
 				unset($model->$property);
