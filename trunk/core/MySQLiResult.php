@@ -13,11 +13,6 @@ class MySQLiResult implements Countable
 		return $this->result->fetch_assoc();
 	}
 
-	public function fetch_all() {
-		return $this->result->fetch_all();
-	}
-
-	
 	function free() {
 		if (!is_resource($this->result)) return true;
 		$this->result->free();
