@@ -924,7 +924,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	
 			# to_many
 			} else if ($tm !== false) {
-				if (!is_null($v)) {
+				if (!is_null($v) && array_key_exists("{$tm}_id", $row)) {
 
 					$tm_index = $row[$tm.'_id'];
 
