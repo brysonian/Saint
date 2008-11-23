@@ -167,8 +167,8 @@
 
 		if ($controller !== false) {
 			$t = str_replace(
-				array(':hname_object', ':object',':Object', ':Controller'),
-				array(human_name($name), var_name($name), class_name($name), class_name($controller)),
+				array(':hname_object', ':object', ':Object', ':Controller', ':controller'),
+				array(human_name($name), var_name($name), class_name($name), class_name($controller), url_name($controller)),
 				file_get_contents(SAINT_ROOT."/templates/scaffold/controllers/Controller.php"));
 			echo "\tcreate controller\n";
 			write_file("app/controllers/".class_name($controller)."Controller.php", $t);
