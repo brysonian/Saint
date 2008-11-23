@@ -60,6 +60,7 @@
 	$user = $database_config[SAINT_ENV]['username'];
 	$pass = $database_config[SAINT_ENV]['password'];
 	
+	$start_version = $version;
 	# exec each
 	foreach($mk as $v) {
 		if ($v <= $version) continue;
@@ -68,12 +69,16 @@
 	}
 	
 	
-	
-	# update version number
-	$dbr = new DBRecord;
-	$ok = $dbr->exec('INSERT INTO schema_info VALUES('.$version.')');
-	if (!$ok) error("Failed to update version.", true);
+	if ($start_version != $version) {
 
-	echo "DB migrated to version: $version.\n";
+		# update version number
+		$dbr = new DBRecord;
+		$ok = $dbr->exec('INSERT INTO schema_info VALUES('.$version.')');
+		if (!$ok) error("Failed to update version.", true);
 
+		echo "Database migrated to version: $version.\n";
+	} else {
+		
+		echo "Database was up-to-date, no changes were made.\n";
+	}
 ?>
