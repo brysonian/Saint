@@ -1,11 +1,12 @@
 <?php
-	# start session
-	session_start();
+	(php_sapi_name() == 'cli')?define('SHELL', 1):define('SHELL', 0);
+
+	# start session is not a shell
+	if (!SHELL) session_start();
 
 	// ===========================================================
 	// - GET THE SAINT ROOT
 	// ===========================================================
-	(php_sapi_name() == 'cli')?define('SHELL', 1):define('SHELL', 0);
 
 	if(!defined('SAINT_ROOT')) define('SAINT_ROOT', realpath(dirname(__FILE__)));
 	if(!defined('PROJECT_ROOT')) define('PROJECT_ROOT', realpath(dirname($_SERVER['SCRIPT_FILENAME']).'/../'));
