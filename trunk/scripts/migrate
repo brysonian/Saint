@@ -1,0 +1,79 @@
+<?php
+
+	require_once (SAINT_ROOT."/saint.php");
+
+
+// ===========================================================
+// - LIB
+// ===========================================================
+	require_once (SAINT_ROOT."/scripts/shell_lib");
+
+	# set the exception format
+	SaintException::set_log_format('text');
+
+// ===========================================================
+// - MIGRATE
+// ===========================================================
+	
+	$version = 0;
+	
+	# find if there is a schema_info table, if not create it
+	$tables = DBRecord::find_sql('SHOW TABLES LIKE "schema_info"');
+	if ($tables->is_empty()) {
+		$dbr = new DBRecord;
+		$ok = $dbr->exec('CREATE TABLE schema_info (version int DEFAULT "0")');
+		if (!$ok) error("Failed to create schema_info table.", true);
+
+		$ok = $dbr->exec('INSERT INTO schema_info VALUES(0)');
+		if (!$ok) error("Failed to initialize schema_info table.", true);
+	} else {
+		# see if a version number has been supplied 
+		if (count($_SERVER['argv']) == 3 && $_SERVER['argv'][1] == '--version') {
+			$version = (int) $_SERVER['argv'][2];
+		} else {
+			# get the current migration number
+			$v = DBRecord::find_sql('SELECT version FROM schema_info ORDER BY version DESC LIMIT 1', array('first'=>true));
+			$version = $v->version;
+		}
+	}
+	
+	# collect the migration files
+	$migrations = array();
+	$dir = new DirectoryIterator(PROJECT_ROOT.'/db/migrate');
+	foreach ($dir as $fileinfo) {
+		$fname = $fileinfo->getFilename();
+		if ($fname[0] != '.') {
+			sscanf($fname, '%d-[a-z*].sql', $ver_number);
+			$migrations[$ver_number] = $fname;
+		}
+	}
+	
+	# because i don't trust that we'll get things in order, even though we probably will
+	$mk = array_keys($migrations);
+	sort($mk);
+	
+	# in case there are some SOURCE cmds in play
+	chdir(PROJECT_ROOT.'/db');
+	
+	
+	$database_config = parse_ini_file(PROJECT_ROOT."/config/database.ini", true);
+	$user = $database_config[SAINT_ENV]['username'];
+	$pass = $database_config[SAINT_ENV]['password'];
+	
+	# exec each
+	foreach($mk as $v) {
+		if ($v <= $version) continue;
+		exec("mysql -u{$user} -p{$pass} modelinia < " . str_replace(' ', '\ ', PROJECT_ROOT.'/db/migrate/') . $migrations[$v]);
+		$version = $v;
+	}
+	
+	
+	
+	# update version number
+	$dbr = new DBRecord;
+	$ok = $dbr->exec('INSERT INTO schema_info VALUES('.$version.')');
+	if (!$ok) error("Failed to update version.", true);
+
+	echo "DB migrated to version: $version.\n";
+
+?>
