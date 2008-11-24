@@ -97,8 +97,8 @@ abstract class AbstractController
 			foreach ($af as $method => $filters) {
 				# if it's a global filter or one for this method
 				if ($method == 'all' || $method == $the_method) {
-					if (in_array($test_method, $filter['exceptions'])) continue;
 					foreach($filters as $filter) {
+						if (in_array($test_method, $filter['exceptions'])) continue;
 						call_user_func($filter['callback']);
 					}
 				}
