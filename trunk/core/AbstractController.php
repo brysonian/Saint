@@ -368,8 +368,11 @@ abstract class AbstractController
 				if ($k !== false) unset($farray[$method][$k]);
 			}
 		} else {
-			$k = array_search($filter, $farray[$methods]);
-			if ($k !== false) unset($farray[$methods][$k]);
+			foreach($farray[$methods] as $k => $v) {
+				if ($v['callback'] == $filter) {
+					unset($farray[$methods][$k]);
+				}
+			}
 		}
 	}
 	
