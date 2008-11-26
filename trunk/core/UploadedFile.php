@@ -18,21 +18,16 @@ class UploadedFile
 	protected $height;
 	
 
-	// since these don't appear if GD isn't installed
-	const IMG_GIF		= 1;
-	const IMG_JPG		= 2;
-	const IMG_PNG8	= 3;
-	const IMG_PNG		= 4;
-	const IMG_WBMP	= 8;
-	const IMG_SWF		= 13;
-	const IMG_XPM		= 16;
-
-
 	static function create($fileinfo) {
 		$out = array();
 		foreach($fileinfo['name'] as $k => $v) {
-			if (!empty($v)) {
-				$out[$k] = new UploadedFile($fileinfo['tmp_name'][$k], $v, $fileinfo['type'][$k], $fileinfo['error'][$k], $fileinfo['size'][$k]);
+			if (!empty($v) && $fileinfo['error'][$k] == UPLOAD_ERR_OK) {
+				$out[$k] = new UploadedFile(
+					$fileinfo['tmp_name'][$k],
+					$v,
+					$fileinfo['type'][$k],
+					$fileinfo['error'][$k],
+					$fileinfo['size'][$k]);
 			}
 		}
 		return $out;
@@ -53,23 +48,52 @@ class UploadedFile
 		$this->set_mime_type($mime);
 		$this->set_error($err);
 		$this->set_size($size);
+
+		$exif_type = exif_imagetype($path);
+		$t = false;
+		switch(true) {
+			case ($exif_type == IMAGETYPE_GIF && $this->get_extension() == 'gif'):
+				$t = 'gif';
+				break;
+			
+			case ($exif_type == IMAGETYPE_JPEG && ($this->get_extension() == 'jpg' || $this->get_extension() == 'jpeg')):
+				$t = 'jpg';
+				break;
+			
+			case ($exif_type == IMAGETYPE_PNG && $this->get_extension() == 'png'):
+				$t = 'png';
+				break;
+					
+			case ($exif_type == IMAGETYPE_SWF && $this->get_extension() == 'swf'):
+				$t = 'swf';
+				break;				
+		}
+
+		if ($t) {
+			$this->set_type($t);
+			$this->set_image_type_code($exif_type);
+			$this->set_is_image(true);
+		} else {
+			$this->set_image_type_code(false);
+			$this->set_is_image(false);
+		}
+
 		
-		
+		/*
 		# check the type
 		$s = getimagesize($path);
 		$t = false;		
 		if (is_array($s)) {
 			switch($s[2]) {
-				case self::IMG_GIF:
+				case IMAGETYPE_GIF:
 					$t = 'gif';
 					break;
 				
-				case self::IMG_JPG:
+				case IMAGETYPE_JPEG:
 					$t = 'jpg';
 					break;
 				
-				case self::IMG_PNG8:
-				case self::IMG_PNG:
+				case IMAGETYPE_PNG:
 					$t = 'png';
 					break;
 				
@@ -81,7 +105,7 @@ class UploadedFile
 					$t = 'xpm';
 					break;
 			
-				case self::IMG_SWF:
+				case IMAGETYPE_SWF:
 					$t = 'swf';
 					break;
 			}
@@ -97,7 +121,7 @@ class UploadedFile
 			$this->set_image_type_code(false);
 			$this->set_is_image(false);
 		}
-		
+		*/
 	}
 	
 // ===========================================================
@@ -115,8 +139,14 @@ class UploadedFile
 
 	public function get_image_type_code() { return $this->imagetypecode; }
 	public function is_image() { return $this->isimage; }
-	public function get_width() { return $this->width; }
-	public function get_height() { return $this->height; }
+	public function get_width() {
+		if (!$this->width) $this->init_width_and_height();
+		return $this->width; 
+	}
+	public function get_height() { 
+		if (!$this->height) $this->init_width_and_height();
+		return $this->height; 
+	}
 	
 	
 	// setters
@@ -132,13 +162,17 @@ class UploadedFile
 	private function set_is_image($newval) { $this->isimage  = $newval; }
 	private function set_width($newval) { $this->width  = $newval; }
 	private function set_height($newval) { $this->height  = $newval; }
-
+	private function init_width_and_height() {
+		$s = getimagesize($this->get_path());
+ 		$this->set_width($s[0]);
+		$this->set_height($s[1]);
+		}
 
 	// testers
-	public function is_jpg() { return ($this->get_image_type_code() == self::IMG_JPG); }
-	public function is_jpeg() { return ($this->get_image_type_code() == self::IMG_JPG); }
-	public function is_gif() { return ($this->get_image_type_code() == self::IMG_GIF); }
-	public function is_png() { return ($this->get_image_type_code() == self::IMG_PNG || $this->get_image_type_code() == self::IMG_PNG8); }
+	public function is_jpg() { return ($this->get_image_type_code() == IMAGETYPE_JPEG); }
+	public function is_jpeg() { return ($this->get_image_type_code() == IMAGETYPE_JPEG); }
+	public function is_gif() { return ($this->get_image_type_code() == IMAGETYPE_GIF); }
+	public function is_png() { return ($this->get_image_type_code() == IMAGETYPE_PNG); }
 	
 	
 	
@@ -202,7 +236,7 @@ class UploadedFile
 
 		# if it worked, set the perms and return new location
 		if ($status) {
-			chmod ($path.$newname, 0777);
+#			chmod ($path.$newname, 0777);
 			$this->set_path($path.$newname);
 		} else {
 			throw new FileMove("There was a problem moving the file ".$this->get_name()." to the directory $path.");;
@@ -294,5 +328,6 @@ class NotUploadedFile extends SaintException {}
 class FileMove extends SaintException {}
 class GDMissing extends SaintException {}
 class FormatNotResizable extends SaintException {}
+class InvalidFileType extends SaintException {}
 
 ?>
