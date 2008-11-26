@@ -899,14 +899,16 @@ class DBRecord implements Iterator, Serviceable, Countable
 				# check to-many
 				if (!$to && is_array($this->to_many)) {
 					foreach($this->to_many as $tkey => $tname) {
-						if (strpos($k, $tkey.'_') === 0) {
+						#if (strpos($k, $tkey.'_') === 0) {
+						if (strpos($k, $tkey.'_') === 0 && array_key_exists($tkey.'_id', $row) && !empty($row[$tkey.'_id'])) {
 							$tm = $tkey;
 							break;
 						}						
 					}
 				}
 			}
-			
+
+
 			# to_one
 			if ($to !== false) {
 				# remove the prefix from the prop names
