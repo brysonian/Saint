@@ -246,6 +246,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 	protected function after_save() {}
 	protected function after_create() {}
+	protected function after_update() {}
+	protected function after_delete(){}
 
 	// save to the db
 	public function save($force=false) {
@@ -388,6 +390,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if (!$result) {
 			throw new DBRecordError("Database error while attempting to update record.\n".$this->db()->error(), $this->db()->errno(), $sql);
 		}
+		$this->after_update();
 	}
 
 
@@ -404,7 +407,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if (!$result) {
 			throw new RecordDeletionError("Error deleting ".get_class($this).".\n".$this->db()->error(), $this->db()->errno(), $sql);
 		}
-		
+		$this->after_delete();
+
 	}
 
 // ===========================================================
