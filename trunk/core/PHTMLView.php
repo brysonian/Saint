@@ -109,6 +109,7 @@ function media_path($file) {
 	size should be provided as WidthxHeight, eg: 45x45
 */
 function image_tag($file, $options=array()) {
+	if (empty($file)) return;
 	$out = "<img src=\"".media_path($file)."\"";
 	if (is_string($options)) $options = array('alt'=>$options);
 	if ($options === false)  $options = array('alt'=>false);
@@ -344,11 +345,17 @@ function checkbox($obj, $name, $prop, $value=1) {
 
 function radio($obj, $name, $prop, $values , $join_type= '<br />' , $join_type_li_class= '') {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
-	if (empty($v)) $v = $values[0];
+	if (!is_numeric($v) && empty($v)) $v = $values[0];
 	$out = array();
 	foreach($values as $k => $value) {
+		if (is_array($value)) {
+			$display_name = $value['name'];
+			$value = $value['value'];
+		} else {
+			$display_name = $value;
+		}
 		$checked = ($value == $v) ? " checked='checked' " : '';
-		$out[] = "<input type='radio' value='$value' id='{$name}_{$prop}' name='{$name}[{$prop}]'$checked/> $value" ;
+		$out[] = "<input type='radio' value='$value' id='{$name}_{$prop}' name='{$name}[{$prop}]'$checked/> $display_name" ;
 	}
 
 	if ( $join_type == 'li' ) {
