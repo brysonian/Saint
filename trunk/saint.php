@@ -2,7 +2,10 @@
 	(php_sapi_name() == 'cli')?define('SHELL', 1):define('SHELL', 0);
 
 	# start session is not a shell
-	if (!SHELL) session_start();
+	// if (!SHELL) {
+	// 	session_name('saint_session');
+	// 	session_start();
+	// }
 
 	// ===========================================================
 	// - GET THE SAINT ROOT
@@ -68,6 +71,13 @@
 	// - GET USER CONFIG VALUES.
 	// ===========================================================
 	require_once (PROJECT_ROOT."/config/environment.php");
+	if (!defined('SAINT_SESSION_NAME')) define('SAINT_SESSION_NAME', 'saint_session');
+
+	if (!SHELL) {
+		session_name(SAINT_SESSION_NAME);
+		session_start();
+	}
+
 	if(!defined('DISABLE_DEBUG') && SAINT_ENV == 'development') {
 		define('DEBUG', 1);
 		define('MYSQLI_DEBUG', 2);
