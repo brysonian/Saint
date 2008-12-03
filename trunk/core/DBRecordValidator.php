@@ -141,8 +141,10 @@ class DBRecordValidator {
 	}
 
 	protected function test_presence_of($prop, $msg) {
-		if (array_key_exists($prop, $this->data) && !empty(trim($this->data[$prop])))
-			return true;
+		if (array_key_exists($prop, $this->data)) {
+			$v = trim($this->data[$prop]);
+			if (!empty($v))	return true;
+		}
 
 		$this->add_error($prop, $msg, VALIDATION_EMPTY);
 		return false;
