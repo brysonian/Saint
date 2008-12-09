@@ -100,8 +100,24 @@ class Format {
 		return $out;
 
 	}
-
+	
+	public static function truncate($str, $len=40) {
+		if (strlen($str) < $len) return $str;
+		if (preg_match('|[a-zA-Z]|', $str{$len+1}) > 0) {
+			// in a word
+			do {
+				$len--;
+			} while(preg_match('|[\.!? ]|', $str{$len}) == 0);
+		}
+		$sstr = substr($str, 0, $len);
+		return $sstr;
+	}
 }
+
+function truncate($str, $len=40) {
+	return Format::truncate($str, $len);
+}
+
 	
 function dt($value=false) {
 	return Format::prettyDatetime($value);
