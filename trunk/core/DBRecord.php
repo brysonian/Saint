@@ -627,6 +627,20 @@ class DBRecord implements Iterator, Serviceable, Countable
 		return $sibs;
 	}
 
+	// return a single value from an arbitrary query
+	public static function find_value($sql, $options=array()) {
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_name();
+		$m = new $class;
+
+		$result = $m->db()->query($sql);
+		if($result) {
+			$r = $result->fetch_assoc();
+			if (is_array($r))	return current($r);
+		}
+		return false;
+
+	}
+
 
 	// sets query options on an object based on options array
 	public function set_options($options=array()) {
