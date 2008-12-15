@@ -629,7 +629,12 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 	// return a single value from an arbitrary query
 	public static function find_value($sql, $options=array()) {
-		$class = array_key_exists("class", $options)?$options['class']:self::get_class_name();
+		try {
+			$class = array_key_exists("class", $options)?$options['class']:self::get_class_name();
+		} catch(AmbiguousClass $c) {
+			$class = 'DBRecord';
+		}
+	
 		$m = new $class;
 
 		$result = $m->db()->query($sql);
