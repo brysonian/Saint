@@ -153,13 +153,13 @@ function text_field($obj, $name, $prop, $size=40, $maxlength=100, $value='') {
 	return "<input type=\"text\" name=\"{$name}[{$prop}]\" value=\"$v\" id=\"{$name}_$prop\" size=\"$size\" maxlength=\"$maxlength\" />\n";
 }
 
-function text_area($obj, $name, $prop, $size=2000) {
+function text_area($obj, $name, $prop, $size=2000, $rows=false) {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
 	if ($size < 256) {
-		$rows = 3;
+		$rows = $rows?$rows:3;
 		$ku = "onkeyup='if(this.value.length >= $size) this.value = this.value.substr(0,".($size-1).");'";
 	} else {
-		$rows = 15;
+		$rows = $rows?$rows:15;
 		$ku = '';
 	}
 
