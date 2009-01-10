@@ -12,7 +12,7 @@ abstract class AbstractController
 {
 	
 	protected $_viewname;
-	protected $_layout		= false;
+	protected $_layout		= '';
 	protected $_templatebase;
 	protected $_template;
 	protected $_beforefilters;
@@ -305,6 +305,7 @@ abstract class AbstractController
 
 	function get_layout() {
 		if ($this->_layout) return PROJECT_VIEWS.'/_layouts/'.$this->_layout;
+		if ($this->_layout === false) return '';
 		return PROJECT_VIEWS.'/_layouts/'.$this->get_template_base();
 	}
 
