@@ -144,10 +144,11 @@ function content_image_tag($file, $options=array()) {
 // ===========================================================
 // - FORM HELPERS
 // ===========================================================
-function text_field($obj, $name, $prop, $size=40, $maxlength=100) {
+function text_field($obj, $name, $prop, $size=40, $maxlength=100, $value='') {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
 	# try to determine if the value should be in ' or " since escaping doesn't seem to work.
 	#$v = (substr_count($v, "'") > substr_count($v, '"'))?'"'.$v.'"':"'".$v."'";
+	if ($v == false) $v = $value;
 	$v = htmlspecialchars($v);
 	return "<input type=\"text\" name=\"{$name}[{$prop}]\" value=\"$v\" id=\"{$name}_$prop\" size=\"$size\" maxlength=\"$maxlength\" />\n";
 }
