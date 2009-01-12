@@ -20,15 +20,24 @@ class UploadedFile
 
 	static function create($fileinfo) {
 		$out = array();
-		foreach($fileinfo['name'] as $k => $v) {
-			if (!empty($v) && $fileinfo['error'][$k] == UPLOAD_ERR_OK) {
-				$out[$k] = new UploadedFile(
-					$fileinfo['tmp_name'][$k],
-					$v,
-					$fileinfo['type'][$k],
-					$fileinfo['error'][$k],
-					$fileinfo['size'][$k]);
+		if (is_array($fileinfo['name'])) {
+			foreach($fileinfo['name'] as $k => $v) {
+				if (!empty($v) && $fileinfo['error'][$k] == UPLOAD_ERR_OK) {
+					$out[$k] = new UploadedFile(
+						$fileinfo['tmp_name'][$k],
+						$v,
+						$fileinfo['type'][$k],
+						$fileinfo['error'][$k],
+						$fileinfo['size'][$k]);
+				}
 			}
+		} else {
+			$out[] = new UploadedFile(
+				$fileinfo['tmp_name'],
+				$fileinfo['name'],
+				$fileinfo['type'],
+				$fileinfo['error'],
+				$fileinfo['size']);			
 		}
 		return $out;
 	}
