@@ -1,15 +1,18 @@
 #!/usr/bin/php
 
 <?php
+
+	if(!defined('SAINT_ROOT')) {
 	
-	# first use the version in lib, then check and env var, then just blindly try.
-	$s = realpath(dirname(__FILE__).'/../lib/saint');
-	if ($s !== false) {
-		define('SAINT_ROOT', $s);
-	} else if (array_key_exists('SAINT_ROOT', $_SERVER)) {
-		define('SAINT_ROOT', $_SERVER['SAINT_ROOT']);
-	}
+		# first use the version in lib, then check and env var, then just blindly try.
+		$s = realpath(dirname(__FILE__).'/../lib/saint');
+		if ($s !== false) {
+			define('SAINT_ROOT', $s);
+		} else if (array_key_exists('SAINT_ROOT', $_SERVER)) {
+			define('SAINT_ROOT', $_SERVER['SAINT_ROOT']);
+		}
 		
-	include SAINT_ROOT."/scripts/generate";
+		include SAINT_ROOT."/scripts/generate";
+	}
 
 ?>

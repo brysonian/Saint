@@ -58,13 +58,17 @@
 	
 	$database_config = parse_ini_file(PROJECT_ROOT."/config/database.ini", true);
 	$user = $database_config[SAINT_ENV]['username'];
+	$database = $database_config[SAINT_ENV]['database'];
+	
 	$pass = $database_config[SAINT_ENV]['password'];
+	
+	if ($pass) $pass = "-p $pass";
 	
 	$start_version = $version;
 	# exec each
 	foreach($mk as $v) {
 		if ($v <= $version) continue;
-		exec("mysql -u{$user} -p{$pass} modelinia < " . str_replace(' ', '\ ', PROJECT_ROOT.'/db/migrate/') . $migrations[$v]);
+		exec("mysql -u{$user} {$pass} {$database} < " . str_replace(' ', '\ ', PROJECT_ROOT.'/db/migrate/') . $migrations[$v]);
 		$version = $v;
 	}
 	
