@@ -103,10 +103,10 @@ class Format {
 	}
 
 	public static function truncate($str, $len=40) {
-		if (strlen($str) < $len) return $str;
-		
+		if (strlen($str) <= ($len)) return $str;
+
 		$new_len = $len;
-		if (preg_match('|[a-zA-Z]|', $str{$len+1}) > 0) {
+		if (preg_match('|[a-zA-Z]|', $str{$len}) > 0) {
 			// in a word
 			do {
 				$new_len--;
