@@ -85,30 +85,34 @@ class Format {
 		return date($format, $value);
 	}
 	
-	# parse a mysql date into a string
-	public static function parseMySQLTime($str) {
-		$out = strtotime($value);
-		if (($out != -1) || ($out !== false)) return $out;
-		
-		$out =  substr($str, 0, 4).'-';
-		$out .=  substr($str, 4, 2).'-';
-		$out .=  substr($str, 6, 2).' ';
+	# parse a mysql date into parts a string
+	public static function parseMySQLDateTime($str) {
+		$out = array();
+		$out['year'] 			= (int) substr($str, 0, 4);
+		$out['month'] 		= (int) substr($str, 5, 2);
+		$out['day'] 			= (int) substr($str, 8, 2);
 
-		$out .=  substr($str, 8, 2).':';
-		$out .=  substr($str, 10, 2).':';
-		$out .=  substr($str, 12, 2);
+		if (strlen($str) > 10) {
+			$out['hour']			= (int) substr($str, 11, 2);
+			$out['minute']		= (int) substr($str, 14, 2);
+			$out['second']		= (int) substr($str, 17, 2);
+		}
+		
 		return $out;
 
 	}
-	
+
 	public static function truncate($str, $len=40) {
 		if (strlen($str) < $len) return $str;
+		
+		$new_len = $len;
 		if (preg_match('|[a-zA-Z]|', $str{$len+1}) > 0) {
 			// in a word
 			do {
-				$len--;
-			} while(preg_match('|[\.!? ]|', $str{$len}) == 0);
+				$new_len--;
+			} while(preg_match('|[\.!? ]|', $str{$new_len}) == 0 && $new_len > 0);
 		}
+		if ($new_len > 0) $len = $new_len;
 		$sstr = substr($str, 0, $len);
 		return $sstr;
 	}
