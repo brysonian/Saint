@@ -243,6 +243,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	protected function before_create() {}
 	protected function before_update() {}
 	protected function before_validation() {}
+	protected function before_delete(){}
 
 	protected function after_save() {}
 	protected function after_create() {}
@@ -400,6 +401,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 			throw new MissingIdentifier("You must define an id to delete an item.");			
 		}
 			
+		$this->before_delete();
+
 		$sql = "DELETE FROM `".$this->get_table()."` WHERE ";
 		$sql .= "id=".$this->get_id();
 		
