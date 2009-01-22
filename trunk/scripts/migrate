@@ -30,6 +30,7 @@
 		# see if a version number has been supplied 
 		if (count($_SERVER['argv']) == 3 && $_SERVER['argv'][1] == '--version') {
 			$version = (int) $_SERVER['argv'][2];
+			$version--;
 		} else {
 			# get the current migration number
 			$v = DBRecord::find_sql('SELECT version FROM schema_info ORDER BY version DESC LIMIT 1', array('first'=>true));
@@ -62,7 +63,7 @@
 	
 	$pass = $database_config[SAINT_ENV]['password'];
 	
-	if ($pass) $pass = "-p $pass";
+	if ($pass) $pass = "-p$pass";
 	
 	$start_version = $version;
 	# exec each
