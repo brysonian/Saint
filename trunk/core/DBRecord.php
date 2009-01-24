@@ -906,7 +906,8 @@ class DBRecord implements Iterator, Serviceable, Countable
 			$tm = false;
 
 			# see if there is a t-o or t-m
-			if (strpos($k, '_') !== false) {
+			$ti = $this->table_info();
+			if (!in_array($k, $ti) && strpos($k, '_') !== false) {
 
 				# check to-one
 				if (is_array($this->to_one)) {
