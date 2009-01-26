@@ -22,7 +22,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	protected $limit;
 	protected $valid;
 	protected $key;
-	protected $current;
+	protected $_current;
 	protected $fields = array();
 	protected $include = array();
 	protected $included = array();
@@ -1095,7 +1095,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	function rewind() {
 		$this->key = 0;
 		$k = $this->key();
-		$this->current = $this->$k;
+		$this->_current = $this->$k;
 		$this->valid = true;
 	}
 	
@@ -1108,18 +1108,18 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 	
 	function current() {
-		return $this->current;
+		return $this->_current;
 	}
 	
 	function next() {
 		$this->key++;
 		if ($this->key >= count($this->fields)) {
-			$this->current = false;
+			$this->_current = false;
 			$this->valid = false;
 			return;
 		}
 		$k = $this->key();
-		$this->current = $this->$k;
+		$this->_current = $this->$k;
 	}
 
 // ===========================================================
