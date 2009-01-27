@@ -20,6 +20,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	protected $where;
 	protected $group;
 	protected $limit;
+	protected $offset;
 	protected $_valid;
 	protected $key;
 	protected $_current;
@@ -652,27 +653,30 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 	// sets query options on an object based on options array
 	public function set_options($options=array()) {
-		if (is_array($options) && array_key_exists('first', $options)) $this->set_limit('1');
-		if (is_array($options) && array_key_exists('order', $options)) $this->set_order($options['order']);
-		if (is_array($options) && array_key_exists('group', $options)) $this->set_group($options['group']);
-		if (is_array($options) && array_key_exists('limit', $options)) $this->set_limit($options['limit']);
-		if (is_array($options) && array_key_exists('include', $options)) {
-			if ($options['include'] == 'all') {
-				$this->include = array_merge($this->include, array_keys($this->to_one));
-				$this->include = array_merge($this->include, array_keys($this->to_many));
-			} else if ($options['include'] == 'to-one') {
-				$this->include = array_merge($this->include, array_keys($this->to_one));
-			} else if ($options['include'] == 'to-many') {
-				$this->include = array_merge($this->include, array_keys($this->to_many));
-			} else {
-				if (is_array($options['include'])) {
-					foreach($options['include'] as $v) {
-						$this->include[] = table_name($v);
-					}
+		if (is_array($options)){
+			if (array_key_exists('first', $options)) $this->set_limit('1');
+			if (array_key_exists('order', $options)) $this->set_order($options['order']);
+			if (array_key_exists('group', $options)) $this->set_group($options['group']);
+			if (array_key_exists('limit', $options)) $this->set_limit($options['limit']);
+			if (array_key_exists('offset', $options)) $this->set_offset($options['offset']);
+			if (array_key_exists('include', $options)) {
+				if ($options['include'] == 'all') {
+					$this->include = array_merge($this->include, array_keys($this->to_one));
+					$this->include = array_merge($this->include, array_keys($this->to_many));
+				} else if ($options['include'] == 'to-one') {
+					$this->include = array_merge($this->include, array_keys($this->to_one));
+				} else if ($options['include'] == 'to-many') {
+					$this->include = array_merge($this->include, array_keys($this->to_many));
 				} else {
-					$this->include[]  = table_name($options['include']);
+					if (is_array($options['include'])) {
+						foreach($options['include'] as $v) {
+							$this->include[] = table_name($v);
+						}
+					} else {
+						$this->include[]  = table_name($options['include']);
+					}
+					#$this->include = is_array($options['include'])?$options['include']:array($options['include']);
 				}
-				#$this->include = is_array($options['include'])?$options['include']:array($options['include']);
 			}
 		}
 	}
@@ -799,6 +803,9 @@ class DBRecord implements Iterator, Serviceable, Countable
 
 		# add order by if there is one
 		if ($this->get_limit()) $sql .= " LIMIT ".$this->get_limit();
+
+		# add offset by if there is one
+		if ($this->get_offset()) $sql .= " OFFSET ".$this->get_offset();
 		
 		#die ($sql);
 		
@@ -885,6 +892,9 @@ class DBRecord implements Iterator, Serviceable, Countable
 	         
 	public function get_limit()		{ return $this->limit; }
 	public function set_limit($t)	{ $this->limit = $t; }
+	
+	public function get_offset(){ return $this->offset; }
+	public function set_offset($t){ $this->offset = $t; }
 
 
 
