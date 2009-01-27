@@ -20,7 +20,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	protected $where;
 	protected $group;
 	protected $limit;
-	protected $valid;
+	protected $_valid;
 	protected $key;
 	protected $_current;
 	protected $fields = array();
@@ -1096,11 +1096,11 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$this->key = 0;
 		$k = $this->key();
 		$this->_current = $this->$k;
-		$this->valid = true;
+		$this->_valid = true;
 	}
 	
 	function valid() {
-		return $this->valid;
+		return $this->_valid;
 	}
 
 	function key() {
@@ -1115,7 +1115,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$this->key++;
 		if ($this->key >= count($this->fields)) {
 			$this->_current = false;
-			$this->valid = false;
+			$this->_valid = false;
 			return;
 		}
 		$k = $this->key();
