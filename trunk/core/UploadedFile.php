@@ -143,8 +143,8 @@ class UploadedFile
 	public function get_filename() { return $this->name; }
 	public function get_extension() { return $this->extension; }
 	public function get_mime_type() { return $this->mime_type; }
-	public function get_error() 		{ return $this->size; }
-	public function get_size() 			{ return $this->error; }
+	public function get_error() 		{ return $this->error; }
+	public function get_size() 			{ return $this->size; }
 
 	public function get_image_type_code() { return $this->imagetypecode; }
 	public function is_image() { return $this->isimage; }

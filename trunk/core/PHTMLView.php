@@ -192,9 +192,9 @@ function select($obj, $name, $prop, $collection, $key=false, $value=false, $opti
 	if ($default === false && array_key_exists('default', $options)) {
 		$default = $options['default'];
 	}
+		
+	if (is_object($default) and method_exists($default, 'get_id')) $default = $default->get_id();
 	
-	if (is_object($default)) $default = $default->get_id();
-
 	# add blank
 	if (array_key_exists('include_blank', $options)) {
 		$html .= "<option value=''></option>\n";

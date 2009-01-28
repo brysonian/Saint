@@ -21,6 +21,7 @@ class DBRecordValidator {
 	protected $validate_uniqueness_of		= array();
 	protected $validate_format_of				= array();
 	protected $validate_politeness_of		= array();
+	protected $validate_image_of				= array();
 
 	
 // ===========================================================
@@ -97,6 +98,11 @@ class DBRecordValidator {
 		foreach($this->validate_politeness_of as $prop => $args) {
 			$noErr = $this->test_politeness_of($prop, $args);
 		}
+		
+		# images
+		foreach($this->validate_image_of as $prop => $args) {
+			$noErr = $this->test_image_of($prop, $args);
+		}		
 		
 		return $noErr;
 	}
@@ -310,6 +316,30 @@ class DBRecordValidator {
 		}
 		return true;
 	}
+	
+// ===========================================================
+// - IMAGENESS
+// ===========================================================
+		
+	public function validates_image_of($args) {
+		if (!is_array($args) && $args !== false) $args = func_get_args();
+		$this->validates_x_of($this->validate_image_of, $args, VALIDATION_IMAGE);
+	}
+	
+	protected function test_image_of($prop, $msg) {
+		if (!array_key_exists($prop, $this->data)) return true;
+		if ($this->data[$prop] instanceof UploadedFile){
+			if($this->data[$prop]->is_image()){
+				return true;
+			}else{
+				$this->add_error($prop, $msg, VALIDATION_IMAGE);
+				return false;
+			} 
+		}else{
+			// Allow null
+			return true;
+		}		
+	}	
 	
 }
 

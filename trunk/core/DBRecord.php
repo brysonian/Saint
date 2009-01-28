@@ -1416,7 +1416,6 @@ define('VALIDATION_CURSE',			2007);
 define('VALIDATION_URL',				2008);
 define('VALIDATION_FALSITY',		2009);
 define('VALIDATION_TRUTH',			2010);
-
-
+define('VALIDATION_IMAGE',			2011);
 
 ?>
