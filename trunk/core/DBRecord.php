@@ -550,8 +550,16 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$m->set_options($options);
 		$m->load();
 		return $m;
-
 	}
+	
+	public static function count_rows($options=array()) {
+		$class = array_key_exists("class", $options)?$options['class']:self::get_class_name();
+		$m = new $class;		
+		$table = array_key_exists("table", $options)?$options['table']:$m->get_table();
+		$query = 'SELECT COUNT(id) FROM '.$table.';'; 
+		$results = $m->find_value($query);
+		return intval($results);
+	}	
 
 	// return an array of all objects of this type
 	public static function find_all($options=array()) {
