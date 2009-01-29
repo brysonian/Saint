@@ -254,6 +254,9 @@ class DBRecord implements Iterator, Serviceable, Countable
 	// save to the db
 	public function save($force=false) {
 		if (!$this->modified && !$force) return;
+
+		$this->before_save();
+
 		# if no id, then insert a new item, otherwise update
 		if ($this->get_id()) {
 			$this->update();
@@ -273,8 +276,6 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$validates = $this->validate();
 		if ($this->validation_errors()) throw $this->validation_errors();
 		if ($validates === false) return;
-
-		$this->before_save();
 
 		$this->before_create();
 
@@ -334,7 +335,6 @@ class DBRecord implements Iterator, Serviceable, Countable
 		if ($this->validation_errors()) throw $this->validation_errors();
 		if ($validates === false) return;
 
-		$this->before_save();
 		$this->before_update();
 
 		$sql = "UPDATE `".$this->get_table()."` SET ";
@@ -414,6 +414,14 @@ class DBRecord implements Iterator, Serviceable, Countable
 		$this->after_delete();
 
 	}
+	
+	public function use_next_id() {
+		$this->exec('INSERT INTO '.$this->get_table().' (id) VALUES (NULL)');
+		$r = $this->db()->insert_id();
+		$this->id = $r;
+		return $r;
+	}
+
 
 // ===========================================================
 // - MIXINS
