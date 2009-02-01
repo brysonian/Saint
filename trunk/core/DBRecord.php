@@ -170,7 +170,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		return $this->getters($prop, false);
 	}
 	
-	private function getters($prop, $val) {
+	protected function getters($prop, $val) {
 		# if there is a get method with this name, call it and pass the value
 		$meth = "get_{$prop}";
 		if (method_exists($this, $meth)) $val = $this->$meth($val);
