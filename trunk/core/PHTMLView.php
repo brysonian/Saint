@@ -185,7 +185,7 @@ function select($obj, $name, $prop, $collection, $key=false, $value=false, $opti
 			$p = (strpos($prop, '_id') > 0)?str_replace('_id','',$prop):$prop;
 			if ($obj->$p) $default = $obj->$p;
 		} else {
-			if ($obj[$p]) $default = $obj[$p];
+			#if ($obj[$p]) $default = $obj[$p];
 		}
 	}
 	
