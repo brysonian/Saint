@@ -561,6 +561,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 		return $m;
 	}
 	
+	// returns a count of the table rows
 	public static function count_rows($options=array()) {
 		$class = array_key_exists("class", $options)?$options['class']:self::get_class_name();
 		$m = new $class;		
