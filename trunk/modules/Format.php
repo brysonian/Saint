@@ -102,7 +102,7 @@ class Format {
 
 	}
 
-	public static function truncate($str, $len=40) {
+	public static function truncate($str, $len=40, $end='') {
 		if (strlen($str) <= ($len)) return $str;
 
 		$new_len = $len;
@@ -114,7 +114,7 @@ class Format {
 		}
 		if ($new_len > 0) $len = $new_len;
 		$sstr = substr($str, 0, $len);
-		return $sstr;
+		return $sstr.$end;
 	}
 }
 
