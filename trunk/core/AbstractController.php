@@ -188,17 +188,9 @@ abstract class AbstractController
 		$file = array_pop($dirs).'.'.AbstractController::$_cache_extension;
 		
 		# new path
-		$mkdir = DOC_ROOT;
-		
-		# create path
-		foreach($dirs as $dir) {
-			if (empty($dir)) continue;
-			$mkdir .= '/'.$dir;
-
-			if (!file_exists($mkdir)) {
-				$ok = mkdir($mkdir);
-				if (!$ok) return false;
-			}
+		$mkdir = DOC_ROOT.join('/', $dirs);
+		if (!file_exists($mkdir)) {
+			mkdir($mkdir, 0777, true);
 		}
 		
 		#save file
