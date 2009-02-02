@@ -18,8 +18,8 @@ RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^(.+)	$1 [L]
 
 ### if {requested item}.cache exists, use that
-RewriteCond %{REQUEST_FILENAME}.cache -f
-RewriteRule ^(.+)	$1.cache [L]
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI}.cache -f
+RewriteRule ^(.+)	%{REQUEST_URI}.cache [L]
 
 ### if {requested item}.php exists, use that
 RewriteCond %{REQUEST_FILENAME}.php -f
@@ -30,8 +30,8 @@ RewriteCond %{REQUEST_FILENAME}.html -f
 RewriteRule ^(.+)	$1.html [L]
 
 ### if {requested item}/index.cache exists, use that
-RewriteCond %{REQUEST_FILENAME}/index.cache -f
-RewriteRule ^(.+)	$1/index.cache [L]
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI}/index.cache -f
+RewriteRule ^(.+)	%{REQUEST_URI}/index.cache [L]
 
 ### if {requested item}/index.php exists, use that
 RewriteCond %{REQUEST_FILENAME}/index.php -f
