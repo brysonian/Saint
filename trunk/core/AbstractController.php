@@ -128,8 +128,12 @@ abstract class AbstractController
 
 		# if we cache, do that
 		if ($this->_cache_page && empty($_GET) && empty($_POST)) {
-			$output = $view->parse($this->get_layout());
-			$this->save_cache($_SERVER['PHP_SELF'], $output);
+			ob_start();
+			$view->render(url_name(str_replace('Controller', '', get_class($this))), $this->get_layout());
+			;
+			
+			$output = ob_get_clean();
+			$this->save_cache($_SERVER['REQUEST_URI'], $output);
 		}
 		$view->render(url_name(str_replace('Controller', '', get_class($this))), $this->get_layout());
 	}
@@ -181,7 +185,7 @@ abstract class AbstractController
 		$dirs = explode('/', $path);
 
 		# pop filename
-		$file = array_pop($dirs).'.'.AbstractController::_cache_extension;
+		$file = array_pop($dirs).'.'.AbstractController::$_cache_extension;
 		
 		# new path
 		$mkdir = DOC_ROOT;
