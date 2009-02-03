@@ -31,6 +31,8 @@ class DBRecordCollection implements Iterator, Countable, ArrayAccess
 		$this->model = $model;
 		$this->query = $query;		
 		$this->limit = '';
+		$this->loaded = false;
+		$this->result = false;
 
 		# clear props
 		$this->row = false;
@@ -69,10 +71,10 @@ class DBRecordCollection implements Iterator, Countable, ArrayAccess
 // - ITERATOR INTERFACE
 // ===========================================================
 	function rewind() {
-		if ($this->result) $this->result->free();
+		#if ($this->result) $this->free();
 		$this->key = 0;
 		$this->valid = false;
-		$this->result = false;
+		#$this->result = false;
 		$this->load();
 		$this->row = $this->result->fetch_assoc();
 		$this->current = 0;
@@ -187,7 +189,12 @@ class DBRecordCollection implements Iterator, Countable, ArrayAccess
 // ===========================================================
 // - DB RELATED
 // ===========================================================
+	function reset() {
+		$this->reload();
+	}
+	
 	function reload() {
+		$this->free();
 		$this->loaded = false;
 		$this->result = false;
 		$this->load();
@@ -204,6 +211,7 @@ class DBRecordCollection implements Iterator, Countable, ArrayAccess
 			if ($this->result === false) {
 				throw new DBRecordError("Error loading ".get_class($this->model).".\n".$this->db->error(), 0, $this->query.$this->limit);
 			}
+			
 			$this->loaded = true;
 		}
 	}

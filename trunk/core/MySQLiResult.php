@@ -19,6 +19,10 @@ class MySQLiResult implements Countable
 		return true;
 	}
 	
+	public function data_seek($s) {
+		$this->result->data_seek($s);
+	}
+	
 // ===========================================================
 // - COUNTABLE INTERFACE
 // ===========================================================
