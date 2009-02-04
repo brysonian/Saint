@@ -340,7 +340,7 @@ function time_field($obj, $name, $prop) {
 
 function checkbox($obj, $name, $prop, $value=1) {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
-	$out = "<input type='checkbox' value='$value' id='{$name}_{$prop}_box' name='{$name}[{$prop}]'";
+	$out = "<input class='checkbox' type='checkbox' value='$value' id='{$name}_{$prop}_box' name='{$name}[{$prop}]'";
 	if ($value == $v)	$out .= " checked='checked' ";
 	$out .= " />";
 #	$out .= " onclick='document.getElementById(\"{$name}_$prop\").value = this.checked?this.value:0;' />";
@@ -360,7 +360,7 @@ function radio($obj, $name, $prop, $values , $join_type= '<br />' , $join_type_l
 			$display_name = $value;
 		}
 		$checked = ($value == $v) ? " checked='checked' " : '';
-		$out[] = "<input type='radio' value='$value' id='{$name}_{$prop}' name='{$name}[{$prop}]'$checked/> $display_name" ;
+		$out[] = "<input type='radio' class='radio' value='$value' id='{$name}_{$prop}' name='{$name}[{$prop}]'$checked/> $display_name" ;
 	}
 
 	if ( $join_type == 'li' ) {
