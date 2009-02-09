@@ -24,6 +24,10 @@ class ViewFactory
 				$the_view = new PXMLView("$template.$type");
 				break;
 				
+			case 'pjs':
+				$the_view = new PJSView("$template.$type");
+				break;
+
 			case 'xsl':
 				$the_view = new XSLTView("$template.$type");
 				break;
@@ -38,6 +42,7 @@ class ViewFactory
 	static function get_template_type($template) {
 		if (file_exists("$template.phtml")) return "phtml";
 		if (file_exists("$template.pxml")) return "pxml";
+		if (file_exists("$template.pjs")) return "pjs";
 		if (file_exists("$template.xsl")) return "xsl";
 		return false;		
 	}
