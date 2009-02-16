@@ -417,7 +417,21 @@ class DBRecord implements Iterator, Serviceable, Countable
 	
 	public function use_next_id($force = false) {
 		if ($this->id && !$force) return $this->id;
-		$this->exec('INSERT INTO '.$this->get_table().' (id) VALUES (NULL)');
+
+		$info = $this->table_info();
+		$values = array('id'=>'NULL');
+		foreach(array('created_on', 'created_at') as $v) {
+			if (in_array($v, $info)) {
+				$values[$v] = $this->now();
+			}
+		}
+		
+		$keys = array_keys($values);
+		$sql = 'INSERT INTO '.$this->get_table();
+		$sql .= "(`".join("`,`", $keys)."`) VALUES ('".join("','", $values)."')";
+		$sql = str_replace("'NULL'", "NULL", $sql);
+
+		$this->exec($sql);
 		$r = $this->db()->insert_id();
 		$this->id = $r;
 		return $r;
