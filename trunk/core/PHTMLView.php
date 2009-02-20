@@ -348,7 +348,7 @@ function checkbox($obj, $name, $prop, $value=1) {
 	return $out;
 }
 
-function radio($obj, $name, $prop, $values , $join_type= '<br />' , $join_type_li_class= '') {
+function radio($obj, $name, $prop, $values , $join_type= '<br />' , $join_type_li_class= '', $attrs='') {
 	$v = $obj?(is_object($obj)?$obj->$prop:$obj[$prop]):'';
 	if (!is_numeric($v) && empty($v)) $v = $values[0];
 	$out = array();
@@ -360,7 +360,7 @@ function radio($obj, $name, $prop, $values , $join_type= '<br />' , $join_type_l
 			$display_name = $value;
 		}
 		$checked = ($value == $v) ? " checked='checked' " : '';
-		$out[] = "<input type='radio' class='radio' value='$value' id='{$name}_{$prop}' name='{$name}[{$prop}]'$checked/> $display_name" ;
+		$out[] = "<input $attrs type='radio' class='radio' value='$value' id='{$name}_{$prop}' name='{$name}[{$prop}]'$checked/> $display_name" ;
 	}
 
 	if ( $join_type == 'li' ) {
