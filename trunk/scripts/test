@@ -1,6 +1,10 @@
 <?php
 	
 	$dirname = PROJECT_ROOT.'/test/unit';
+	if (!defined('PATH_TO_PHPUNIT')) {
+		define('PATH_TO_PHPUNIT', '/usr/include/php/bin/phpunit');
+	}
+
 	chdir($dirname);
 	$dir = new DirectoryIterator($dirname);
 	$out = array();
@@ -9,7 +13,7 @@
 		$fname = $file->getFilename();
 		if ($fname{0} != '.') {
 			$test = pathinfo($fname, PATHINFO_FILENAME);
-			$cmd = "/usr/local/php5/bin/phpunit '$test'";
+			$cmd = PATH_TO_PHPUNIT." '$test'";
 			$out = shell_exec($cmd);
 			echo "$cmd\n$out\n";
 		}
