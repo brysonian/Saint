@@ -1191,6 +1191,7 @@ class DBRecord implements Iterator, Serviceable, Countable
 	}
 
 	function utf8_to_entities($str) {
+		$str = html_entity_decode($str, ENT_QUOTES, 'UTF-8');
 		$unicode = array();
 		$values = array();
 		$looking_for = 1;
