@@ -73,7 +73,7 @@ class UploadedFile
 				$t = 'png';
 				break;
 					
-			case ($exif_type == IMAGETYPE_SWF && $this->get_extension() == 'swf'):
+			case (($exif_type == IMAGETYPE_SWF || $exif_type == IMAGETYPE_SWC) && $this->get_extension() == 'swf'):
 				$t = 'swf';
 				break;				
 		}
