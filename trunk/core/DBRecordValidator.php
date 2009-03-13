@@ -264,7 +264,7 @@ class DBRecordValidator {
 // - FORMAT
 // ===========================================================
 	public function validates_email_of($prop, $message=false) {
-		$this->validates_format_of($prop, '/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/', get_error_message(VALIDATION_EMAIL, $prop));
+		$this->validates_format_of($prop, '/^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,3})$/', get_error_message(VALIDATION_EMAIL, $prop));
 	}
 	
 	public function validates_url_of($prop, $message=false) {
