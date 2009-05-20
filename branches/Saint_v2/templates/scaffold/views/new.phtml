@@ -1,9 +1,0 @@
-		<h1>Create :hname_object</h1>
-		<form enctype="multipart/form-data" action=":php_echo url_for(array('action'=>'create'));:php_close" method="post">
-			:php_open render_partial('form', $:object); :php_close
-
-			<div id="footer">
-				:php_echo submit_to('Create');:php_close
-				:php_echo button_to('Cancel', false);:php_close
-			</div>
-		</form>

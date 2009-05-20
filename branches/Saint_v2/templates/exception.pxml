@@ -1,9 +1,0 @@
-<error code='<?php echo $code; ?>'>
-	<type><?php echo $type; ?></type>
-	<file><?php echo $file; ?></file>
-	<line><?php echo $line; ?></line>
-	<message><?php echo $msg; ?></message>
-
-	<trace><?php echo $trace; ?></trace>
-	<request><?php var_export(params()); ?></request>
-</error>
