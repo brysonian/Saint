@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="949.43">
+  <style type="text/css">
+		* {
+			margin:0px;
+			padding: 0px;
+		}
+		
+    body {
+			font: 12px Arial, sans-serif;
+			line-height: 16px;
+		}
+		
+    code {
+			white-space:pre
+		}
+		
+		p, div {
+			width: 500px;
+			margin-left: 10px;
+		}
+
+		h1 { background-color: #fdfdfd; color: #F04F2D; margin-top: 0px; margin-bottom: 0px; padding: 10px; border-top: 10px solid #282220; border-bottom: 1px solid #282220; height: 70px; }
+		h2 { background-color: #fdfdfd; color: #282220; font-size:14px; margin: 40px 0px 10px 0px; padding-left: 10px;}
+
+		
+  </style>
+</head>
+<body>
+<h1>Saint PHP Framework</h1>
+<h2>Overview</h2>
+<p>Saint is a PHP web-application framework for quickly developing database-backed web applications using the model-view-controller design pattern. Using Saint it is possible to create sophisticated web applications with a minimum of developer overhead and a maximum of flexibility.</p>
+<p>Saint is heavily inspired by the methodologies found in the ruby on rails framework. As such, a good resource at this time is any one of the numerous tutorials about ruby on rails. The basics of the framework consist of a single front controller which handles the forwarding of requests to the appropriate controller classes by using a url mapping.<span class="Apple-converted-space"> </span></p>
+<h2>Application Layout</h2>
+<p>A basic Saint application consists of a number of directories typically stored in the level above the live web directory:</p>
+<div id="dir-layout">
+<code>
+app
+	controllers
+	helpers
+	models
+	views
+config
+db
+plugins
+html
+scripts
+</code>
+</div>
+
+<p>The MVC elements are organized in the app directory, and all configuration files are in config.</p>
+<h2>Configuration</h2>
+<p>Saint requires a very minimal amount of configuration. database.php contains the parameters for accessing the database and urls.php contains the url mappings used by the front-controller.</p>
+<h2>Request Flow</h2>
+<p>The front controller (dispatch.php) intercepts requests and determines the correct controller class and action. The standard url mapping is: /controller/action/parameters. These mappings can be further modified in the config/urls.php file. Once the controller is found and loaded, the correct action method on the controller is executed. The controller methods hold the core lookups for a given "page". When the action has finished execution, the correct view class is instantiated and interpreted then sent to the browser. View templates are located in the app/views directory. There are a few different template formats available. All views should be in a directory with the same name as the controller, in a file with the same name as the action, and end with a valid template extension. the .phtml extension will treat the contents as valid in-line php. the .pxml extension will let you output xml served with the correct mime type. Finally the .xsl causes the framework to treat the controller variables as XML and perform a XSLT operation to produce the HTML.</p>
+<p>Any instance variables on the controller class are made available to the phtml and pxml views as local variables. For instance if you set $this-&gt;foo = "bar" in an action method, this variable will be available in the template as $foo.</p>
+<h2>File Locations</h2>
+<p>As is apparent from the application layout, the bulk of code for a site is located in the ”app” directory. All controllers are located in the “controllers” directory. These controllers are primarily responsible for handling the incoming request, loading data from the database (using the model objects from models) and setting variables used by the views. Each method on the controller corresponds to an action from the url. Methods which are accessible as actions are prefixed with an underscore character. For example the index action for a controller (executed automatically which only a controller name, but not an action, is specified) is named _index.<span class="Apple-converted-space"> </span></p>
+<p>All view templates are located in the “views” directory, which contains a sub-directory for each controller. Inside these sub-directories are template files for each action. For instance, the template for the index action of the home controller is located at /app/views/home/index.phtml</p>
+</body>
+</html>
