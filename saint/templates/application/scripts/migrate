@@ -10,8 +10,7 @@
 		} else if (array_key_exists('SAINT_ROOT', $_SERVER)) {
 			define('SAINT_ROOT', $_SERVER['SAINT_ROOT']);
 		}
-		
-		include SAINT_ROOT."/scripts/migrate";
 	}
+	include SAINT_ROOT."/scripts/migrate";
 	
 ?>

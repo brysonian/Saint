@@ -1,6 +1,7 @@
 #!/usr/bin/php
 
 <?php
+	define('SAINT_ROOT', array_key_exists('SAINT_ROOT', $_SERVER)?$_SERVER['SAINT_ROOT']:'/Users/chandler/Projects/Saint/saint/saint');
 
 	if(!defined('SAINT_ROOT')) {
 	
@@ -11,8 +12,7 @@
 		} else if (array_key_exists('SAINT_ROOT', $_SERVER)) {
 			define('SAINT_ROOT', $_SERVER['SAINT_ROOT']);
 		}
-		
-		include SAINT_ROOT."/scripts/generate";
 	}
+	include SAINT_ROOT."/scripts/generate";
 
 ?>
