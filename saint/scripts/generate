@@ -88,7 +88,14 @@
 			if (count($argv) == 1)
 				error("Please specify the name of the scaffold you would like to generate.");
 			else
-				create_scaffold($argv[1], false);
+				echo "\tcreate view\n";
+				$name  = $argv[1];
+				$view_base = url_name($argv[1]);
+				create_view_folder($view_base);
+
+				#layout
+				write_scaffold_template($view_base, $name, "app/views/_layouts", true);
+
 			break;
 
 		default:
@@ -139,6 +146,7 @@
 	
 	function create_scaffold($name, $controller=false) {
 		$view_base = (($controller===false)?url_name($name):url_name($controller));
+		create_view_folder($view_base);
 		$path = "app/views/$view_base";
 				
 		#layout
